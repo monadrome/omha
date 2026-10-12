@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { join } from 'node:path';
 import { FINAL_MARKER, hash, now, stateHome } from '../lib/core.mjs';
+import { handoffPaths } from '../lib/handoff-protocol.mjs';
 import { atomicWrite, jsonRead, safeRead } from '../lib/storage.mjs';
 import { run, processFingerprint } from '../lib/process.mjs';
 import { environment, environmentSecrets, redact } from '../lib/security.mjs';
@@ -9,7 +9,7 @@ import { Transform } from 'node:stream';
 
 const record = jsonRead(process.argv[2], null, stateHome());
 if (!record) process.exit(2);
-const dir = join(stateHome(), 'handoffs', record.id);
+const paths = handoffPaths(record.id);
 const env = environment(record.envAllowlist);
 env.OMHA_PROMPT_FILE = record.promptFile;
 const secrets = environmentSecrets(env);
@@ -55,7 +55,7 @@ try {
     onOutput: print,
     onSpawn: (childPid) =>
       atomicWrite(
-        join(dir, 'process.json'),
+        paths.processFile,
         JSON.stringify({
           token: record.owner.token,
           pid: process.pid,
@@ -84,12 +84,8 @@ try {
     responseHash: hash(result.stdout),
     at: now(),
   };
-  atomicWrite(
-    join(dir, 'output.log'),
-    redact(`${result.stdout}\n${result.stderr}`, secrets),
-    stateHome(),
-  );
-  atomicWrite(join(dir, 'final.json'), JSON.stringify(final), stateHome());
+  atomicWrite(paths.outputFile, redact(`${result.stdout}\n${result.stderr}`, secrets), stateHome());
+  atomicWrite(paths.finalFile, JSON.stringify(final), stateHome());
   process.stdout.write(`\n${FINAL_MARKER}${JSON.stringify(final)}\n`);
   if (state === 'timed_out') {
     for (let i = 0; i < 20; i += 1) {
@@ -114,7 +110,7 @@ try {
 } catch {
   process.stdin.setRawMode?.(false);
   atomicWrite(
-    join(dir, 'final.json'),
+    paths.finalFile,
     JSON.stringify({ token: record.owner.token, state: 'failed', exitCode: 1, at: now() }),
     stateHome(),
   );
