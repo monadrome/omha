@@ -51,10 +51,22 @@ repository at /private/tmp/omha-hardening-20261012.
 
 ## Residual backlog
 
-- [pending] Replace post-parse event observation with a bounded provider stream or
-  ACP status channel before adding automatic escalation/takeover.
+- [complete] Add an opt-in bounded provider stream for real JSONL adapters before
+  adding automatic escalation/takeover; default and non-JSONL observation remains
+  completion-time.
+- [pending] Add a supervision loop that consumes live heartbeats/input-wait events
+  and performs bounded notification/takeover decisions.
 - [pending] Standardize provider JSON-RPC capabilities without crossing native
   subscription/API billing channels.
+
+## Competitor-informed realtime observation (2026-10-12)
+
+- [complete] 1. Compare four active, high-star related projects and record
+  reusable capabilities with public evidence.
+- [complete] 2. Add an opt-in bounded JSONL stream framer for Codex/Kimi by
+  reusing the existing adapter and process callback paths.
+- [complete] 3. Finish offline failure-path coverage, contracts/changelogs,
+  full checks, then commit and push this bounded change.
 
 ## Hardening audit (2026-10-12)
 

@@ -29,6 +29,8 @@
   profiles are recorded and skipped before provider launch.
 - Expose bounded structured provider event summaries and input-wait signals via
   the runtime callback/result envelope without persisting raw payloads.
+- Add opt-in bounded realtime JSONL event framing for Codex/Kimi, with fail-closed
+  incomplete/oversized streams and callback failures routed through process cleanup.
 - Add independent `reviewTask()` records with frozen diff/test evidence,
   criterion coverage checks and host-owned approval; self-review and malformed
   reviews fail closed without changing task results.

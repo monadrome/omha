@@ -32,6 +32,17 @@ raw provider payloads are not copied into the summary. Event parsing is evidence
 only: a successful exit still requires the adapter's completed nonempty result,
 and an event stream never replaces host acceptance checks.
 
+Pass `streamEvents: true` to `dispatch()` or `ProviderRuntime.attempt()` to receive
+the same redacted summary envelope while a real Codex or Kimi JSONL process is
+still running. Each streamed callback has `realtime: true` and a zero-based
+sequence. The host bounds each line to 512 KiB, the incomplete buffer to 1 MiB,
+and a request to 4,096 events; malformed or incomplete frames fail closed and
+the existing process-group cleanup path runs. The option is opt-in and does not
+change Claude's JSON invocation, provider billing channel, completion validation,
+retry policy or budget settlement. `result.stream` records whether streaming was
+requested, supported, delivered and complete. A stream callback may be
+synchronous or return a promise; a rejected callback is a host task failure.
+
 `reviewTask()` reviews only a completed successful DAG task. The host freezes the
 task output hash, diff, test evidence and criteria in a packet, requires a
 different reviewer profile with `headless`, `tool-free` and `read-only`

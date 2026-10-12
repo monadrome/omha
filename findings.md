@@ -51,15 +51,37 @@
 
 ## Residual automation boundaries (2026-10-12)
 
-- Escalation/takeover supervision remains pending. The new structured summaries
-  are emitted after a provider response is parsed, so a timer built on them would
-  not reliably observe a live stall or input wait. Existing task/handoff timeouts
-  remain the bounded failure path until a provider stream or ACP status channel is
-  available.
+- Escalation/takeover supervision remains pending. Default and non-JSONL summaries
+  are emitted after a provider response is parsed; the new opt-in Codex/Kimi JSONL
+  stream provides live evidence but does not yet define a watchdog policy. Existing
+  task/handoff timeouts remain the bounded failure path until that host decision
+  loop is specified.
 - ACP integration remains pending. Current Claude/Codex/Kimi adapters preserve
   their native billing channels and expose a common summary envelope, but no
   JSON-RPC stdio capability contract is present to standardize without inventing
   a second adapter implementation.
+
+## Competitor research and realtime stream (2026-10-12)
+
+- The four most relevant active projects selected by public stars and overlap
+  were OpenHands (90,711), Cline (70,213), Goose (55,197) and LangGraph
+  (43,138). Sources and the selection rationale are recorded in
+  `docs/research.md`; AutoGen was excluded because its repository says it is in
+  maintenance mode.
+- Cline's headless NDJSON/events and Goose's `stream-json` are the closest safe
+  borrowing point. OpenHands' backend boundary and LangGraph's durable
+  interrupt/resume model remain design references, not copied implementations.
+- `createEventFramer()` now consumes complete JSONL lines with 512 KiB line,
+  1 MiB incomplete-buffer and 4,096-event limits. It emits only the existing
+  redacted summaries, so raw provider payloads do not enter callbacks or durable
+  records.
+- `streamEvents: true` is intentionally opt-in and supports real Codex/Kimi
+  JSONL processes only. Claude keeps its native JSON invocation; fake fixtures
+  keep completion-time behavior. Callback promises are drained after process
+  exit, and callback rejection is classified as a host task failure.
+- Completion parsing, host acceptance, budget settlement, retry/fallback,
+  process-group cleanup and billing channels remain authoritative. A stream is
+  observation evidence and cannot establish task correctness.
 
 ## Hardening audit (2026-10-12)
 

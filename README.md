@@ -102,7 +102,12 @@ the required environment variable. Configure models available to your account.
 Headless JSON/JSONL providers expose bounded event summaries through the runtime
 callback and result envelope, including turn types, tool/file evidence, usage and
 input-wait signals. Raw provider payloads remain untrusted and are not persisted
-as event summaries.
+as event summaries. Pass `streamEvents: true` through the API to receive the same
+redacted summaries while Codex or Kimi JSONL is running; the stream is opt-in and
+bounded, and `result.stream` records support, delivery and completion. Claude
+continues using its native JSON invocation. A streamed event is observation
+evidence only; completion parsing, host acceptance, budget gates and billing
+channels remain authoritative.
 
 Completed DAG results can be sent to `reviewTask()` with a frozen diff, test
 evidence and review criteria. The host requires an independent reviewer profile,

@@ -5,7 +5,13 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { temp, fake, config } from './helpers.mjs';
 import { createRuntime } from '../lib/runner.mjs';
-import { parseEvents, parseOutput, summarizeEvent, invocation } from '../lib/adapters.mjs';
+import {
+  createEventFramer,
+  parseEvents,
+  parseOutput,
+  summarizeEvent,
+  invocation,
+} from '../lib/adapters.mjs';
 import { classify, retryAfter, retryAfterFromText } from '../lib/failures.mjs';
 import { loadConfig, validateProfiles } from '../lib/profiles.mjs';
 import { run } from '../lib/process.mjs';
@@ -205,6 +211,92 @@ test('structured provider events expose bounded tool, file, usage and input-wait
   assert.equal(result.events[1].inputWait, true);
   assert.equal(seen.length, 2);
   assert.equal(seen[1].kind, 'provider.event');
+});
+
+test('JSONL provider streams frame bounded events before completion', async () => {
+  const marker = join(root, 'stream-callback.marker');
+  const code = `const fs=require('node:fs');const marker=${JSON.stringify(marker)};process.stdout.write(JSON.stringify({status:'success',type:'progress',output:'progress'})+'\\n');setTimeout(()=>{const output=fs.existsSync(marker)?'done':'callback-was-late';process.stdout.write(JSON.stringify({status:'success',type:'result',output})+'\\n')},40)`;
+  const runtime = local({
+    p: {
+      adapter: 'command',
+      command: process.execPath,
+      model: 'local',
+      sandbox: 'workspace-write',
+      outputFormat: 'jsonl',
+      args: ['-e', code],
+      retry: { maxRetries: 0 },
+    },
+  });
+  const seen = [];
+  const result = await runtime.dispatch('stream', ['p'], {
+    mode: 'write',
+    streamEvents: true,
+    onProviderEvent: (event) => {
+      seen.push(event);
+      if (event.realtime) writeFileSync(marker, 'seen');
+    },
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.stdout, 'done');
+  assert.deepEqual(result.stream, {
+    requested: true,
+    supported: true,
+    delivered: 2,
+    complete: true,
+  });
+  assert.equal(seen.length, 2);
+  assert.equal(seen[0].realtime, true);
+  assert.equal(seen[1].sequence, 1);
+});
+
+test('JSONL stream rejects incomplete and over-limit frames before acceptance', () => {
+  const incomplete = createEventFramer('codex', 'jsonl');
+  incomplete.push('{"type":"turn.started"}\n{"type":"turn.');
+  assert.throws(() => incomplete.finish(), /Incomplete provider event line/);
+  const limited = createEventFramer('codex', 'jsonl', { maxEvents: 1 });
+  assert.throws(
+    () => limited.push('{"type":"a"}\n{"type":"b"}\n'),
+    /event stream exceeds event limit/,
+  );
+  const longLine = createEventFramer('codex', 'jsonl', { maxLineBytes: 8 });
+  assert.throws(() => longLine.push('{"type":"a"}\n'), /event line exceeds stream limit/);
+});
+
+test('JSONL stream preserves UTF-8 characters split across output chunks', () => {
+  let summary;
+  const framer = createEventFramer('codex', 'jsonl', { onEvent: (event) => (summary = event) });
+  const line = Buffer.from('{"type":"进展"}\n');
+  const split = line.indexOf(Buffer.from('展'));
+  framer.push(line.subarray(0, split + 1));
+  framer.push(line.subarray(split + 1));
+  framer.finish();
+  assert.equal(summary.type, '进展');
+});
+
+test('stream callback failure aborts the provider and settles as a host task failure', async () => {
+  const code = `process.stdout.write(JSON.stringify({status:'success',type:'progress',output:'progress'})+'\\n');setTimeout(()=>process.stdout.write(JSON.stringify({status:'success',type:'result',output:'done'})+'\\n'),100)`;
+  const runtime = local({
+    p: {
+      adapter: 'command',
+      command: process.execPath,
+      model: 'local',
+      sandbox: 'workspace-write',
+      outputFormat: 'jsonl',
+      args: ['-e', code],
+      retry: { maxRetries: 0 },
+    },
+  });
+  const result = await runtime.dispatch('stream', ['p'], {
+    mode: 'write',
+    streamEvents: true,
+    onProviderEvent: () => {
+      throw new Error('reviewer rejected event');
+    },
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.failure, 'task');
+  assert.equal(result.failureStage, 'host');
+  assert.equal(result.budget.account.requests, 1);
 });
 
 test('failure taxonomy and Retry-After seconds/HTTP dates', () => {

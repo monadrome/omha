@@ -82,6 +82,9 @@ Profile 明确配置 executable/argv、adapter、model、effort、sandbox、time
 
 Headless JSON/JSONL provider 会通过 runtime 回调和结果 envelope 暴露有界事件摘要，
 包括轮次类型、工具/文件证据、usage 与等待输入信号；原始 provider payload 不会写入事件摘要。
+API 传入 `streamEvents: true` 后，Codex 或 Kimi 的 JSONL 进程运行期间也会收到同样的脱敏摘要；
+流是显式开启且有界的，`result.stream` 会记录是否支持、投递和完成。Claude 继续使用原生 JSON 调用。
+事件流只提供观察证据；完成解析、host 验收、预算闸门和计费通道仍是最终依据。
 
 完成的 DAG 结果可通过 `reviewTask()` 接受冻结 diff、测试证据和复核标准。宿主强制使用不同的
 reviewer profile，校验每项标准；失败或格式错误的复核会记录为未批准，不会改变任务结果。

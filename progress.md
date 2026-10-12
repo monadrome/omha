@@ -73,6 +73,19 @@
 - `npx --yes node@20 --test tests/*.test.mjs` passed 95/95 offline tests.
 - Main is clean and synchronized with origin at `ce7f770`; residual real-time
   escalation and ACP limits are recorded in `findings.md`.
+
+## Competitor-informed realtime observation (2026-10-12)
+
+- Three subagents independently compared the active high-star projects; the
+  detailed evidence and selection are in `docs/research.md`.
+- Added an opt-in bounded JSONL framer and runner integration for live Codex/Kimi
+  event summaries. The callback carries `realtime: true`; the result records
+  stream requested/supported/delivered/complete state.
+- Added offline coverage for chunk framing, callback-before-completion behavior,
+  incomplete/oversized streams and callback-triggered process cancellation.
+- Focused runtime check passes 23/23. `npm run check` passes 98/98 offline tests;
+  Node 20 passes 98/98, and `npm run pack:check` verifies the 71-file package,
+  clean HOME examples and uninstall.
 - Capability phase check passed: `npm run check` reports 93/93 offline tests,
   43 syntax files and all examples validated. Version remains `0.2.0-rc.2`.
 
