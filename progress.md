@@ -65,6 +65,14 @@
   malformed reviewer output and provider configuration drift refusal.
 - Final check for this phase passes: 95/95 offline tests, 43 syntax files and all
   examples validated. Version remains `0.2.0-rc.2`.
+
+## Delivery verification (2026-10-12)
+
+- `npm run pack:check` passed with a 71-file tarball, clean HOME install,
+  examples executed and uninstall verified.
+- `npx --yes node@20 --test tests/*.test.mjs` passed 95/95 offline tests.
+- Main is clean and synchronized with origin at `ce7f770`; residual real-time
+  escalation and ACP limits are recorded in `findings.md`.
 - Capability phase check passed: `npm run check` reports 93/93 offline tests,
   43 syntax files and all examples validated. Version remains `0.2.0-rc.2`.
 

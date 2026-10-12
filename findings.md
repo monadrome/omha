@@ -49,6 +49,18 @@
   cannot set approval, must cover exactly the frozen criteria, and is rejected
   when the run profile hash changes; review records never mutate task status.
 
+## Residual automation boundaries (2026-10-12)
+
+- Escalation/takeover supervision remains pending. The new structured summaries
+  are emitted after a provider response is parsed, so a timer built on them would
+  not reliably observe a live stall or input wait. Existing task/handoff timeouts
+  remain the bounded failure path until a provider stream or ACP status channel is
+  available.
+- ACP integration remains pending. Current Claude/Codex/Kimi adapters preserve
+  their native billing channels and expose a common summary envelope, but no
+  JSON-RPC stdio capability contract is present to standardize without inventing
+  a second adapter implementation.
+
 ## Hardening audit (2026-10-12)
 
 - Starting worktree is clean on main tracking origin/main.

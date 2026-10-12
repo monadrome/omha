@@ -49,6 +49,13 @@ repository at /private/tmp/omha-hardening-20261012.
 - [complete] 3. Update API/docs/changelogs, run checks, commit and push; preserve
   task outcomes and existing write gates.
 
+## Residual backlog
+
+- [pending] Replace post-parse event observation with a bounded provider stream or
+  ACP status channel before adding automatic escalation/takeover.
+- [pending] Standardize provider JSON-RPC capabilities without crossing native
+  subscription/API billing channels.
+
 ## Hardening audit (2026-10-12)
 
 - [done] 1. Run the real handoff worker and test completion file and stdout
