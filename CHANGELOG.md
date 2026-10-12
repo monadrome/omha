@@ -25,6 +25,8 @@
   timing.
 - Add host-owned automatic roundtable triggers for risk, ambiguity and write
   magnitude, with no-provider no-trigger results and persisted trigger evidence.
+- Add validated profile capability tiers and `requires` routing so incompatible
+  profiles are recorded and skipped before provider launch.
 
 ## 0.2.0-rc.1 - 2026-10-10
 

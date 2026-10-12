@@ -23,6 +23,14 @@ repository at /private/tmp/omha-hardening-20261012.
 - [in_progress] 3. Commit and push the bounded trigger change, then record residual
   capability gaps for the next iteration.
 
+## Profile capability model (2026-10-12)
+
+- [complete] 1. Validate explicit/inferred capability tiers without relaxing
+  sandbox, budget or fallback guarantees.
+- [complete] 2. Make routing honor `requires` capabilities and record rejected
+  incompatible profiles without spawning them; cover offline failure paths.
+- [complete] 3. Update schemas/contracts/changelogs, run checks, commit and push.
+
 ## Hardening audit (2026-10-12)
 
 - [done] 1. Run the real handoff worker and test completion file and stdout

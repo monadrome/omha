@@ -13,7 +13,11 @@ relative to the supplied working directory, while durable state is under
 Provider configuration is `schemas/providers.schema.json`. A profile names an
 adapter (`claude`, `codex`, `kimi`, `command`, or `fake`), executable, model,
 effort, sandbox, timeout, concurrency, budgets, environment allowlist, retry
-policy, circuit cooldown and fallback profiles. `sandboxCommand` and
+policy, circuit cooldown, fallback profiles and capability tiers. Capabilities
+are `interactive`, `headless`, `tool-free` and `read-only`; known adapters and
+sandbox settings infer the enforceable subset, while unsupported declarations
+fail validation. A dispatch request can set `requires` to route only to profiles
+that satisfy those host-checked capabilities. `sandboxCommand` and
 `sandboxArgs` can wrap an adapter in an external read-only sandbox; Kimi
 read-only profiles require them. `fake.responses` is for tests only. A provider
 response is successful only when the adapter parser sees a

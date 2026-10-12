@@ -34,6 +34,17 @@
 - Added offline tests for threshold boundaries, unknown fields, invalid ranges,
   no-trigger provider suppression and triggered evidence persistence.
 
+## Profile capability model (2026-10-12)
+
+- Added inferred and explicitly validated `interactive`, `headless`, `tool-free`
+  and `read-only` profile capabilities, with schema, README and contract docs.
+- Added host-side `requires` routing: incompatible profiles produce a routing
+  attempt record, are never spawned, and compatible fallback candidates can run.
+- Added offline tests for inferred tiers, impossible declarations, compatible
+  routing and the all-incompatible fail-closed result.
+- Capability phase check passed: `npm run check` reports 93/93 offline tests,
+  43 syntax files and all examples validated. Version remains `0.2.0-rc.2`.
+
 ## Hardening audit (2026-10-12)
 
 - Read AGENTS.md, README.md, docs/contracts.md, worker, terminal reader and tests.

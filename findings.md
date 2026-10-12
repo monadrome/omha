@@ -37,6 +37,10 @@
   not another provider implementation. The trigger now uses only bounded host
   signals and reuses the existing blind roundtable, so it cannot delegate the
   decision boundary to a prompt.
+- Capability inference is limited to flags Omha can enforce: known structured
+  adapters imply `headless`, Claude/Codex/fake imply `tool-free`, and only the
+  `read-only` sandbox implies `read-only`. External wrappers remain explicit and
+  are not promoted to read-only automatically.
 
 ## Hardening audit (2026-10-12)
 

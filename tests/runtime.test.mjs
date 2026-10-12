@@ -47,6 +47,76 @@ test('strict configuration catches malformed, unknown, unsafe and cyclic profile
   );
 });
 
+test('profiles expose verified capability tiers and reject impossible declarations', async () => {
+  const profiles = validateProfiles({
+    version: 1,
+    profiles: {
+      claude: {},
+      kimi: {},
+      command: {
+        adapter: 'command',
+        command: '/bin/sh',
+        args: ['-c', 'printf ok'],
+        model: 'local',
+        sandbox: 'external',
+        sandboxCommand: '/usr/bin/env',
+        sandboxArgs: ['--'],
+      },
+    },
+  }).profiles;
+  assert.deepEqual(profiles.claude.capabilities, ['headless', 'tool-free', 'read-only']);
+  assert.deepEqual(profiles.kimi.capabilities, ['headless']);
+  assert.deepEqual(profiles.command.capabilities, []);
+  assert.throws(
+    () => validateProfiles(config({ p: fake('ok', { capabilities: ['tool-free', 'tool-free'] }) })),
+    /duplicates/,
+  );
+  assert.throws(
+    () =>
+      validateProfiles(
+        config({
+          p: {
+            adapter: 'command',
+            command: '/bin/sh',
+            args: ['-c', 'printf ok'],
+            model: 'local',
+            sandbox: 'external',
+            capabilities: ['headless'],
+          },
+        }),
+      ),
+    /cannot enforce headless/,
+  );
+});
+
+test('routing records capability mismatches, skips them and never spawns them', async () => {
+  const runtime = local({
+    plain: {
+      adapter: 'command',
+      command: '/bin/sh',
+      args: ['-c', 'printf should-not-run'],
+      model: 'local',
+      sandbox: 'external',
+      sandboxCommand: '/usr/bin/env',
+      sandboxArgs: ['--'],
+    },
+    compatible: fake('selected'),
+  });
+  const result = await runtime.dispatch('task', ['plain', 'compatible'], {
+    requires: ['headless', 'tool-free'],
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.provider, 'fake');
+  assert.equal(result.attempts[0].failure, 'capability');
+  assert.equal(result.attempts[0].failureStage, 'routing');
+  assert.equal(result.attempts[0].requiredCapabilities.join(','), 'headless,tool-free');
+  assert.equal(runtime.fakeOffsets.get('compatible'), 1);
+  const refused = await runtime.dispatch('task', ['plain'], { requires: ['headless'] });
+  assert.equal(refused.ok, false);
+  assert.equal(refused.failure, 'capability');
+  assert.equal(refused.attempts.length, 1);
+});
+
 test('adapters require completed, valid JSON/JSONL and extract provenance', () => {
   const claude = parseOutput(
     'claude',

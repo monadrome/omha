@@ -74,7 +74,8 @@ probe 会保留有限诊断并验证 file fallback；tmux 与离线检查仍是�
 [JSON Schema](schemas/providers.schema.json)。
 
 Profile 明确配置 executable/argv、adapter、model、effort、sandbox、timeout、concurrency、
-预算预留、环境变量白名单、retry、circuit cooldown 和 fallback 顺序。
+预算预留、环境变量白名单、retry、circuit cooldown、fallback 顺序及由宿主校验的
+`interactive`、`headless`、`tool-free`、`read-only` 能力；路由可在启动 provider 前声明必需能力。
 `sandboxCommand`/`sandboxArgs` 可包装外部只读沙箱，Kimi 只读 profile 必须配置它。白名单只记录
 变量名。密钥应放在 CLI 凭据存储或明确允许的环境变量中，不能放进 JSON、参数、提示词
 或记忆。模型名称需按当前账户和 CLI 调整。

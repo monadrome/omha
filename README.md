@@ -91,7 +91,9 @@ closed. See [examples/providers.json](examples/providers.json) and
 
 Profiles specify adapter, executable/argv, model, effort, sandbox, timeout,
 concurrency, budget reservations, environment variable **names**, retry policy,
-circuit cooldown and fallback profiles. `sandboxCommand`/`sandboxArgs` can wrap
+circuit cooldown and fallback profiles. They also expose host-checked
+`interactive`, `headless`, `tool-free` and `read-only` capabilities; dispatch
+requests can require a subset before any provider is spawned. `sandboxCommand`/`sandboxArgs` can wrap
 an adapter in an external read-only sandbox; Kimi read-only profiles require
 that wrapper. Never put API keys in JSON, argv, prompts
 or memory. Authenticate through the CLI's credential store or explicitly allow
