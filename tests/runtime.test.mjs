@@ -141,13 +141,20 @@ test('bounded retry, fallback and served model accounting are explicit', async (
 });
 
 test('task, malformed output, auth and configuration failures never fall back', async () => {
-  for (const failure of ['task', 'auth', 'configuration']) {
-    const result = await local({ p: fake('', { responses: [{ failure }] }), q: fake() }).dispatch(
-      'prompt',
-      ['p', 'q'],
-    );
+  for (const failure of [
+    'task',
+    'auth',
+    'configuration',
+    'malformed_output',
+    'budget',
+    'cancellation',
+    'backend',
+  ]) {
+    const rt = local({ p: fake('', { responses: [{ failure }], fallback: ['q'] }), q: fake() });
+    const result = await rt.dispatch('prompt', ['p']);
     assert.equal(result.failure, failure);
     assert.equal(result.attempts.length, 1);
+    assert.equal(rt.fakeOffsets.has('q'), false);
   }
   const runtime = local({
     p: fake('', { outputFormat: 'json', responses: [{ stdout: '{bad}' }] }),
@@ -155,7 +162,28 @@ test('task, malformed output, auth and configuration failures never fall back', 
   });
   const result = await runtime.dispatch('prompt', ['p', 'q']);
   assert.equal(result.failureStage, 'parse');
+  assert.equal(result.failure, 'malformed_output');
   assert.equal(result.attempts.length, 1);
+});
+
+test('only the six documented failure classes trigger fallback', async () => {
+  for (const failure of [
+    'rate_limit',
+    'capacity',
+    'timeout',
+    'transport',
+    'spawn',
+    'circuit_open',
+  ]) {
+    const rt = local({ p: fake('', { responses: [{ failure }], fallback: ['q'] }), q: fake() });
+    const result = await rt.dispatch('prompt', ['p']);
+    assert.equal(result.ok, true);
+    assert.equal(result.servedProfile, 'q');
+    assert.deepEqual(
+      result.attempts.map((attempt) => attempt.profile),
+      ['p', 'q'],
+    );
+  }
 });
 
 test('circuit cooldown and long Retry-After prevent rapid repeated launches', async () => {
