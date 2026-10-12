@@ -186,6 +186,53 @@ test('only the six documented failure classes trigger fallback', async () => {
   }
 });
 
+test('unknown and partial usage retain token and cost reservations, including native Claude output', async () => {
+  const budget = { reserveTokens: 100, reserveCostUsd: 0.5 };
+  const cases = [
+    { usage: undefined, tokens: 100, costUsd: 0.5, estimated: true },
+    { usage: {}, tokens: 100, costUsd: 0.5, estimated: true },
+    { usage: { costUsd: 0.1 }, tokens: 100, costUsd: 0.1, estimated: true },
+    { usage: { input_tokens: 2 }, tokens: 100, costUsd: 0.5, estimated: true },
+    { usage: { output_tokens: 150 }, tokens: 150, costUsd: 0.5, estimated: true },
+    { usage: { total_tokens: 0, cost_usd: 0 }, tokens: 0, costUsd: 0, estimated: false },
+    {
+      usage: { input_tokens: 2, output_tokens: 3, costUsd: 0.1 },
+      tokens: 5,
+      costUsd: 0.1,
+      estimated: false,
+    },
+  ];
+  for (const item of cases) {
+    const rt = local({
+      p: fake('ok', { budget, responses: [{ output: 'ok', usage: item.usage }] }),
+    });
+    const result = await rt.dispatch('prompt', ['p']);
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.usage, {
+      tokens: item.tokens,
+      costUsd: item.costUsd,
+      estimated: item.estimated,
+    });
+    assert.equal(result.budget.account.tokens, item.tokens);
+    assert.equal(result.budget.profileAccounts.p.tokens, item.tokens);
+    assert.ok(Math.abs(result.budget.account.costUsd - item.costUsd) < 1e-9);
+    assert.equal(result.budget.account.estimatedRequests, item.estimated ? 1 : 0);
+  }
+  const parsed = parseOutput(
+    'claude',
+    JSON.stringify({ type: 'result', subtype: 'success', result: 'ok' }),
+  );
+  const rt = local(
+    { p: fake('ok', { budget, responses: [{ output: parsed.output, usage: parsed.usage }] }) },
+    {
+      budget: { maxTokens: 100, reserveTokens: 100 },
+    },
+  );
+  assert.equal((await rt.dispatch('first', ['p'])).budget.account.tokens, 100);
+  assert.equal((await rt.dispatch('second', ['p'])).failure, 'budget');
+  assert.equal(rt.fakeOffsets.get('p'), 1);
+});
+
 test('circuit cooldown and long Retry-After prevent rapid repeated launches', async () => {
   let clock = 0;
   const runtime = local(
