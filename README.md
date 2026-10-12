@@ -104,6 +104,11 @@ callback and result envelope, including turn types, tool/file evidence, usage an
 input-wait signals. Raw provider payloads remain untrusted and are not persisted
 as event summaries.
 
+Completed DAG results can be sent to `reviewTask()` with a frozen diff, test
+evidence and review criteria. The host requires an independent reviewer profile,
+checks every criterion and records failed or malformed reviews without changing
+the task result.
+
 ```bash
 # This is a real provider call and may be billed:
 omha run --profile reviewer --config examples/providers.json --prompt 'Review the public task evidence'

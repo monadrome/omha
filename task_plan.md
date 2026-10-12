@@ -37,8 +37,17 @@ repository at /private/tmp/omha-hardening-20261012.
   persisting raw prompt/tool payloads.
 - [complete] 2. Surface turn, tool, file, usage and input-wait signals through the
   existing runtime callback and result envelope with offline failure coverage.
-- [in_progress] 3. Update contracts/changelogs, run checks, commit and push; document
+- [complete] 3. Update contracts/changelogs, run checks, commit and push; document
   any remaining real-time supervision limits.
+
+## Automatic task review (2026-10-12)
+
+- [complete] 1. Add host-owned independent review of completed DAG results with
+  frozen diff, test evidence and criterion validation.
+- [complete] 2. Persist reviewer provenance and fail-closed invalid/failed review
+  outcomes; cover self-review and malformed/spec-inconsistent paths offline.
+- [complete] 3. Update API/docs/changelogs, run checks, commit and push; preserve
+  task outcomes and existing write gates.
 
 ## Hardening audit (2026-10-12)
 

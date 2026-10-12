@@ -32,6 +32,13 @@ raw provider payloads are not copied into the summary. Event parsing is evidence
 only: a successful exit still requires the adapter's completed nonempty result,
 and an event stream never replaces host acceptance checks.
 
+`reviewTask()` reviews only a completed successful DAG task. The host freezes the
+task output hash, diff, test evidence and criteria in a packet, requires a
+different reviewer profile with `headless`, `tool-free` and `read-only`
+capabilities, and computes approval only when every criterion is reported as
+`pass`. Failed, malformed or incomplete reviews are persisted as non-approved;
+the task result and write state are never changed by review.
+
 The result envelope has these fields when available:
 
 ```json

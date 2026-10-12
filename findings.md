@@ -45,6 +45,9 @@
   they provide audit and input-wait evidence without treating event type or CLI
   exit status as task correctness. Real-time escalation still needs a streaming
   provider callback or ACP channel.
+- Generic task review now has a separate host API and packet. Reviewer output
+  cannot set approval, must cover exactly the frozen criteria, and is rejected
+  when the run profile hash changes; review records never mutate task status.
 
 ## Hardening audit (2026-10-12)
 

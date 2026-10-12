@@ -52,6 +52,19 @@
   unchanged.
 - Focused runtime tests pass 20/20; full `npm run check` passes 94/94 offline
   tests, 43 syntax files and all examples. Commit/push is the remaining phase.
+
+## Automatic task review (2026-10-12)
+
+- Added host-owned `reviewTask()` for completed successful DAG tasks. It freezes
+  task output, diff, test evidence and criteria into a packet and runs an
+  independent reviewer with required read-only/tool-free/headless capabilities.
+- Approval is computed by the host only when every criterion is `pass`; failed,
+  malformed and incomplete reviews persist as non-approved records and leave the
+  task result unchanged.
+- Focused orchestration tests pass 15/15, including self-review rejection,
+  malformed reviewer output and provider configuration drift refusal.
+- Final check for this phase passes: 95/95 offline tests, 43 syntax files and all
+  examples validated. Version remains `0.2.0-rc.2`.
 - Capability phase check passed: `npm run check` reports 93/93 offline tests,
   43 syntax files and all examples validated. Version remains `0.2.0-rc.2`.
 

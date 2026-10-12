@@ -6,6 +6,7 @@ import { temp, fake, config } from './helpers.mjs';
 import { createRuntime } from '../lib/runner.mjs';
 import {
   executePlan,
+  reviewTask,
   leader,
   runStatus,
   cancelRun,
@@ -112,6 +113,85 @@ test('DAG scheduler runs ready readers together, passes dependency references an
     false,
   );
   assert.equal(result.budget.account.requests, 3);
+});
+
+test('independent task review validates frozen diff, tests and every criterion', async () => {
+  const reviewCwd = join(root, 'review-project');
+  mkdirSync(reviewCwd);
+  const reviewerOutput = JSON.stringify({
+    assessments: [
+      { id: 'tests', status: 'pass', finding: 'Offline tests passed.' },
+      { id: 'scope', status: 'pass', finding: 'Diff matches the requested scope.' },
+    ],
+    summary: 'Independent review passed.',
+  });
+  const rt = runtime({ author: fake('implementation result'), reviewer: fake(reviewerOutput) });
+  const execution = await executePlan(reviewCwd, plan([task('subject', { profile: 'author' })]), {
+    runtime: rt,
+  });
+  const review = await reviewTask(reviewCwd, execution.runId, 'subject', {
+    runtime: rt,
+    reviewerProfile: 'reviewer',
+    diff: 'diff --git a/example b/example\n+safe change',
+    testEvidence: [{ name: 'offline', status: 'passed', summary: '93 tests passed' }],
+    criteria: [
+      { id: 'tests', description: 'The supplied tests pass.' },
+      { id: 'scope', description: 'The diff matches the requested scope.' },
+    ],
+  });
+  assert.equal(review.status, 'completed');
+  assert.equal(review.approved, true);
+  assert.equal(review.authorProfile, 'author');
+  assert.equal(review.reviewerProfile, 'reviewer');
+  assert.ok(readFileSync(join(execution.dir, review.packetRef), 'utf8').includes('safe change'));
+  assert.equal(readEvents(join(execution.dir, 'events.jsonl')).at(-1).kind, 'review.recorded');
+  await assert.rejects(
+    () =>
+      reviewTask(reviewCwd, execution.runId, 'subject', {
+        runtime: rt,
+        reviewerProfile: 'author',
+        diff: 'safe',
+        testEvidence: [{ name: 'offline', status: 'passed', summary: 'passed' }],
+        criteria: [{ id: 'tests', description: 'Tests pass.' }],
+      }),
+    { code: 'review_authority' },
+  );
+  const driftRuntime = runtime({
+    author: fake('implementation result'),
+    reviewer: fake('changed'),
+  });
+  await assert.rejects(
+    () =>
+      reviewTask(reviewCwd, execution.runId, 'subject', {
+        runtime: driftRuntime,
+        reviewerProfile: 'reviewer',
+        diff: 'safe',
+        testEvidence: [{ name: 'offline', status: 'passed', summary: 'passed' }],
+        criteria: [{ id: 'tests', description: 'Tests pass.' }],
+      }),
+    /configuration changed/,
+  );
+  const invalidCwd = join(root, 'review-invalid-project');
+  mkdirSync(invalidCwd);
+  const invalidRuntime = runtime({
+    author: fake('implementation result'),
+    reviewer: fake('{bad}'),
+  });
+  const invalidExecution = await executePlan(
+    invalidCwd,
+    plan([task('subject', { profile: 'author' })]),
+    { runtime: invalidRuntime },
+  );
+  const invalid = await reviewTask(invalidCwd, invalidExecution.runId, 'subject', {
+    runtime: invalidRuntime,
+    reviewerProfile: 'reviewer',
+    reviewId: 'review-invalid',
+    diff: 'safe',
+    testEvidence: [{ name: 'offline', status: 'passed', summary: 'passed' }],
+    criteria: [{ id: 'tests', description: 'Tests pass.' }],
+  });
+  assert.equal(invalid.status, 'invalid');
+  assert.equal(invalid.approved, false);
 });
 
 test('failure propagates through dependencies even when tasks are in reverse order', async () => {

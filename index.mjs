@@ -2,6 +2,7 @@ export { ProviderRuntime, createRuntime, dispatch, invoke } from './lib/runner.m
 export { loadConfig, loadProfiles, validateProfiles } from './lib/profiles.mjs';
 export {
   executePlan,
+  reviewTask,
   leader,
   validatePlan,
   listRuns,

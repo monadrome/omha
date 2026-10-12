@@ -83,6 +83,9 @@ Profile 明确配置 executable/argv、adapter、model、effort、sandbox、time
 Headless JSON/JSONL provider 会通过 runtime 回调和结果 envelope 暴露有界事件摘要，
 包括轮次类型、工具/文件证据、usage 与等待输入信号；原始 provider payload 不会写入事件摘要。
 
+完成的 DAG 结果可通过 `reviewTask()` 接受冻结 diff、测试证据和复核标准。宿主强制使用不同的
+reviewer profile，校验每项标准；失败或格式错误的复核会记录为未批准，不会改变任务结果。
+
 ```bash
 # 这会调用真实 provider，可能收费：
 omha run --profile reviewer --config examples/providers.json --prompt '检查公开任务证据'

@@ -29,6 +29,9 @@
   profiles are recorded and skipped before provider launch.
 - Expose bounded structured provider event summaries and input-wait signals via
   the runtime callback/result envelope without persisting raw payloads.
+- Add independent `reviewTask()` records with frozen diff/test evidence,
+  criterion coverage checks and host-owned approval; self-review and malformed
+  reviews fail closed without changing task results.
 
 ## 0.2.0-rc.1 - 2026-10-10
 
