@@ -66,6 +66,43 @@ test('independent artifact drifts retain separate causal boundaries', () => {
   );
 });
 
+test('hash changes and accepted artifacts followed by new work stay no-op without analysis or handoff', async () => {
+  const changed = structuredClone(reliable);
+  changed.transcript = changed.transcript.filter((event) => event.kind !== 'feedback');
+  changed.transcript.at(-1).kind = 'produce';
+  const accepted = structuredClone(reliable);
+  accepted.transcript[3].order = 4;
+  accepted.transcript[4].order = 5;
+  accepted.transcript.splice(3, 0, {
+    id: 'accepted',
+    order: 3,
+    actor: 'user',
+    kind: 'accept',
+    artifactId: 'report',
+    versionId: 'v1',
+    text: 'Accepted the report.',
+  });
+  const ordinary = structuredClone(reliable);
+  ordinary.transcript.at(-1).reason = 'ordinary_evolution';
+  const rt = createRuntime(config({ analyst: fake('must not run') }), { persistent: false });
+  for (const fixture of [changed, accepted, ordinary, { ...reliable, transcript: [] }]) {
+    const result = await autoButterfly(cwd, fixture, {
+      runtime: rt,
+      providers: ['analyst'],
+      analyze: true,
+      handoff: true,
+      backend: 'file',
+    });
+    assert.equal(result.status, 'no_op');
+    assert.equal(result.conversationRewound, false);
+    assert.deepEqual(result.decisions, []);
+    assert.ok(result.evidenceGap);
+    assert.equal(result.analysis, undefined);
+    assert.equal(result.handoffs, undefined);
+    assert.equal(rt.snapshot().account.requests, 0);
+  }
+});
+
 test('sensitive history is redacted before prompts, handoffs or audit persistence', async () => {
   const fixture = structuredClone(reliable);
   fixture.transcript[1].text +=
