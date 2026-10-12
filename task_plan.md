@@ -20,7 +20,7 @@ repository at /private/tmp/omha-hardening-20261012.
   that decide whether to invoke the existing blind roundtable.
 - [complete] 2. Persist trigger evidence, cover no-trigger and failure paths with
   offline tests, update contracts/changelogs and check the package.
-- [in_progress] 3. Commit and push the bounded trigger change, then record residual
+- [complete] 3. Commit and push the bounded trigger change, then record residual
   capability gaps for the next iteration.
 
 ## Profile capability model (2026-10-12)
@@ -30,6 +30,15 @@ repository at /private/tmp/omha-hardening-20261012.
 - [complete] 2. Make routing honor `requires` capabilities and record rejected
   incompatible profiles without spawning them; cover offline failure paths.
 - [complete] 3. Update schemas/contracts/changelogs, run checks, commit and push.
+
+## Structured provider event evidence (2026-10-12)
+
+- [complete] 1. Expose bounded summaries for structured provider events without
+  persisting raw prompt/tool payloads.
+- [complete] 2. Surface turn, tool, file, usage and input-wait signals through the
+  existing runtime callback and result envelope with offline failure coverage.
+- [in_progress] 3. Update contracts/changelogs, run checks, commit and push; document
+  any remaining real-time supervision limits.
 
 ## Hardening audit (2026-10-12)
 

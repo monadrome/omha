@@ -5,7 +5,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { temp, fake, config } from './helpers.mjs';
 import { createRuntime } from '../lib/runner.mjs';
-import { parseOutput, invocation } from '../lib/adapters.mjs';
+import { parseEvents, parseOutput, summarizeEvent, invocation } from '../lib/adapters.mjs';
 import { classify, retryAfter, retryAfterFromText } from '../lib/failures.mjs';
 import { loadConfig, validateProfiles } from '../lib/profiles.mjs';
 import { run } from '../lib/process.mjs';
@@ -157,6 +157,54 @@ test('adapters require completed, valid JSON/JSONL and extract provenance', () =
     parseOutput('claude', '{"type":"result","subtype":"error_max_turns","result":"partial"}'),
   );
   assert.throws(() => parseOutput('command', '{"output":"unverified"}', 'json'));
+});
+
+test('structured provider events expose bounded tool, file, usage and input-wait evidence', async () => {
+  const events = parseEvents(
+    'codex',
+    [{ type: 'turn.started' }, { type: 'turn.completed', usage: { total_tokens: 4 } }]
+      .map((event) => JSON.stringify(event))
+      .join('\n'),
+  );
+  assert.equal(summarizeEvent('codex', events[1]).usage.total_tokens, 4);
+  const seen = [];
+  const runtime = local({
+    p: fake('', {
+      outputFormat: 'jsonl',
+      responses: [
+        {
+          stdout: [
+            {
+              status: 'success',
+              type: 'tool_call',
+              tool: 'read_file',
+              files: ['src/index.mjs'],
+              output: 'progress',
+            },
+            {
+              status: 'success',
+              type: 'input_required',
+              output: 'done',
+              usage: { output_tokens: 3 },
+            },
+          ]
+            .map((event) => JSON.stringify(event))
+            .join('\n'),
+        },
+      ],
+    }),
+  });
+  const result = await runtime.dispatch('task', ['p'], {
+    onProviderEvent: (event) => seen.push(event),
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.eventCount, 2);
+  assert.equal(result.inputWait, true);
+  assert.deepEqual(result.events[0].files, ['src/index.mjs']);
+  assert.equal(result.events[0].tool, 'read_file');
+  assert.equal(result.events[1].inputWait, true);
+  assert.equal(seen.length, 2);
+  assert.equal(seen[1].kind, 'provider.event');
 });
 
 test('failure taxonomy and Retry-After seconds/HTTP dates', () => {

@@ -25,6 +25,13 @@ completed result with nonempty text. Claude JSON, Codex JSONL and Kimi JSONL are
 accepted according to their observed CLI event shapes; unrecognized or partial
 events fail with `malformed_output`.
 
+Structured results also expose bounded event summaries through the runtime result
+and `onProviderEvent`. Each summary preserves the adapter event type, request/model
+provenance, tool name, changed file paths, numeric usage and an `inputWait` flag;
+raw provider payloads are not copied into the summary. Event parsing is evidence
+only: a successful exit still requires the adapter's completed nonempty result,
+and an event stream never replaces host acceptance checks.
+
 The result envelope has these fields when available:
 
 ```json

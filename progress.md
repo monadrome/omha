@@ -42,6 +42,16 @@
   attempt record, are never spawned, and compatible fallback candidates can run.
 - Added offline tests for inferred tiers, impossible declarations, compatible
   routing and the all-incompatible fail-closed result.
+
+## Structured provider event evidence (2026-10-12)
+
+- Added `parseEvents()` and bounded `summarizeEvent()` output for JSON/JSONL
+  adapters, including turn type, tool/file evidence, numeric usage and input-wait.
+- Runtime results and `onProviderEvent` callbacks expose summaries while keeping
+  raw provider payloads out of durable evidence; completion validation remains
+  unchanged.
+- Focused runtime tests pass 20/20; full `npm run check` passes 94/94 offline
+  tests, 43 syntax files and all examples. Commit/push is the remaining phase.
 - Capability phase check passed: `npm run check` reports 93/93 offline tests,
   43 syntax files and all examples validated. Version remains `0.2.0-rc.2`.
 

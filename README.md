@@ -99,6 +99,11 @@ that wrapper. Never put API keys in JSON, argv, prompts
 or memory. Authenticate through the CLI's credential store or explicitly allow
 the required environment variable. Configure models available to your account.
 
+Headless JSON/JSONL providers expose bounded event summaries through the runtime
+callback and result envelope, including turn types, tool/file evidence, usage and
+input-wait signals. Raw provider payloads remain untrusted and are not persisted
+as event summaries.
+
 ```bash
 # This is a real provider call and may be billed:
 omha run --profile reviewer --config examples/providers.json --prompt 'Review the public task evidence'

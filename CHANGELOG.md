@@ -27,6 +27,8 @@
   magnitude, with no-provider no-trigger results and persisted trigger evidence.
 - Add validated profile capability tiers and `requires` routing so incompatible
   profiles are recorded and skipped before provider launch.
+- Expose bounded structured provider event summaries and input-wait signals via
+  the runtime callback/result envelope without persisting raw payloads.
 
 ## 0.2.0-rc.1 - 2026-10-10
 

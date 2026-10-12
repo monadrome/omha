@@ -80,6 +80,9 @@ Profile 明确配置 executable/argv、adapter、model、effort、sandbox、time
 变量名。密钥应放在 CLI 凭据存储或明确允许的环境变量中，不能放进 JSON、参数、提示词
 或记忆。模型名称需按当前账户和 CLI 调整。
 
+Headless JSON/JSONL provider 会通过 runtime 回调和结果 envelope 暴露有界事件摘要，
+包括轮次类型、工具/文件证据、usage 与等待输入信号；原始 provider payload 不会写入事件摘要。
+
 ```bash
 # 这会调用真实 provider，可能收费：
 omha run --profile reviewer --config examples/providers.json --prompt '检查公开任务证据'

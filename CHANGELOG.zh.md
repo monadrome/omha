@@ -21,6 +21,8 @@
   未触发时不调用 provider，并持久化触发证据。
 - 增加经过校验的 profile 能力分级与 `requires` 路由；不兼容 profile 会在启动 provider
   前留下证据并跳过。
+- 通过 runtime 回调和结果 envelope 暴露有界的结构化 provider 事件摘要及等待输入信号，
+  不持久化原始 payload。
 
 ## 0.2.0-rc.1 - 2026-10-10
 

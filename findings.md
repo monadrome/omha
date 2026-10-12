@@ -41,6 +41,10 @@
   adapters imply `headless`, Claude/Codex/fake imply `tool-free`, and only the
   `read-only` sandbox implies `read-only`. External wrappers remain explicit and
   are not promoted to read-only automatically.
+- Structured event summaries are intentionally post-parse, bounded and payload-free:
+  they provide audit and input-wait evidence without treating event type or CLI
+  exit status as task correctness. Real-time escalation still needs a streaming
+  provider callback or ACP channel.
 
 ## Hardening audit (2026-10-12)
 
