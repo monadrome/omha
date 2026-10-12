@@ -1,5 +1,8 @@
 # Third-party notices
 
+Omha itself is licensed under Apache-2.0; see `LICENSE` and `NOTICE`. The
+components below are third-party or retained content under their own terms.
+
 The `butterfly-effect` and `hide` skills were copied from the MIT-licensed
 `monadrome/butterfly-effect-skill` and `monadrome/hiding-skill` projects. Their
 frontmatter and references remain available in each skill directory. Omha

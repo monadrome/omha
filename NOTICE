@@ -1,4 +1,5 @@
-Omha is an original work by HuaTalk.
+Omha is an original work by HuaTalk, licensed under the Apache License 2.0.
+See LICENSE.
 
 This repository retains the following MIT-licensed skill content:
 
@@ -8,5 +9,6 @@ This repository retains the following MIT-licensed skill content:
   Copyright (c) 2026 monadrome.
 
 Full upstream MIT license texts ship in each retained skill directory. Their
-SKILL.md and references are upstream content. The Omha runtime, five new
-skill contracts, tests, schemas and documentation are newly authored.
+SKILL.md and references are upstream content and remain under MIT. The Omha
+runtime, five new skill contracts, tests, schemas and documentation are newly
+authored and licensed under Apache-2.0.

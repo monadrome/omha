@@ -193,5 +193,5 @@ See [security](docs/security.md), [contracts/API](docs/contracts.md),
 development dependency: Prettier. CI checks Node 20/22 on Linux/macOS/Windows,
 syntax, formatting, manifests/skill discovery, offline tests and tarball installs.
 
-MIT. [NOTICE](NOTICE) and [THIRD_PARTY.md](THIRD_PARTY.md) identify retained upstream
+Apache-2.0. [NOTICE](NOTICE) and [THIRD_PARTY.md](THIRD_PARTY.md) identify retained upstream
 work and newly authored Omha code.

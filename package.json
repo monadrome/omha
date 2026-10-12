@@ -43,7 +43,7 @@
     "cmux",
     "orchestration"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": "HuaTalk (https://github.com/monadrome)",
   "repository": {
     "type": "git",
