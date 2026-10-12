@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { temp, fake, config } from './helpers.mjs';
 import { createRuntime } from '../lib/runner.mjs';
@@ -186,6 +186,29 @@ test('only the six documented failure classes trigger fallback', async () => {
   }
 });
 
+test('budget admission and invocation configuration failures stop routing before fallback launches', async () => {
+  for (const profile of [
+    fake('ok', { budget: { maxRequests: 1, reserveTokens: 10 } }),
+    fake('ok', { sandbox: 'workspace-write' }),
+  ]) {
+    const rt = local(
+      { p: { ...profile, fallback: ['q'] }, q: fake() },
+      {
+        budget: { maxRequests: 1 },
+        account: { requests: 1, tokens: 0, costUsd: 0, estimatedRequests: 0 },
+      },
+    );
+    const result = await rt.dispatch('prompt', ['p']);
+    assert.equal(
+      result.failure,
+      profile.sandbox === 'workspace-write' ? 'configuration' : 'budget',
+    );
+    assert.equal(result.attempts.length, 1);
+    assert.equal(rt.fakeOffsets.size, 0);
+    assert.equal(result.budget.account.requests, 1);
+  }
+});
+
 test('unknown and partial usage retain token and cost reservations, including native Claude output', async () => {
   const budget = { reserveTokens: 100, reserveCostUsd: 0.5 };
   const cases = [
@@ -231,6 +254,29 @@ test('unknown and partial usage retain token and cost reservations, including na
   assert.equal((await rt.dispatch('first', ['p'])).budget.account.tokens, 100);
   assert.equal((await rt.dispatch('second', ['p'])).failure, 'budget');
   assert.equal(rt.fakeOffsets.get('p'), 1);
+});
+
+test('invalid higher-priority configuration fails closed instead of loading a valid lower-priority config', () => {
+  const cwd = join(root, 'config-project');
+  mkdirSync(join(cwd, '.omha'), { recursive: true });
+  mkdirSync(process.env.OMHA_HOME, { recursive: true });
+  writeFileSync(
+    join(process.env.OMHA_HOME, 'providers.json'),
+    JSON.stringify(config({ valid: fake() })),
+  );
+  const projectConfig = join(cwd, '.omha', 'providers.json');
+  for (const invalid of [
+    '{',
+    JSON.stringify({ version: 2, profiles: { p: fake() } }),
+    JSON.stringify({ ...config({ p: fake() }), typo: true }),
+  ]) {
+    writeFileSync(projectConfig, invalid);
+    assert.throws(() => loadConfig(cwd), { code: 'configuration' });
+  }
+  assert.throws(() => loadConfig(cwd, 'missing.json'), { code: 'configuration' });
+  const explicit = join(cwd, 'explicit.json');
+  writeFileSync(explicit, JSON.stringify(config({ explicit: fake() })));
+  assert.deepEqual(Object.keys(loadConfig(cwd, explicit).profiles), ['explicit']);
 });
 
 test('circuit cooldown and long Retry-After prevent rapid repeated launches', async () => {
