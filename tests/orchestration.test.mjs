@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { temp, fake, config } from './helpers.mjs';
 import { createRuntime } from '../lib/runner.mjs';
 import {
@@ -336,4 +336,112 @@ test('weighted votes and invalid chair cannot overwrite host decision', async ()
   assert.equal(result.tally.recommendation, 'A');
   assert.equal(result.chair.synthesis, null);
   assert.match(result.chair.validationError, /host tally/);
+  assert.deepEqual(decisionStatus(cwd, result.decisionId).tally, result.tally);
+});
+
+test('no vote is persisted until all voters finish, and the chair sees the collected host tally', async () => {
+  const decisionId = 'blind-persistence';
+  const secretReason = 'Private vote sentinel before collection';
+  const rt = runtime({
+    a: fake(JSON.stringify(proposal('A', secretReason))),
+    b: fake(JSON.stringify(proposal('A'))),
+    chair: fake(JSON.stringify(chair('B'))),
+  });
+  let releaseSlow, firstFinished;
+  const slow = new Promise((resolve) => {
+    releaseSlow = resolve;
+  });
+  const first = new Promise((resolve) => {
+    firstFinished = resolve;
+  });
+  const original = rt.attempt.bind(rt);
+  rt.attempt = async (name, prompt, options) => {
+    if (name === 'b') await slow;
+    if (name === 'chair') {
+      const persisted = decisionStatus(cwd, decisionId);
+      assert.equal(persisted.status, 'collected');
+      assert.equal(persisted.votes.length, 2);
+      assert.equal(persisted.tally.recommendation, 'A');
+    }
+    const result = await original(name, prompt, options);
+    if (name === 'a') firstFinished();
+    return result;
+  };
+  const pending = roundtable(cwd, 'Choose', ['a', 'b'], {
+    runtime: rt,
+    evidence,
+    chairProfile: 'chair',
+    decisionId,
+  });
+  try {
+    await first;
+    const collecting = decisionStatus(cwd, decisionId);
+    assert.equal(collecting.status, 'collecting');
+    assert.deepEqual(collecting.votes, []);
+    assert.equal(collecting.tally, undefined);
+    assert.equal(rt.fakeOffsets.has('chair'), false);
+    const contents = (dir) =>
+      readdirSync(dir, { withFileTypes: true })
+        .map((entry) =>
+          entry.isDirectory()
+            ? contents(join(dir, entry.name))
+            : readFileSync(join(dir, entry.name), 'utf8'),
+        )
+        .join('\n');
+    assert.equal(contents(process.env.OMHA_HOME).includes(secretReason), false);
+  } finally {
+    releaseSlow();
+  }
+  const result = await pending;
+  assert.equal(result.tally.recommendation, 'A');
+  assert.equal(result.chair.synthesis, null);
+  assert.match(result.chair.validationError, /host tally/);
+  assert.equal(decisionStatus(cwd, decisionId).votes[0].proposal.reason, secretReason);
+});
+
+test('majority and weighted tallies include abstentions, malformed and failed votes in a strict over-half denominator', async () => {
+  for (const method of ['majority', 'weighted']) {
+    for (const other of ['abstention', 'malformed', 'invalid', 'failed']) {
+      const profiles = {
+        a: fake(JSON.stringify(proposal('A'))),
+        b:
+          other === 'failed'
+            ? fake('', { responses: [{ failure: 'auth' }] })
+            : fake(
+                other === 'malformed'
+                  ? '{bad}'
+                  : JSON.stringify(
+                      other === 'abstention'
+                        ? proposal(null, 'unknown', true)
+                        : {
+                            ...proposal('B'),
+                            evidence: [{ id: 'source', quote: 'fabricated quote' }],
+                          },
+                    ),
+              ),
+        chair: fake(
+          JSON.stringify(
+            chair(
+              null,
+              other === 'abstention' ? ['Use the lower cost', 'unknown'] : ['Use the lower cost'],
+            ),
+          ),
+        ),
+      };
+      const result = await roundtable(cwd, 'Choose', [], {
+        runtime: runtime(profiles),
+        evidence,
+        chairProfile: 'chair',
+        method,
+        voters: [
+          { profile: 'a', weight: 3 },
+          { profile: 'b', weight: 3 },
+        ],
+      });
+      assert.equal(result.tally.totalWeight, method === 'weighted' ? 6 : 2, other);
+      assert.equal(result.tally.totals.A, method === 'weighted' ? 3 : 1);
+      assert.equal(result.tally.recommendation, null);
+      assert.ok(result.chair.synthesis);
+    }
+  }
 });
