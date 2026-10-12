@@ -1,5 +1,13 @@
 # Research findings
 
+## Hardening audit (2026-10-12)
+
+- Starting worktree is clean on main tracking origin/main.
+- The worker writes both final.json and FINAL_MARKER stdout. Reader prefers the
+  file, so stdout integration coverage must remove final.json before parsing.
+- Existing handoff tests only synthesize markers; a real child-process backend
+  can capture actual worker stdout while keeping terminal dependencies optional.
+
 ## Production implementation audit (2026-10-09)
 
 - GitHub delivery (2026-10-10): local gh cache retains the old login HuaTalk,

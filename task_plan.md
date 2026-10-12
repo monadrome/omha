@@ -1,5 +1,19 @@
 # Omha release candidate implementation
 
+## Hardening audit (2026-10-12)
+
+- [done] 1. Run the real handoff worker and test completion file and stdout
+  marker authentication through the terminal reader; check and commit.
+- [done] 2. Audit derived offsets and paired protocols; remove drift risks,
+  add regression tests, check and commit each concern.
+- [done] 3. Map README/contracts claims to enforcing code and tests; add missing
+  assertions, repair defects with documented judgments, check and commit.
+- [done] 4. Verify delivery, push ordinary commits to origin/main and report
+  evidence plus contracts verified without changes.
+
+Constraints: retain public API, names, version and licenses; do not edit
+skills/butterfly-effect or skills/hide. All verification remains offline.
+
 ## Goal
 
 Replace the MVP scaffold with an installable, offline-tested open-source release
@@ -54,6 +68,10 @@ boundaries, and uses deterministic bounded indexes. Default checks are offline.
   main pushed with origin tracking (2026-10-10).
 
 ## Errors Encountered
+
+- Hardening first full check: two existing OS integration tests fail under the
+  sandbox (temporary executor EPERM and ps fingerprint null); use unsandboxed
+  local verification rather than weakening those assertions.
 
 - Prior progress marked scaffold implementation complete based on five small
   tests. Those claims do not cover production contracts; acceptance gates above

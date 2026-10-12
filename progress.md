@@ -1,5 +1,18 @@
 # Progress
 
+## Hardening audit (2026-10-12)
+
+- Read AGENTS.md, README.md, docs/contracts.md, worker, terminal reader and tests.
+- Restored existing planning records and added the authorized hardening phases.
+- Priority 1 underway: real worker completion-file and stdout reader coverage.
+- Real worker integration and all handoff tests pass (9 assertions/subtests).
+- First full check: 72/74 pass; sandbox blocks the strict executor (EPERM) and
+  process fingerprints (ps). Re-run the same full check with local OS access.
+- Completion: handoff paths/final states, tmux/cmux ownership strings, memory
+  topic extension and index layout, and task result references now have single
+  definitions; malformed output reports its documented failure kind; incomplete
+  usage reports retain budget reservations. Full check passes 83/83.
+
 ## GitHub delivery (2026-10-10)
 
 - User authorized committing and pushing the implementation to GitHub.
