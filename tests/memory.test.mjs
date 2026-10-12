@@ -23,6 +23,7 @@ import {
   memoryPaths,
   memoryPointer,
   readMemory,
+  searchMemory,
   writeMemory,
   MEMORY_CAPS,
 } from '../lib/memory.mjs';
@@ -50,6 +51,25 @@ const sibling = join(root, 'worktree');
 execFileSync('git', ['-C', repo, 'worktree', 'add', '--detach', sibling], { stdio: 'ignore' });
 const other = join(root, 'other');
 mkdirSync(other);
+
+test('topic filenames round-trip through write, listing, index, search, injection and forget', () => {
+  const names = ['a', 'topic.md', 'topic.with.dots', 'Mixed-case_42'];
+  for (const name of names) writeMemory(other, { name, content: `Unique content for ${name}` });
+  assert.deepEqual(
+    listMemory(other)
+      .map((record) => record.name)
+      .sort(),
+    [...names].sort(),
+  );
+  for (const name of names) {
+    assert.match(readMemory(other, name), /Unique content/);
+    assert.ok(readMemory(other).includes(`topics/${name}.md`));
+    assert.deepEqual(searchMemory(other, `Unique content for ${name}`), [`${name}.md`]);
+    assert.ok(injectMemory(other, { topics: [name] }).included.includes(`project/${name}`));
+    forgetMemory(other, name);
+  }
+  assert.equal(listMemory(other).length, 0);
+});
 
 test('canonical Git roots share project memory across worktrees; two projects and non-Git paths are isolated', () => {
   assert.equal(projectIdentity(repo).projectId, projectIdentity(sibling).projectId);
