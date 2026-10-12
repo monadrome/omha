@@ -13,7 +13,13 @@ import {
   validatePlan,
 } from '../lib/orchestrator.mjs';
 import { appendEvent, atomicWrite, readEvents } from '../lib/storage.mjs';
-import { roundtable, decisionStatus, resolveDecision } from '../lib/roundtable.mjs';
+import {
+  roundtable,
+  autoRoundtable,
+  assessRoundtableTrigger,
+  decisionStatus,
+  resolveDecision,
+} from '../lib/roundtable.mjs';
 
 const root = temp();
 process.env.OMHA_HOME = join(root, 'state');
@@ -247,6 +253,43 @@ const chair = (recommendation, minorityReasons = []) => ({
   recommendation,
   summary: 'Evidence reviewed',
   minorityReasons,
+});
+
+test('roundtable trigger is host-owned, bounded and fails closed on unknown signals', () => {
+  assert.equal(assessRoundtableTrigger({ risk: 0.69, ambiguity: 0.49 }).triggered, false);
+  assert.deepEqual(assessRoundtableTrigger({ writeFiles: 10 }).reasons, ['write_files']);
+  assert.deepEqual(assessRoundtableTrigger({}).reasons, ['signals_unavailable']);
+  assert.throws(() => assessRoundtableTrigger({ risk: 2 }), /roundtable risk/);
+  assert.throws(() => assessRoundtableTrigger({ typo: 1 }), /unknown field/);
+  assert.throws(() => assessRoundtableTrigger({ risk: 0.5 }, { writeBytes: -1 }), /write-byte/);
+});
+
+test('automatic roundtable skips provider calls below thresholds and records trigger evidence', async () => {
+  const skipped = await autoRoundtable(cwd, 'Choose', ['a', 'b'], {
+    signals: { risk: 0.1, ambiguity: 0.1, writeFiles: 1, writeBytes: 10 },
+    runtime: {
+      dispatch: async () => {
+        throw new Error('provider must not run');
+      },
+    },
+  });
+  assert.equal(skipped.triggered, false);
+  assert.equal(skipped.trigger.reasons.length, 0);
+
+  const rt = runtime({
+    a: fake(JSON.stringify(proposal('A'))),
+    b: fake(JSON.stringify(proposal('A'))),
+    chair: fake(JSON.stringify(chair('A'))),
+  });
+  const started = await autoRoundtable(cwd, 'Choose automatically', ['a', 'b'], {
+    signals: { risk: 0.9 },
+    runtime: rt,
+    evidence,
+    chairProfile: 'chair',
+  });
+  assert.equal(started.triggered, true);
+  assert.deepEqual(started.trigger.reasons, ['risk']);
+  assert.deepEqual(decisionStatus(cwd, started.decision.decisionId).trigger, started.trigger);
 });
 
 test('blind votes share only the public prefix, preserve minority and produce an auditable gated decision', async () => {

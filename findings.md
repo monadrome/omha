@@ -32,6 +32,11 @@
   credentials only permit exact environment placeholders.
 - New regression fixtures: tests/storage.test.mjs (cross-process atomic writes,
   hardlinks, compare-and-swap memory writes) and tests/security.test.mjs.
+- The existing adapter layer already runs Claude JSON, Codex JSONL and Kimi
+  stream-JSON headlessly; the missing group-decision layer was the host trigger,
+  not another provider implementation. The trigger now uses only bounded host
+  signals and reuses the existing blind roundtable, so it cannot delegate the
+  decision boundary to a prompt.
 
 ## Hardening audit (2026-10-12)
 

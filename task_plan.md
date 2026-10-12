@@ -7,12 +7,21 @@
   ready-signal/MockTimers prototype.
 - [complete] 2. Exercise cross-process storage/gates/memory and process supervision,
   then validate security, fail-closed errors and Open Arena paths with concrete inputs.
-- [in_progress] 3. Check, commit and push each isolated fix; record counts, failure
+- [complete] 3. Check, commit and push each isolated fix; record counts, failure
   scenarios, improvements and verified areas without changes.
 
 Do not repeat completed protocol audits or edit retained upstream skills. Keep
 version/public API unchanged and use no paid providers. Logs live outside the
 repository at /private/tmp/omha-hardening-20261012.
+
+## Automatic group-decision trigger (2026-10-12)
+
+- [complete] 1. Add host-owned risk, ambiguity and write-magnitude thresholds
+  that decide whether to invoke the existing blind roundtable.
+- [complete] 2. Persist trigger evidence, cover no-trigger and failure paths with
+  offline tests, update contracts/changelogs and check the package.
+- [in_progress] 3. Commit and push the bounded trigger change, then record residual
+  capability gaps for the next iteration.
 
 ## Hardening audit (2026-10-12)
 

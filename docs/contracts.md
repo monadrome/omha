@@ -64,6 +64,14 @@ collection and cannot alter the tally. A decision record includes every vote,
 provider metadata, response hash, latency, invalid reasons, minority reasons and
 optional human gate.
 
+`autoRoundtable()` adds a host-owned trigger around that same protocol. It accepts
+bounded `risk` and `ambiguity` scores in `[0,1]`, plus `writeFiles` and `writeBytes`
+counts. The defaults trigger at `risk >= 0.7`, `ambiguity >= 0.5`, ten files or
+one MiB. A missing signal set triggers with `signals_unavailable`; otherwise a
+below-threshold assessment creates no decision and launches no provider. Trigger
+signals and thresholds are persisted with the decision, so an automatic launch
+has the same evidence trail as a manual one.
+
 Butterfly input uses [schemas/history.schema.json](../schemas/history.schema.json).
 The transcript is strictly chronological. A supported drift requires a previous
 agent-produced version, later user feedback tied to requirements that existed

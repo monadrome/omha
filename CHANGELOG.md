@@ -23,6 +23,8 @@
 - Stabilize process supervision fixtures with an explicit child readiness signal
   so timeout and cancellation tests exercise group cleanup rather than startup
   timing.
+- Add host-owned automatic roundtable triggers for risk, ambiguity and write
+  magnitude, with no-provider no-trigger results and persisted trigger evidence.
 
 ## 0.2.0-rc.1 - 2026-10-10
 

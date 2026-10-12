@@ -16,12 +16,23 @@
   queue deadline, cross-process atomic replacement/CAS, JSON-escaped secret
   redaction, readiness-synchronized process cleanup and Open Arena paths.
 - Updated security documentation and bilingual Unreleased changelog entries;
-  version and public API remain unchanged. Commit/push is the remaining phase.
+  version and public API remain unchanged. Hardening commit `18dd77a` is pushed
+  to `origin/main`.
 - Fixed storage zero-link race, provider queue late admission, and credential
   redaction/argv bypasses. Focused 32 tests pass; storage repeated 30/30 passes.
 - `npm run format:check`, `npm run validate` and `git diff --check` pass. Full
   `npm run check` still reaches the known sandbox-only EPERM failures in strict
   executor and ps fingerprint tests; no code assertion failed in the focused set.
+
+## Automatic group-decision trigger (2026-10-12)
+
+- Added `assessRoundtableTrigger()` and `autoRoundtable()` with bounded host
+  signals, conservative `signals_unavailable` triggering and no-provider no-op
+  behavior below thresholds.
+- Persisted validated trigger signals and thresholds in the decision record and
+  exported the API from `index.mjs` and the orchestrator.
+- Added offline tests for threshold boundaries, unknown fields, invalid ranges,
+  no-trigger provider suppression and triggered evidence persistence.
 
 ## Hardening audit (2026-10-12)
 

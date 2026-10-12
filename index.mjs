@@ -9,7 +9,13 @@ export {
   cancelRun,
   sendTaskMessage,
 } from './lib/orchestrator.mjs';
-export { roundtable, decisionStatus, resolveDecision } from './lib/roundtable.mjs';
+export {
+  roundtable,
+  autoRoundtable,
+  assessRoundtableTrigger,
+  decisionStatus,
+  resolveDecision,
+} from './lib/roundtable.mjs';
 export {
   handoff,
   readHandoff,
