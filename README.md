@@ -1,13 +1,13 @@
-# Foldspace
+# Omha
 
 [中文](README-zh.md) | [Contracts](docs/contracts.md) | [Security](docs/security.md)
 
-Foldspace is a local, provider-neutral runtime for agent collaboration. It routes
+Omha is a local, provider-neutral runtime for agent collaboration. It routes
 Claude/Codex/Kimi jobs, executes validated task DAGs, collects blind roundtable
 votes, manages owned terminal handoffs, diagnoses supported artifact rework, and
 maintains scoped Markdown memory. Seven portable Agent Skills accompany the CLI.
 
-**0.2.0-rc.1 is a release candidate.** Default verification is offline. Real model
+**0.2.0-rc.2 is a release candidate.** Default verification is offline. Real model
 behavior, billing and sandbox enforcement remain dependent on the installed
 provider CLI. A successful CLI exit is validated output, not proof that a coding
 task is correct; run the project's own acceptance checks.
@@ -21,40 +21,40 @@ From a checkout, these commands install a versioned tarball:
 npm ci --ignore-scripts
 npm run check
 npm pack
-npm install -g ./huatalk-foldspace-0.2.0-rc.1.tgz --ignore-scripts
-foldspace doctor --json
+npm install -g ./huatalk-omha-0.2.0-rc.2.tgz --ignore-scripts
+omha doctor --json
 ```
 
 For a user-local checkout installation: `./install.sh`, then add `$HOME/.local/bin`
-to PATH. Override its prefix with `FOLDSPACE_NPM_PREFIX`. The script installs the CLI
+to PATH. Override its prefix with `OMHA_NPM_PREFIX`. The script installs the CLI
 only and does not overwrite a Claude marketplace. Keep the checkout in place.
 
-When published, use `npm install -g @huatalk/foldspace@<version> --ignore-scripts`
+When published, use `npm install -g @huatalk/omha@<version> --ignore-scripts`
 to install or update. For this candidate, build and install the new tarball with
 the same commands above. No npm release is implied by this repository.
 
 ```bash
-npm uninstall -g @huatalk/foldspace --ignore-scripts
+npm uninstall -g @huatalk/omha --ignore-scripts
 # For the user-local install:
-npm uninstall -g --prefix "$HOME/.local" @huatalk/foldspace --ignore-scripts
+npm uninstall -g --prefix "$HOME/.local" @huatalk/omha --ignore-scripts
 ```
 
 Uninstall retains memory and run records. Close owned handoffs first with
-`foldspace handoff close --id <id>`. `foldspace doctor --json` reports the state
+`omha handoff close --id <id>`. `omha doctor --json` reports the state
 directory; review it before manually removing any retained data.
 
 ### Claude Plugin and Agent Skills
 
 For a one-session checkout plugin: `claude --plugin-dir .`.
 For a persistent local marketplace, run `claude plugin marketplace add .` and
-`claude plugin install foldspace@foldspace` from the checkout. Update a registered
-marketplace with `claude plugin marketplace update foldspace` and reinstall the
+`claude plugin install omha@omha` from the checkout. Update a registered
+marketplace with `claude plugin marketplace update omha` and reinstall the
 plugin if required by your host. Remove it with
-`claude plugin uninstall foldspace@foldspace` and
-`claude plugin marketplace remove foldspace`.
+`claude plugin uninstall omha@omha` and
+`claude plugin marketplace remove omha`.
 
 Other hosts can discover or copy `skills/*/SKILL.md` and its adjacent references
-and LICENSE files. Skills are instructions; hosts need an installed `foldspace`
+and LICENSE files. Skills are instructions; hosts need an installed `omha`
 CLI to perform deterministic runtime operations. The upstream `butterfly-effect`
 and `hide` contracts are retained, with their MIT notices.
 
@@ -63,14 +63,14 @@ and `hide` contracts are retained, with their MIT notices.
 All commands below run from this checkout without a paid provider:
 
 ```bash
-node bin/foldspace.mjs run --profile fake --prompt 'Check the local runtime'
-node bin/foldspace.mjs leader --plan examples/plan.json --config examples/providers.fake.json
-node bin/foldspace.mjs runs list
-node bin/foldspace.mjs roundtable --input examples/decision.json --config examples/providers.fake.json
-node bin/foldspace.mjs auto-butterfly --input examples/history.json --handoff --backend file
-node bin/foldspace.mjs memory put --name api-contract --type decision --content 'Validate plans before executing them.'
-node bin/foldspace.mjs memory inject --topics api-contract
-node bin/foldspace.mjs memory doctor
+node bin/omha.mjs run --profile fake --prompt 'Check the local runtime'
+node bin/omha.mjs leader --plan examples/plan.json --config examples/providers.fake.json
+node bin/omha.mjs runs list
+node bin/omha.mjs roundtable --input examples/decision.json --config examples/providers.fake.json
+node bin/omha.mjs auto-butterfly --input examples/history.json --handoff --backend file
+node bin/omha.mjs memory put --name api-contract --type decision --content 'Validate plans before executing them.'
+node bin/omha.mjs memory inject --topics api-contract
+node bin/omha.mjs memory doctor
 ```
 
 `npm run pack:check` installs a tarball in a clean temporary HOME, runs these
@@ -83,8 +83,8 @@ gate.
 
 ## Providers and Routing
 
-Use `--config providers.json`, `.foldspace/providers.json`, or
-`$FOLDSPACE_HOME/providers.json` (in that order). `agents.json` is a legacy filename
+Use `--config providers.json`, `.omha/providers.json`, or
+`$OMHA_HOME/providers.json` (in that order). `agents.json` is a legacy filename
 alias, but its contents must use the version 1 schema. Invalid configuration fails
 closed. See [examples/providers.json](examples/providers.json) and
 [schemas/providers.schema.json](schemas/providers.schema.json).
@@ -99,7 +99,7 @@ the required environment variable. Configure models available to your account.
 
 ```bash
 # This is a real provider call and may be billed:
-foldspace run --profile reviewer --config examples/providers.json --prompt 'Review the public task evidence'
+omha run --profile reviewer --config examples/providers.json --prompt 'Review the public task evidence'
 ```
 
 Only rate limit, capacity, timeout, transport, missing executable and open circuit
@@ -136,7 +136,7 @@ admission controls, not a universal billing cap; see [limitations](docs/security
   total voter weight, including abstentions/invalid votes. The chair runs afterward
   and cannot change the host tally. Minority reasons and failures remain recorded.
   A human gate is advisory and must be approved through `decision approve` before
-  downstream systems choose to act; Foldspace never applies a decision itself.
+  downstream systems choose to act; Omha never applies a decision itself.
 - **Handoff:** the prompt is written first. `auto` tries cmux, tmux, then file.
   Records retain full cmux UUIDs or private tmux sockets, ownership, PID and hashes.
   `handoff read|poll|send|resume|cancel|close --id <id>` manage only owned targets.
@@ -179,8 +179,8 @@ writes use fsync/rename and live-owner locks are never aged out.
 
 ## Security, Compatibility and Contribution
 
-State defaults to `$XDG_STATE_HOME/foldspace` or `$HOME/.local/state/foldspace`;
-`FOLDSPACE_HOME` overrides it. Foldspace is a local trusted-user tool, not an
+State defaults to `$XDG_STATE_HOME/omha` or `$HOME/.local/state/omha`;
+`OMHA_HOME` overrides it. Omha is a local trusted-user tool, not an
 isolation boundary against hostile processes running as that same OS user.
 Review commands and provider tool permissions. POSIX process groups supervise
 native workers; Windows degrades to fake providers, memory, skills and file
@@ -194,4 +194,4 @@ development dependency: Prettier. CI checks Node 20/22 on Linux/macOS/Windows,
 syntax, formatting, manifests/skill discovery, offline tests and tarball installs.
 
 MIT. [NOTICE](NOTICE) and [THIRD_PARTY.md](THIRD_PARTY.md) identify retained upstream
-work and newly authored Foldspace code.
+work and newly authored Omha code.

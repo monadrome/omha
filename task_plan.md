@@ -1,9 +1,9 @@
-# Foldspace release candidate implementation
+# Omha release candidate implementation
 
 ## Goal
 
 Replace the MVP scaffold with an installable, offline-tested open-source release
-candidate. Preserve Foldspace names and upstream MIT contracts. No metered model
+candidate. Preserve Omha names and upstream MIT contracts. No metered model
 calls, publication, or changes to pre-existing terminal sessions.
 
 ## Phases
@@ -50,7 +50,7 @@ boundaries, and uses deterministic bounded indexes. Default checks are offline.
   file fallback probe while tmux remained green.
 - `git diff --check`: passed. No provider calls, credentials, or machine state
   were added to the repository.
-- Public GitHub repository created at https://github.com/monadrome/foldspace;
+- Public GitHub repository created at https://github.com/monadrome/omha;
   main pushed with origin tracking (2026-10-10).
 
 ## Errors Encountered

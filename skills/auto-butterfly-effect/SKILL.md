@@ -5,7 +5,7 @@ description: Detect a changed or reworked task artifact, preserve the evidence, 
 
 # Auto butterfly effect
 
-Use `foldspace auto-butterfly` (or the equivalent host shell command) as a
+Use `omha auto-butterfly` (or the equivalent host shell command) as a
 wrapper around the `butterfly-effect` contract. Supply a versioned artifact and
 chronological transcript input. Record artifact versions, hashes, authoritative
 feedback, causal actions and the time. A changed file alone is evidence of

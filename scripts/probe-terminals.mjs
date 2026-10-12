@@ -15,8 +15,8 @@ import { run } from '../lib/process.mjs';
 import { redact } from '../lib/security.mjs';
 import { temp } from '../tests/helpers.mjs';
 
-const root = temp('foldspace-probes-');
-process.env.FOLDSPACE_HOME = join(root, 'state');
+const root = temp('omha-probes-');
+process.env.OMHA_HOME = join(root, 'state');
 const cwd = join(root, 'project');
 mkdirSync(cwd);
 const evidence = [];
@@ -84,13 +84,13 @@ for (const backend of ['tmux', 'cmux']) {
     record = await handoff(cwd, 'Local detached printf probe', {
       backend,
       command: '/usr/bin/printf',
-      args: [`FOLDSPACE_${backend}_PRINTF_OK\n`],
+      args: [`OMHA_${backend}_PRINTF_OK\n`],
       timeoutMs: 10000,
     });
     assert.equal(record.state, 'running', JSON.stringify(record));
     const done = await pollHandoff(record.id, { waitMs: 12000 });
     assert.equal(done.state, 'completed', JSON.stringify(done));
-    assert.ok(done.output.includes(`FOLDSPACE_${backend}_PRINTF_OK`));
+    assert.ok(done.output.includes(`OMHA_${backend}_PRINTF_OK`));
     evidence.push({
       backend,
       probe: 'detached printf',

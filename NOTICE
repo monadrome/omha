@@ -1,4 +1,4 @@
-Foldspace is an original work by HuaTalk.
+Omha is an original work by HuaTalk.
 
 This repository retains the following MIT-licensed skill content:
 
@@ -8,5 +8,5 @@ This repository retains the following MIT-licensed skill content:
   Copyright (c) 2026 monadrome.
 
 Full upstream MIT license texts ship in each retained skill directory. Their
-SKILL.md and references are upstream content. The Foldspace runtime, five new
+SKILL.md and references are upstream content. The Omha runtime, five new
 skill contracts, tests, schemas and documentation are newly authored.

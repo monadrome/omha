@@ -1,12 +1,12 @@
-# Foldspace
+# Omha
 
 [English](README.md) | [输入协议与 API](docs/contracts.md) | [安全边界](docs/security.md)
 
-Foldspace 是本地、跨 provider 的 agent 协作执行器。它提供 Claude/Codex/Kimi
+Omha 是本地、跨 provider 的 agent 协作执行器。它提供 Claude/Codex/Kimi
 路由、经过验证的任务 DAG、盲投圆桌决策、受所有权保护的终端交接、基于返工证据的
 蝴蝶效应分析，以及分作用域的 Markdown 记忆。CLI 附带七个可移植的 Agent Skills。
 
-当前版本 **0.2.0-rc.1** 为候选版本。默认测试离线运行，不调用收费模型。
+当前版本 **0.2.0-rc.2** 为候选版本。默认测试离线运行，不调用收费模型。
 真实模型行为、账单和沙箱约束仍依赖安装的 provider CLI。成功退出代表输出通过协议
 验证，不代表代码任务已经正确完成；项目自身的验收检查仍需要执行。
 
@@ -19,31 +19,31 @@ Foldspace 是本地、跨 provider 的 agent 协作执行器。它提供 Claude/
 npm ci --ignore-scripts
 npm run check
 npm pack
-npm install -g ./huatalk-foldspace-0.2.0-rc.1.tgz --ignore-scripts
-foldspace doctor --json
+npm install -g ./huatalk-omha-0.2.0-rc.2.tgz --ignore-scripts
+omha doctor --json
 ```
 
 也可执行 `./install.sh`，安装到 `$HOME/.local`，再将 `$HOME/.local/bin` 加入 PATH。
-通过 `FOLDSPACE_NPM_PREFIX` 调整安装前缀。脚本只安装 CLI，不覆盖 Claude marketplace；
+通过 `OMHA_NPM_PREFIX` 调整安装前缀。脚本只安装 CLI，不覆盖 Claude marketplace；
 checkout 安装后请保留源码目录。
 
-发布到 npm 后，可用 `npm install -g @huatalk/foldspace@<版本> --ignore-scripts`
+发布到 npm 后，可用 `npm install -g @huatalk/omha@<版本> --ignore-scripts`
 安装或更新。当前候选版本按上面的步骤重新打包并安装。仓库存在不表示已经发布。
 
 ```bash
-npm uninstall -g @huatalk/foldspace --ignore-scripts
+npm uninstall -g @huatalk/omha --ignore-scripts
 # 使用 install.sh 时：
-npm uninstall -g --prefix "$HOME/.local" @huatalk/foldspace --ignore-scripts
+npm uninstall -g --prefix "$HOME/.local" @huatalk/omha --ignore-scripts
 ```
 
-卸载保留记忆与运行记录。先用 `foldspace handoff close --id <id>` 关闭自己创建的交接。
-`foldspace doctor --json` 会显示状态目录；确认内容后再手动删除保留的数据。
+卸载保留记忆与运行记录。先用 `omha handoff close --id <id>` 关闭自己创建的交接。
+`omha doctor --json` 会显示状态目录；确认内容后再手动删除保留的数据。
 
 Claude 单次加载：`claude --plugin-dir .`。长期安装可在 checkout 中执行
-`claude plugin marketplace add .` 和 `claude plugin install foldspace@foldspace`。
-更新用 `claude plugin marketplace update foldspace`，并按 host 要求重新安装插件。
-卸载用 `claude plugin uninstall foldspace@foldspace` 和
-`claude plugin marketplace remove foldspace`。其他 Agent Skills host 可发现或复制
+`claude plugin marketplace add .` 和 `claude plugin install omha@omha`。
+更新用 `claude plugin marketplace update omha`，并按 host 要求重新安装插件。
+卸载用 `claude plugin uninstall omha@omha` 和
+`claude plugin marketplace remove omha`。其他 Agent Skills host 可发现或复制
 `skills/*/SKILL.md`，并保留相邻 references 和 LICENSE。技能是操作协议，实际运行需 CLI。
 
 ## 可运行的离线示例
@@ -51,14 +51,14 @@ Claude 单次加载：`claude --plugin-dir .`。长期安装可在 checkout 中�
 以下命令在本仓库内执行，不需要付费 provider：
 
 ```bash
-node bin/foldspace.mjs run --profile fake --prompt '离线检查'
-node bin/foldspace.mjs leader --plan examples/plan.json --config examples/providers.fake.json
-node bin/foldspace.mjs runs list
-node bin/foldspace.mjs roundtable --input examples/decision.json --config examples/providers.fake.json
-node bin/foldspace.mjs auto-butterfly --input examples/history.json --handoff --backend file
-node bin/foldspace.mjs memory put --name api-contract --type decision --content '执行前验证任务计划。'
-node bin/foldspace.mjs memory inject --topics api-contract
-node bin/foldspace.mjs memory doctor
+node bin/omha.mjs run --profile fake --prompt '离线检查'
+node bin/omha.mjs leader --plan examples/plan.json --config examples/providers.fake.json
+node bin/omha.mjs runs list
+node bin/omha.mjs roundtable --input examples/decision.json --config examples/providers.fake.json
+node bin/omha.mjs auto-butterfly --input examples/history.json --handoff --backend file
+node bin/omha.mjs memory put --name api-contract --type decision --content '执行前验证任务计划。'
+node bin/omha.mjs memory inject --topics api-contract
+node bin/omha.mjs memory doctor
 ```
 
 `npm run pack:check` 会在临时 HOME 安装 tarball，验证已安装 CLI/API 的完整流程和卸载。
@@ -68,8 +68,8 @@ probe 会保留有限诊断并验证 file fallback；tmux 与离线检查仍是�
 
 ## Provider 配置与路由
 
-配置优先级为 `--config`、项目 `.foldspace/providers.json`、
-`$FOLDSPACE_HOME/providers.json`。`agents.json` 兼容旧文件名，但内容必须使用 version 1
+配置优先级为 `--config`、项目 `.omha/providers.json`、
+`$OMHA_HOME/providers.json`。`agents.json` 兼容旧文件名，但内容必须使用 version 1
 协议。无效配置直接失败。参见 [配置示例](examples/providers.json) 与
 [JSON Schema](schemas/providers.schema.json)。
 
@@ -81,7 +81,7 @@ Profile 明确配置 executable/argv、adapter、model、effort、sandbox、time
 
 ```bash
 # 这会调用真实 provider，可能收费：
-foldspace run --profile reviewer --config examples/providers.json --prompt '检查公开任务证据'
+omha run --profile reviewer --config examples/providers.json --prompt '检查公开任务证据'
 ```
 
 仅限流、容量不足、超时、传输故障、缺失 executable 和熔断可触发 fallback。
@@ -106,7 +106,7 @@ foldspace run --profile reviewer --config examples/providers.json --prompt '检�
 - 圆桌使用 2-3 个独立 voter，共享相同公开证据与各自私有提示。在盲收集结束前不持久化
   任何投票。证据引文必须匹配 anchor。多数或权重结果须超过全部票权的一半，弃权和
   无效票也计入分母。Chair 随后综合，不能修改 host 计票结果；少数理由和失败记录保留。
-  Human gate 为建议性门槛，下游系统应等待 `decision approve`；Foldspace 不自动执行决策。
+  Human gate 为建议性门槛，下游系统应等待 `decision approve`；Omha 不自动执行决策。
 - Handoff 先写提示词，再按 cmux、tmux、file 降级。记录完整 cmux UUID 或私有 tmux
   socket、所有权、PID 和哈希。`handoff read|poll|send|resume|cancel|close --id <id>`
   只操作自身资源。终端 worker 必须有完成记录或经过 token 验证的最终 JSON marker；
@@ -137,8 +137,8 @@ status。`--expected-hash` 检查并发冲突，`--create-only` 禁止覆盖，
 `memory doctor --rebuild` 重建索引。共享记忆拒绝原始 transcript 和凭据；拒绝路径穿越、
 空字节、符号链接和硬链接；原子写入使用 fsync/rename，仍存活的锁所有者不会因锁老化被删除。
 
-状态目录为 `$XDG_STATE_HOME/foldspace` 或 `$HOME/.local/state/foldspace`，可通过
-`FOLDSPACE_HOME` 调整。本工具信任当前 OS 用户与配置的 executable，不是对同 UID 恶意
+状态目录为 `$XDG_STATE_HOME/omha` 或 `$HOME/.local/state/omha`，可通过
+`OMHA_HOME` 调整。本工具信任当前 OS 用户与配置的 executable，不是对同 UID 恶意
 进程的隔离沙箱。POSIX 使用进程组监督；Windows 降级到 fake provider、记忆、技能和
 file 交接。Kimi 只读调用需外部沙箱；未验证 tool-free CLI 前不能用于盲投或规划。
 
@@ -148,4 +148,4 @@ file 交接。Kimi 只读调用需外部沙箱；未验证 tool-free CLI 前不�
 manifest、技能发现、离线测试和安装包。唯一运行依赖是解析 frontmatter 的 `yaml`。
 
 MIT 许可；[NOTICE](NOTICE) 与 [THIRD_PARTY.md](THIRD_PARTY.md) 区分保留的 upstream 技能与
-新编写的 Foldspace 代码。
+新编写的 Omha 代码。

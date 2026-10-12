@@ -1,10 +1,10 @@
 # Architecture
 
-Foldspace keeps host-readable instructions separate from side effects:
+Omha keeps host-readable instructions separate from side effects:
 
 ```text
 skills/*/SKILL.md       -> portable trigger/evidence contracts
-bin/foldspace.mjs       -> strict CLI and signal boundary
+bin/omha.mjs       -> strict CLI and signal boundary
 lib/profiles.mjs        -> versioned provider/profile validation
 lib/adapters.mjs        -> Claude/Codex/Kimi/fake argv and output parsers
 lib/process.mjs         -> process groups, deadlines, output bounds

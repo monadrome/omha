@@ -8,13 +8,13 @@ import { hash, projectDir } from '../lib/core.mjs';
 import { appendEvent, readEvents } from '../lib/storage.mjs';
 import { killTree } from '../lib/process.mjs';
 
-const cli = join(process.cwd(), 'bin', 'foldspace.mjs');
+const cli = join(process.cwd(), 'bin', 'omha.mjs');
 const fixture = join(process.cwd(), 'tests', 'fixtures', 'local-worker.mjs');
 
 function start(cwd, state, args) {
   const child = spawn(process.execPath, [cli, ...args], {
     cwd,
-    env: { ...process.env, FOLDSPACE_HOME: state },
+    env: { ...process.env, OMHA_HOME: state },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let stdout = '',
@@ -55,7 +55,7 @@ test(
   'actual host SIGKILL resumes a read task, kills the previous process and retains reservations',
   { skip: process.platform === 'win32' },
   async (t) => {
-    const root = temp('foldspace-restart-'),
+    const root = temp('omha-restart-'),
       cwd = join(root, 'project'),
       state = join(root, 'state');
     mkdirSync(cwd);
@@ -99,12 +99,12 @@ test(
     });
     await until(() => existsSync(join(cwd, 'first-launch')));
     previousPid = Number(readFileSync(join(cwd, 'first-launch'), 'utf8'));
-    const previousHome = process.env.FOLDSPACE_HOME;
-    process.env.FOLDSPACE_HOME = state;
+    const previousHome = process.env.OMHA_HOME;
+    process.env.OMHA_HOME = state;
     const processEvent = readEvents(join(projectDir(cwd), 'runs', 'restart', 'events.jsonl')).find(
       (event) => event.kind === 'task.process' && event.taskId === 'job',
     );
-    process.env.FOLDSPACE_HOME = previousHome;
+    process.env.OMHA_HOME = previousHome;
     assert.ok(processEvent?.fingerprint, JSON.stringify(processEvent));
     host.child.kill('SIGKILL');
     await host.done;
@@ -135,7 +135,7 @@ test(
   'independent CLI processes share provider limits and never overlap local workers',
   { skip: process.platform === 'win32' },
   async (t) => {
-    const root = temp('foldspace-concurrency-'),
+    const root = temp('omha-concurrency-'),
       cwd = join(root, 'project'),
       state = join(root, 'state');
     mkdirSync(cwd);
@@ -176,7 +176,7 @@ test(
 );
 
 test('durable JSONL tolerates a torn final event then appends without corrupting earlier history', () => {
-  const root = temp('foldspace-events-');
+  const root = temp('omha-events-');
   try {
     const file = join(root, 'events.jsonl');
     appendEvent(file, { kind: 'first', value: 'supported' });

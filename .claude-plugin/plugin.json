@@ -1,8 +1,8 @@
 {
-  "name": "foldspace",
-  "description": "Agent collaboration for session rewind, release hygiene, terminal handoff, roundtable decisions, model routing, and shared project memory.",
-  "version": "0.2.0-rc.1",
+  "name": "omha",
+  "description": "Local, provider-neutral runtime and skills for agent collaboration: provider routing, validated task DAGs, blind roundtable votes, owned terminal handoff, drift advice, and scoped Markdown memory.",
+  "version": "0.2.0-rc.2",
   "author": { "name": "HuaTalk", "url": "https://github.com/monadrome" },
-  "repository": "https://github.com/monadrome/foldspace.git",
+  "repository": "https://github.com/monadrome/omha.git",
   "keywords": ["claude-code", "agent-skills", "multi-agent", "memory", "orchestration"]
 }

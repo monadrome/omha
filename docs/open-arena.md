@@ -1,7 +1,7 @@
 # Open Arena Content and Independent Implementations
 
 Open Arena is a knowledge boundary. Its import does not grant execution
-permission. Foldspace maintains three separate records: a frozen knowledge
+permission. Omha maintains three separate records: a frozen knowledge
 package, an independently authorized execution specification, and artifacts with
 host verification and review evidence. Business invariants and non-goals belong
 in `OPEN_ARENA.md`; commands, scheduling and acceptance criteria belong in the
@@ -10,16 +10,16 @@ execution specification.
 ## Import a Knowledge Package
 
 ```sh
-foldspace arena import --source /absolute/knowledge-package \
+omha arena import --source /absolute/knowledge-package \
   --input knowledge-metadata.json --cwd /absolute/source-repository
-foldspace arena knowledge --id KNOWLEDGE_DIGEST
+omha arena knowledge --id KNOWLEDGE_DIGEST
 ```
 
 The directory contains `OPEN_ARENA.md` and `references/`. Every imported file
 requires source provenance. Local Markdown links must resolve within that
 inventory. HTTP citations remain citations and are never fetched. Links,
 hardlinks, non-text input, missing dependencies and oversized packages are
-rejected. The importer writes only under `FOLDSPACE_HOME/arena/knowledge/`, which
+rejected. The importer writes only under `OMHA_HOME/arena/knowledge/`, which
 must be outside the source repository. It starts no planner, provider or terminal.
 
 Metadata is supplied separately so existing Open Arena documents need no rigid
@@ -103,13 +103,13 @@ API. Existing leader and roundtable contracts remain compatible.
 ## Run Two Independent Implementations
 
 ```sh
-foldspace arena run --cwd /absolute/source-repository \
+omha arena run --cwd /absolute/source-repository \
   --input execution.json --config providers.json --allow-write
-foldspace arena status --id BATCH_ID
-foldspace arena cancel --id BATCH_ID
-foldspace arena resume --id BATCH_ID
-foldspace arena review --id BATCH_ID
-foldspace arena review-record --id BATCH_ID --input human-review.json
+omha arena status --id BATCH_ID
+omha arena cancel --id BATCH_ID
+omha arena resume --id BATCH_ID
+omha arena review --id BATCH_ID
+omha arena review-record --id BATCH_ID --input human-review.json
 ```
 
 `runArena(cwd, specification, { config })` is the API equivalent. A specification
@@ -143,7 +143,7 @@ Every lane calls `ProviderRuntime.attempt()` once. Profile retry/fallback polici
 are never invoked. The shared host runtime persists reservations before launch,
 settlements, process fingerprints, events, workspace ownership, physical IDs and
 logical source identity. Each attempt gets a separate HOME, TMPDIR, cache,
-`FOLDSPACE_HOME` and memory session; credentials require explicit environment
+`OMHA_HOME` and memory session; credentials require explicit environment
 allowlisting. Provider CLI configuration under the original HOME is not inherited.
 The final UTF-8 prefix is identical across lanes. Workspace paths, objective and
 execution instructions appear in the suffix; live memory is never injected.
@@ -170,7 +170,7 @@ A criterion contains `id`, absolute `command`, `args` including the exact
 `"{harness}"` placeholder, absolute `harnessPath`, `harnessHash`, and `timeoutMs`.
 The approved harness is frozen outside the provider workspace and runs against a
 fresh materialization of the sealed candidate. It must use audited local
-dependencies and commands. Foldspace performs no dependency installation.
+dependencies and commands. Omha performs no dependency installation.
 An empty criteria array produces explicit missing verification evidence.
 
 Full file inventories capture already committed changes, untracked/ignored files,

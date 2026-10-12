@@ -20,5 +20,5 @@ versioned schemas for new JSON inputs and reject unknown fields. Update
 
 Pull requests should explain the failure or user workflow, list meaningful
 validation, and call out platform degradation. Preserve the upstream MIT notices
-when changing `skills/butterfly-effect` or `skills/hide`; Foldspace-specific code
+when changing `skills/butterfly-effect` or `skills/hide`; Omha-specific code
 must remain clearly separable from retained upstream text.

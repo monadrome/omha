@@ -11,7 +11,7 @@ import { loadConfig, validateProfiles } from '../lib/profiles.mjs';
 import { run } from '../lib/process.mjs';
 
 const root = temp();
-process.env.FOLDSPACE_HOME = join(root, 'state');
+process.env.OMHA_HOME = join(root, 'state');
 const local = (profiles, opts = {}) =>
   createRuntime(config(profiles), { persistent: false, ...opts });
 

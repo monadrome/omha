@@ -1,4 +1,4 @@
-# Foldspace Contracts
+# Omha Contracts
 
 Open Arena knowledge import and the separately authorized two-implementation
 batch have an additive version 1 contract described in
@@ -8,7 +8,7 @@ preserve the existing string public-context and leader write-exclusion contracts
 
 All JSON inputs use version `1` and reject unknown fields. Paths are resolved
 relative to the supplied working directory, while durable state is under
-`FOLDSPACE_HOME`.
+`OMHA_HOME`.
 
 Provider configuration is `schemas/providers.schema.json`. A profile names an
 adapter (`claude`, `codex`, `kimi`, `command`, or `fake`), executable, model,

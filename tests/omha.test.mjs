@@ -5,8 +5,8 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const root = mkdtempSync(join(tmpdir(), 'foldspace-test-'));
-process.env.FOLDSPACE_HOME = join(root, 'state');
+const root = mkdtempSync(join(tmpdir(), 'omha-test-'));
+process.env.OMHA_HOME = join(root, 'state');
 const { projectIdentity } = await import('../lib/core.mjs');
 const { initMemory, memoryPointer, readMemory, searchMemory, writeMemory } =
   await import('../lib/memory.mjs');
@@ -93,11 +93,11 @@ test('file handoff works without terminal backends', async () => {
 });
 
 test('CLI help and artifact-only butterfly detection do not mistake hash changes for drift', () => {
-  const bin = join(process.cwd(), 'bin', 'foldspace.mjs');
+  const bin = join(process.cwd(), 'bin', 'omha.mjs');
   const cwd = join(root, 'cli');
   mkdirSync(cwd);
   writeFileSync(join(root, 'artifact.md'), 'one');
-  const env = { ...process.env, FOLDSPACE_HOME: join(root, 'cli-state') };
+  const env = { ...process.env, OMHA_HOME: join(root, 'cli-state') };
   assert.match(
     execFileSync(process.execPath, [bin, 'help'], { encoding: 'utf8', env }),
     /memory init/,

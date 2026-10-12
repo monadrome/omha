@@ -16,7 +16,7 @@ import { appendEvent, atomicWrite, readEvents } from '../lib/storage.mjs';
 import { roundtable, decisionStatus, resolveDecision } from '../lib/roundtable.mjs';
 
 const root = temp();
-process.env.FOLDSPACE_HOME = join(root, 'state');
+process.env.OMHA_HOME = join(root, 'state');
 const cwd = join(root, 'project');
 mkdirSync(cwd);
 const runtime = (profiles) => createRuntime(config(profiles), { persistent: false });

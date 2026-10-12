@@ -5,7 +5,7 @@ description: Maintain small, auditable Markdown memory shared by agents within o
 
 # Project memory
 
-Use `foldspace memory` to initialize, read, search, and write memory. The
+Use `omha memory` to initialize, read, search, and write memory. The
 canonical Git root determines the project identity, so worktrees share a
 project index; non-Git workspaces use a real-path identity. `MEMORY.md` is an
 index of pointers and topic files contain the content. Include provenance,

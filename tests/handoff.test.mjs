@@ -18,7 +18,7 @@ import { atomicWrite } from '../lib/storage.mjs';
 import { hash } from '../lib/core.mjs';
 
 const root = temp();
-process.env.FOLDSPACE_HOME = join(root, 'state');
+process.env.OMHA_HOME = join(root, 'state');
 const cwd = join(root, 'project');
 mkdirSync(cwd);
 
@@ -79,7 +79,7 @@ test('owned fake backend captures, sends separate enter, detects final marker an
   await sendHandoff(created.id, 'next', { backendAdapter: adapter, enter: true });
   assert.deepEqual(adapter.calls[1], { text: 'next', enter: true });
   adapter.sessions.get(created.id).output =
-    `FOLDSPACE_FINAL:${JSON.stringify({ token: created.owner.token, state: 'completed', exitCode: 0 })}`;
+    `OMHA_FINAL:${JSON.stringify({ token: created.owner.token, state: 'completed', exitCode: 0 })}`;
   assert.equal(
     (await pollHandoff(created.id, { backendAdapter: adapter, waitMs: 30 })).state,
     'completed',
@@ -110,10 +110,10 @@ test('timeout and cancellation close only the owned target, with durable states'
 test('wrong owner and malformed final markers are never accepted as success', async () => {
   const adapter = backend(),
     created = await handoff(cwd, 'Continue task', { backend: 'fake', backendAdapter: adapter });
-  adapter.sessions.get(created.id).output = 'FOLDSPACE_FINAL:{bad}';
+  adapter.sessions.get(created.id).output = 'OMHA_FINAL:{bad}';
   await assert.rejects(readHandoff(created.id, { backendAdapter: adapter }), /Malformed/);
   adapter.sessions.get(created.id).output =
-    `FOLDSPACE_FINAL:${JSON.stringify({ token: 'wrong', state: 'completed', exitCode: 0 })}`;
+    `OMHA_FINAL:${JSON.stringify({ token: 'wrong', state: 'completed', exitCode: 0 })}`;
   await assert.rejects(readHandoff(created.id, { backendAdapter: adapter }), /Invalid/);
   adapter.sessions.get(created.id).output = '';
   adapter.sessions.get(created.id).owner = 'user-session';

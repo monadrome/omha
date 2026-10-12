@@ -1,10 +1,10 @@
 {
-  "name": "@huatalk/foldspace",
-  "version": "0.2.0-rc.1",
-  "description": "Portable agent collaboration plugin: rewind, hide, handoff, roundtable, leader routing, and project memory.",
+  "name": "@huatalk/omha",
+  "version": "0.2.0-rc.2",
+  "description": "Local, provider-neutral runtime for agent collaboration: routes Claude/Codex/Kimi, validates task DAGs, collects blind roundtable votes, manages owned terminal handoffs, and keeps scoped Markdown memory.",
   "type": "module",
   "bin": {
-    "foldspace": "bin/foldspace.mjs"
+    "omha": "bin/omha.mjs"
   },
   "files": [
     "bin",
@@ -47,7 +47,7 @@
   "author": "HuaTalk (https://github.com/monadrome)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/monadrome/foldspace.git"
+    "url": "git+https://github.com/monadrome/omha.git"
   },
   "publishConfig": {
     "access": "public"
@@ -64,9 +64,9 @@
     "test": "tests"
   },
   "bugs": {
-    "url": "https://github.com/monadrome/foldspace/issues"
+    "url": "https://github.com/monadrome/omha/issues"
   },
-  "homepage": "https://github.com/monadrome/foldspace#readme",
+  "homepage": "https://github.com/monadrome/omha#readme",
   "dependencies": {
     "yaml": "^2.9.1"
   },

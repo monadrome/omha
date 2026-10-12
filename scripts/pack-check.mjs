@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const temporary = realpathSync(mkdtempSync(join(tmpdir(), 'foldspace-pack-')));
+const temporary = realpathSync(mkdtempSync(join(tmpdir(), 'omha-pack-')));
 const cleanHome = join(temporary, 'home'),
   prefix = join(temporary, 'prefix'),
   cwd = join(temporary, 'project');
@@ -15,7 +15,7 @@ const env = {
   ...process.env,
   HOME: cleanHome,
   USERPROFILE: cleanHome,
-  FOLDSPACE_HOME: join(cleanHome, 'state'),
+  OMHA_HOME: join(cleanHome, 'state'),
   npm_config_cache: join(temporary, 'npm-cache'),
   npm_config_update_notifier: 'false',
 };
@@ -35,7 +35,7 @@ try {
   const names = packed.files.map((entry) => entry.path);
   for (const required of [
     'index.mjs',
-    'bin/foldspace.mjs',
+    'bin/omha.mjs',
     'bin/handoff-worker.mjs',
     '.claude-plugin/plugin.json',
     'skills/hide/LICENSE',
@@ -48,9 +48,7 @@ try {
   assert.equal(
     names.some(
       (name) =>
-        name.includes('node_modules') ||
-        name.startsWith('tests/') ||
-        name.startsWith('.foldspace/'),
+        name.includes('node_modules') || name.startsWith('tests/') || name.startsWith('.omha/'),
     ),
     false,
   );
@@ -70,12 +68,12 @@ try {
   const installed = join(
     prefix,
     process.platform === 'win32' ? 'node_modules' : 'lib/node_modules',
-    '@huatalk/foldspace',
+    '@huatalk/omha',
   );
-  const cli = join(installed, 'bin', 'foldspace.mjs');
+  const cli = join(installed, 'bin', 'omha.mjs');
   assert.ok(existsSync(cli));
   const installedBin =
-    process.platform === 'win32' ? join(prefix, 'foldspace.cmd') : join(prefix, 'bin', 'foldspace');
+    process.platform === 'win32' ? join(prefix, 'omha.cmd') : join(prefix, 'bin', 'omha');
   assert.ok(existsSync(installedBin));
   assert.equal(
     execFileSync(installedBin, ['--version'], {
@@ -141,7 +139,7 @@ try {
   );
   assert.match(api, /function/);
   invokeNpm(
-    ['uninstall', '--global', '--prefix', prefix, '@huatalk/foldspace', '--ignore-scripts'],
+    ['uninstall', '--global', '--prefix', prefix, '@huatalk/omha', '--ignore-scripts'],
     cwd,
   );
   assert.equal(existsSync(cli), false);

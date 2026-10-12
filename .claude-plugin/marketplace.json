@@ -1,14 +1,14 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "foldspace",
+  "name": "omha",
   "description": "Portable agent collaboration skills and a provider-neutral execution CLI.",
   "owner": { "name": "HuaTalk", "url": "https://github.com/monadrome" },
   "plugins": [
     {
-      "name": "foldspace",
+      "name": "omha",
       "source": "./",
-      "version": "0.2.0-rc.1",
-      "description": "Rewind, hide, handoff, roundtable, leader routing, and project memory.",
+      "version": "0.2.0-rc.2",
+      "description": "Provider routing, validated task DAGs, blind roundtable votes, owned terminal handoff, dry-run drift advice, and scoped Markdown memory.",
       "category": "agent-collaboration"
     }
   ]

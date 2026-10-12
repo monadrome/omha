@@ -5,7 +5,7 @@ description: Transfer an agent task to a new terminal session or a file pointer 
 
 # Agent handoff
 
-Write the prompt and Foldspace memory pointer before starting the backend.
+Write the prompt and Omha memory pointer before starting the backend.
 Prefer cmux when available for a visible handoff, then tmux for headless work,
 then a file-only handoff. Detect capabilities rather than assuming either
 terminal exists. Use a unique name and retain the full cmux workspace reference

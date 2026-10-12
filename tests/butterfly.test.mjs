@@ -10,7 +10,7 @@ const reliable = JSON.parse(
   readFileSync(new URL('./fixtures/butterfly-reliable.json', import.meta.url), 'utf8'),
 );
 const root = temp();
-process.env.FOLDSPACE_HOME = join(root, 'state');
+process.env.OMHA_HOME = join(root, 'state');
 const cwd = join(root, 'project');
 mkdirSync(cwd);
 

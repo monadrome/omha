@@ -10,7 +10,7 @@
   tarball install, direct CLI/examples/API execution and uninstall.
 - Commits record runtime implementation, skill/license contracts,
   documentation/CI and verified GitHub namespace metadata.
-- Created the public repository https://github.com/monadrome/foldspace and pushed
+- Created the public repository https://github.com/monadrome/omha and pushed
   main to origin with upstream tracking (2026-10-10).
 
 ## Production implementation session (2026-10-09)
@@ -58,7 +58,7 @@
   exact Retry-After JSON headers, and direct installed-bin checks.
 - `npm run check` passed: 50 tests plus static syntax/skill/example validation.
 - Node 20.20.2 `--test tests/*.test.mjs` passed all 50 tests.
-- `npm run pack:check` passed: clean HOME install, direct `foldspace` launcher,
+- `npm run pack:check` passed: clean HOME install, direct `omha` launcher,
   public API, examples, and uninstall.
 - Strict Claude marketplace validation passed.
 - Real tmux/cmux probe passed detached printf, long paste + separate Enter, and
@@ -75,7 +75,7 @@
 
 - 2026-10-09: Completed repository/CLI/license research with three parallel
   read-only subagents.
-- 2026-10-09: Created Foldspace plugin manifests and migrated butterfly/hide
+- 2026-10-09: Created Omha plugin manifests and migrated butterfly/hide
   skill contracts and references.
 - 2026-10-09: Implemented memory identity/index/locking, provider adapters and
   rate-limit fallback, leader and blind roundtable, auto-butterfly hash
@@ -83,7 +83,7 @@
 - 2026-10-09: Added 5 offline tests; all pass. Strict plugin validation and npm
   dry-run pass.
 - 2026-10-09: Installed with `install.sh`, added the local marketplace, and
-  installed/enabled `foldspace@foldspace` in Claude. Plugin details report 7
+  installed/enabled `omha@omha` in Claude. Plugin details report 7
   skills. A temporary npm tarball install and CLI doctor passed.
 - 2026-10-09: Real tmux and cmux detached probes passed; each probe used a
   unique resource, read its output, and confirmed no probe session remained.

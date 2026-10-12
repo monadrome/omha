@@ -27,14 +27,14 @@ const pkg = json('package.json'),
   plugin = json('.claude-plugin/plugin.json'),
   marketplace = json('.claude-plugin/marketplace.json'),
   lock = json('package-lock.json');
-assert.equal(pkg.name, '@huatalk/foldspace');
-assert.equal(plugin.name, 'foldspace');
-assert.equal(marketplace.name, 'foldspace');
+assert.equal(pkg.name, '@huatalk/omha');
+assert.equal(plugin.name, 'omha');
+assert.equal(marketplace.name, 'omha');
 assert.equal(pkg.version, plugin.version);
 assert.equal(pkg.version, lock.version);
 assert.equal(pkg.version, marketplace.plugins[0].version);
 assert.equal(marketplace.plugins[0].source, './');
-assert.equal(pkg.bin.foldspace, 'bin/foldspace.mjs');
+assert.equal(pkg.bin.omha, 'bin/omha.mjs');
 assert.ok(existsSync(join(root, pkg.main)));
 const skills = readdirSync(join(root, 'skills'), { withFileTypes: true })
   .filter((entry) => entry.isDirectory())

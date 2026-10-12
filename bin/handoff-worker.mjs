@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { join } from 'node:path';
-import { hash, now, stateHome } from '../lib/core.mjs';
+import { FINAL_MARKER, hash, now, stateHome } from '../lib/core.mjs';
 import { atomicWrite, jsonRead, safeRead } from '../lib/storage.mjs';
 import { run, processFingerprint } from '../lib/process.mjs';
 import { environment, environmentSecrets, redact } from '../lib/security.mjs';
@@ -11,7 +11,7 @@ const record = jsonRead(process.argv[2], null, stateHome());
 if (!record) process.exit(2);
 const dir = join(stateHome(), 'handoffs', record.id);
 const env = environment(record.envAllowlist);
-env.FOLDSPACE_PROMPT_FILE = record.promptFile;
+env.OMHA_PROMPT_FILE = record.promptFile;
 const secrets = environmentSecrets(env);
 const controller = new AbortController();
 process.on('SIGTERM', () => controller.abort());
@@ -90,7 +90,7 @@ try {
     stateHome(),
   );
   atomicWrite(join(dir, 'final.json'), JSON.stringify(final), stateHome());
-  process.stdout.write(`\nFOLDSPACE_FINAL:${JSON.stringify(final)}\n`);
+  process.stdout.write(`\n${FINAL_MARKER}${JSON.stringify(final)}\n`);
   if (state === 'timed_out') {
     for (let i = 0; i < 20; i += 1) {
       const current = jsonRead(record.recordFile, null, stateHome());

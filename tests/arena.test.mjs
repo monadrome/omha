@@ -39,7 +39,7 @@ import { delay } from '../lib/runner.mjs';
 
 const time = '2026-10-10T12:00:00.000Z';
 const authorization = { by: 'fixture-user', source: 'offline-fixture-authorization', at: time };
-const cli = fileURLToPath(new URL('../bin/foldspace.mjs', import.meta.url));
+const cli = fileURLToPath(new URL('../bin/omha.mjs', import.meta.url));
 const crashFixture = fileURLToPath(new URL('./fixtures/arena-crash.mjs', import.meta.url));
 
 function knowledgeFixture(root) {
@@ -95,8 +95,8 @@ function knowledgeFixture(root) {
 }
 
 function fixture({ criteria = true, profiles } = {}) {
-  const root = temp('foldspace-arena-');
-  process.env.FOLDSPACE_HOME = join(root, 'state');
+  const root = temp('omha-arena-');
+  process.env.OMHA_HOME = join(root, 'state');
   const source = join(root, 'source');
   mkdirSync(source);
   git(source, ['init', '--quiet', '-b', 'main']);
@@ -287,13 +287,13 @@ test('arena knowledge rejects changed references, missing dependencies, paths, l
     /cannot become current/,
   );
   assert.throws(() => importOpenArena(join(f.root, 'absent'), {}), /ENOENT/);
-  const prior = process.env.FOLDSPACE_HOME;
-  process.env.FOLDSPACE_HOME = join(f.source, '.state');
+  const prior = process.env.OMHA_HOME;
+  process.env.OMHA_HOME = join(f.source, '.state');
   assert.throws(
     () => importOpenArena(promotion.directory, promotion.metadata, { sourceCwd: f.source }),
     /outside/,
   );
-  process.env.FOLDSPACE_HOME = prior;
+  process.env.OMHA_HOME = prior;
 });
 
 test('arena credential rejection and explicit redaction retain distinct original and frozen hashes', () => {
@@ -863,7 +863,7 @@ test('arena frozen package/prefix/public copies, ownership and supplied executio
   assert.throws(() => readOpenArena(f.imported.id), /hash changed/);
   const alias = join(f.root, 'source-alias');
   symlinkSync(f.source, alias);
-  process.env.FOLDSPACE_HOME = join(alias, 'new-state');
+  process.env.OMHA_HOME = join(alias, 'new-state');
   assert.throws(
     () => importOpenArena(f.knowledge.directory, f.knowledge.metadata, { sourceCwd: f.source }),
     /outside/,

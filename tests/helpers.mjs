@@ -2,7 +2,7 @@ import { mkdtempSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-export function temp(prefix = 'foldspace-') {
+export function temp(prefix = 'omha-') {
   return realpathSync(mkdtempSync(join(tmpdir(), prefix)));
 }
 export function fake(output = 'done', extra = {}) {

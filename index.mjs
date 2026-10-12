@@ -34,7 +34,7 @@ export {
   doctorMemory,
 } from './lib/memory.mjs';
 export { detectDrift, autoButterfly, validateHistory } from './lib/butterfly.mjs';
-export { FoldspaceError } from './lib/validation.mjs';
+export { OmhaError } from './lib/validation.mjs';
 export { importOpenArena, readOpenArena, ARENA_LABELS, ARENA_CONTRACT } from './lib/open-arena.mjs';
 export {
   runArena,

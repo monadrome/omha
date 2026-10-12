@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { check, FoldspaceError } from '../lib/validation.mjs';
+import { check, OmhaError } from '../lib/validation.mjs';
 import { commandExists, hash, projectIdentity, stateHome } from '../lib/core.mjs';
 import { redactData, environmentSecrets } from '../lib/security.mjs';
 import { createRuntime } from '../lib/runner.mjs';
@@ -155,7 +155,7 @@ function inputJson(file) {
     return JSON.parse(inputFile(file));
   } catch (error) {
     if (error instanceof SyntaxError)
-      throw new FoldspaceError('configuration', 'Invalid JSON input file');
+      throw new OmhaError('configuration', 'Invalid JSON input file');
     throw error;
   }
 }
@@ -190,28 +190,28 @@ function runtimeOptions(cwd, o, controller) {
   };
 }
 
-const HELP = `Foldspace: portable provider runtime, durable DAGs, blind decisions and memory.
+const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and memory.
 
-  foldspace run --profile fake --prompt 'Offline check'
-  foldspace leader --plan plan.json [--allow-write]
-  foldspace leader --task TEXT --profile planner --config providers.json
-  foldspace leader --resume RUN_ID [--retry-failed --retry-interrupted-writes]
-  foldspace runs list|status|cancel [--id RUN_ID]
-  foldspace roundtable --input decision.json --config providers.json
-  foldspace decision status|approve|reject --id ID [--reason TEXT]
-  foldspace handoff --prompt TEXT --backend auto|cmux|tmux|file
-  foldspace handoff list|status|read|poll|send|resume|cancel|close|complete --id ID
-  foldspace auto-butterfly --input history.json [--analyze --profile analyst]
-  foldspace arena import --source DIRECTORY --input knowledge-metadata.json
-  foldspace arena knowledge --id KNOWLEDGE_ID
-  foldspace arena run --input execution.json --config providers.json --allow-write
-  foldspace arena status|resume|cancel|review --id BATCH_ID
-  foldspace arena review-record --id BATCH_ID --input human-review.json
-  foldspace memory init|status|list|read|search|put|forget|inject|doctor
-  foldspace doctor --json
-  foldspace --version
+  omha run --profile fake --prompt 'Offline check'
+  omha leader --plan plan.json [--allow-write]
+  omha leader --task TEXT --profile planner --config providers.json
+  omha leader --resume RUN_ID [--retry-failed --retry-interrupted-writes]
+  omha runs list|status|cancel [--id RUN_ID]
+  omha roundtable --input decision.json --config providers.json
+  omha decision status|approve|reject --id ID [--reason TEXT]
+  omha handoff --prompt TEXT --backend auto|cmux|tmux|file
+  omha handoff list|status|read|poll|send|resume|cancel|close|complete --id ID
+  omha auto-butterfly --input history.json [--analyze --profile analyst]
+  omha arena import --source DIRECTORY --input knowledge-metadata.json
+  omha arena knowledge --id KNOWLEDGE_ID
+  omha arena run --input execution.json --config providers.json --allow-write
+  omha arena status|resume|cancel|review --id BATCH_ID
+  omha arena review-record --id BATCH_ID --input human-review.json
+  omha memory init|status|list|read|search|put|forget|inject|doctor
+  omha doctor --json
+  omha --version
 
-All state lives under FOLDSPACE_HOME or the platform-independent XDG state path.
+All state lives under OMHA_HOME or the platform-independent XDG state path.
 See docs/contracts.md and examples/ for versioned input contracts.
 `;
 
@@ -264,7 +264,7 @@ async function main() {
         if (result.status !== 'completed') process.exitCode = 1;
         return;
       }
-      throw new FoldspaceError('configuration', 'Unknown arena command');
+      throw new OmhaError('configuration', 'Unknown arena command');
     }
     if (command === 'memory') {
       const sub = o._.shift() || 'status',
@@ -313,7 +313,7 @@ async function main() {
         if (!result.ok) process.exitCode = 1;
         return;
       }
-      throw new FoldspaceError('configuration', `Unknown memory command: ${sub}`);
+      throw new OmhaError('configuration', `Unknown memory command: ${sub}`);
     }
     if (command === 'run') {
       const mode = o.mode || 'readonly';
@@ -350,7 +350,7 @@ async function main() {
       if (sub === 'cancel') return json(cancelRun(cwd, o.id));
       if (sub === 'message')
         return json(sendTaskMessage(cwd, o.id, o.task_id, o.content, { sender: o.sender }));
-      throw new FoldspaceError('configuration', 'Unknown runs command');
+      throw new OmhaError('configuration', 'Unknown runs command');
     }
     if (command === 'roundtable') {
       const input = o.input ? inputJson(o.input) : {};
@@ -415,7 +415,7 @@ async function main() {
       if (sub === 'cancel') return json(await cancelHandoff(o.id, terminal));
       if (sub === 'close') return json(await closeHandoff(o.id, terminal));
       if (sub === 'complete') return json(completeHandoff(o.id, Number(o.exit_code || 0)));
-      throw new FoldspaceError('configuration', 'Unknown handoff command');
+      throw new OmhaError('configuration', 'Unknown handoff command');
     }
     if (command === 'auto-butterfly') {
       check(
@@ -457,14 +457,14 @@ async function main() {
         ),
         plugin:
           JSON.parse(readFileSync(new URL('../.claude-plugin/plugin.json', import.meta.url)))
-            .name === 'foldspace',
+            .name === 'omha',
       };
       const ok = checks.nodeSupported && configuration.ok && checks.plugin;
       json({ ok, checks });
       if (!ok) process.exitCode = 1;
       return;
     }
-    throw new FoldspaceError('configuration', `Unknown command: ${command}`);
+    throw new OmhaError('configuration', `Unknown command: ${command}`);
   } finally {
     process.removeListener('SIGINT', abort);
     process.removeListener('SIGTERM', abort);

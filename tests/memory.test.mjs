@@ -31,7 +31,7 @@ import { lockDir } from '../lib/storage.mjs';
 import { markdown, parseMarkdown } from '../lib/frontmatter.mjs';
 
 const root = temp();
-process.env.FOLDSPACE_HOME = join(root, 'state');
+process.env.OMHA_HOME = join(root, 'state');
 const repo = join(root, 'repo');
 execFileSync('git', ['init', '-q', repo]);
 execFileSync('git', [

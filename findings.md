@@ -4,7 +4,7 @@
 
 - GitHub delivery (2026-10-10): local gh cache retains the old login HuaTalk,
   but authenticated API login is monadrome. Repository metadata uses the verified
-  namespace while the npm name remains @huatalk/foldspace.
+  namespace while the npm name remains @huatalk/omha.
 
 - Clean worktree at start. Five tests cover only an index, one conflict, fallback,
   file creation, and hash changes. There is no durable lifecycle or DAG validation.
@@ -54,9 +54,9 @@
 - Local CLIs are available: Claude 2.1.220, Codex CLI 0.160.0, Kimi 2.1.1;
   tmux 3.6a and cmux 0.64.22. All are optional adapters.
 - Claude exposes a print-mode fallback model, but provider-neutral fallback is
-  implemented in Foldspace so Codex and Kimi also participate.
+  implemented in Omha so Codex and Kimi also participate.
 - Canonical Git common roots make worktrees share project memory. `MEMORY.md`
   is an index; topic Markdown is the source of truth. Atomic writes, locks, and
   expected hashes make concurrent updates explicit.
-- Foldspace was selected over occupied npm names such as `foldspace` and
-  `agentloom`; the scoped package is `@huatalk/foldspace`.
+- Omha was selected over occupied npm names; the scoped package is
+  `@huatalk/omha`.
