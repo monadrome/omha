@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { temp } from './helpers.mjs';
 import {
   handoff,
@@ -15,7 +16,7 @@ import {
   completeHandoff,
 } from '../lib/terminal.mjs';
 import { atomicWrite } from '../lib/storage.mjs';
-import { hash } from '../lib/core.mjs';
+import { FINAL_MARKER, hash, run } from '../lib/core.mjs';
 
 const root = temp();
 process.env.OMHA_HOME = join(root, 'state');
@@ -57,6 +58,57 @@ function backend() {
     },
   };
 }
+
+test('real handoff worker authenticates completion through both stdout and file readers', async (t) => {
+  const worker = fileURLToPath(new URL('../bin/handoff-worker.mjs', import.meta.url));
+  for (const transport of ['stdout', 'file']) {
+    await t.test(transport, async () => {
+      const adapter = backend();
+      const options =
+        transport === 'stdout' ? { backend: 'fake', backendAdapter: adapter } : { backend: 'file' };
+      const created = await handoff(cwd, 'Continue task', {
+        ...options,
+        command: process.execPath,
+        args: [
+          '-e',
+          "process.stdin.setEncoding('utf8'); let prompt = ''; process.stdin.on('data', s => prompt += s); process.stdin.on('end', () => console.log(prompt));",
+        ],
+        timeoutMs: 10000,
+      });
+      const result = await run(process.execPath, [worker, created.recordFile], {
+        cwd,
+        env: { ...process.env, OMHA_HOME: process.env.OMHA_HOME },
+        timeoutMs: 10000,
+      });
+      assert.equal(result.code, 0, result.stderr);
+      assert.equal(result.timedOut, false);
+      const marker = result.stdout.split(/\r?\n/).find((line) => line.startsWith(FINAL_MARKER));
+      assert.ok(marker, result.stdout);
+      const final = JSON.parse(marker.slice(FINAL_MARKER.length));
+      assert.equal(final.token, created.owner.token);
+      assert.equal(final.state, 'completed');
+      assert.equal(final.exitCode, 0);
+      assert.equal(final.responseHash, hash('Continue task\n'));
+      const finalFile = join(process.env.OMHA_HOME, 'handoffs', created.id, 'final.json');
+      assert.deepEqual(JSON.parse(readFileSync(finalFile, 'utf8')), final);
+      if (transport === 'stdout') {
+        // Force the reader to parse actual worker stdout instead of its completion file.
+        rmSync(finalFile);
+        const session = adapter.sessions.get(created.id);
+        session.output = result.stdout.replace(created.owner.token, 'wrong-owner');
+        await assert.rejects(readHandoff(created.id, options), { code: 'malformed_completion' });
+        session.output = result.stdout;
+        session.alive = false;
+      }
+      const completed = await pollHandoff(created.id, { ...options, waitMs: 1000 });
+      assert.equal(completed.state, 'completed');
+      assert.deepEqual(completed.completion, final);
+      assert.equal((await readHandoff(created.id, options)).completion.token, created.owner.token);
+      assert.equal(handoffStatus(created.id).state, 'completed');
+      await closeHandoff(created.id, options);
+    });
+  }
+});
 
 test('file lifecycle persists prompt before awaiting, supports explicit completion and resume', async () => {
   const created = await handoff(cwd, 'Continue task', { backend: 'file', name: 'test-file' });
