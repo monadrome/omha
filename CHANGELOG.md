@@ -12,6 +12,18 @@
 - Add external write wrapper policies with strict capability/probe refusal and
   offline acceptance coverage. Existing leader write exclusion remains intact.
 
+### Fixes
+
+- Enforce provider queue deadlines before admitting a newly released lease and
+  keep the remaining wait bounded by the request timeout.
+- Make concurrent atomic replacement tolerant of transient zero-link filesystem
+  stats while continuing to reject actual hardlinks.
+- Redact allowlisted secrets in both literal and JSON-escaped provider output,
+  and reject credential flags supplied with inline values.
+- Stabilize process supervision fixtures with an explicit child readiness signal
+  so timeout and cancellation tests exercise group cleanup rather than startup
+  timing.
+
 ## 0.2.0-rc.1 - 2026-10-10
 
 ### Features

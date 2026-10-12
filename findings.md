@@ -1,5 +1,38 @@
 # Research findings
 
+## Concurrency and security hardening (2026-10-12)
+
+- Baseline cce12eb: clean main synchronized with origin/main. Read AGENTS.md,
+  README.md and docs/contracts.md; previous protocol work is excluded.
+- Timing candidates: runtime semaphore assertions use elapsed wall time;
+  process timeout/cancellation fixtures assume startup within 120ms. Handoff
+  real-worker tests already allow 10s and await actual child completion.
+- Test modules are runtime, handoff and integration (no runner/process modules).
+- Reproduced the disclosed false/true assertion by delaying eval worker startup
+  300ms: 3/3 failures at runtime.test.mjs:430 (pidFile absent). A ready-signal plus
+  MockTimers prototype passes with that delay and on Node 20.20.2.
+- Full-suite round 1 exposed a separate real lock race: transient nlink=0 is
+  mistaken for a hardlink by assertSafePath. A real 200,000-lstat / 80,000-unlink
+  experiment observed 1,737 zero-link stats. Four concurrent atomic writers also
+  reproduced the rejection; baseline CAS experiment admitted 1/8 and rejected 7/8.
+- Runtime 30/30 and handoff 30/30 pass independently. Focused memory concurrency,
+  hash and live-lock tests pass 40/40. Integration 20/20 is blocked by ps EPERM;
+  full sandbox suites also have strict-executor localhost EPERM.
+- Concrete queue defect: hold a lease at injected time 0, start a waiter with
+  timeout=10, advance time to 11 and release; waiter still acquires a lease.
+- Credentials accepted unchanged: auth_token assignment, a quoted password whose
+  first word has <4 characters, and a [REDACTED]-prefixed actual key. Command args
+  accept --auth-token=value and password values beginning with dollar/brace.
+- A real command echoing an allowlisted multiline AUTH_TOKEN as JSON leaks its
+  escaped value through stdout/attempt records. Original-only literal replacement
+  misses the JSON-escaped representation.
+- Repairs validated: queue checks its deadline before gate mutation; storage accepts
+  transient zero-link files but still rejects nlink>1; redaction scans auth-token,
+  quoted/bracketed assignments and JSON-escaped allowlisted values, while argv
+  credentials only permit exact environment placeholders.
+- New regression fixtures: tests/storage.test.mjs (cross-process atomic writes,
+  hardlinks, compare-and-swap memory writes) and tests/security.test.mjs.
+
 ## Hardening audit (2026-10-12)
 
 - Starting worktree is clean on main tracking origin/main.

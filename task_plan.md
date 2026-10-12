@@ -1,5 +1,19 @@
 # Omha release candidate implementation
 
+## Concurrency and security hardening (2026-10-12)
+
+- [complete] 1. Preserve full logs for 20 suite repetitions and focused timing tests;
+  reproduce the disclosed flaky assertion and make supervision deterministic in a
+  ready-signal/MockTimers prototype.
+- [complete] 2. Exercise cross-process storage/gates/memory and process supervision,
+  then validate security, fail-closed errors and Open Arena paths with concrete inputs.
+- [in_progress] 3. Check, commit and push each isolated fix; record counts, failure
+  scenarios, improvements and verified areas without changes.
+
+Do not repeat completed protocol audits or edit retained upstream skills. Keep
+version/public API unchanged and use no paid providers. Logs live outside the
+repository at /private/tmp/omha-hardening-20261012.
+
 ## Hardening audit (2026-10-12)
 
 - [done] 1. Run the real handoff worker and test completion file and stdout

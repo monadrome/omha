@@ -316,6 +316,17 @@ test('provider semaphore enforces concurrency and queued cancellation', async ()
   assert.ok(Date.now() - start >= 130);
 });
 
+test('provider queue checks its deadline before admitting a released lease', async () => {
+  let clock = 0;
+  const runtime = local({ p: fake('done', { concurrency: 1 }) }, { clock: () => clock });
+  const profile = runtime.config.profiles.p;
+  const release = await runtime.acquire(profile, null, 10);
+  const queued = runtime.acquire(profile, null, 10);
+  clock = 11;
+  release();
+  await assert.rejects(queued, { code: 'timeout' });
+});
+
 test('provider concurrency gate spans independent runtime instances and leaves no active lease', async () => {
   const first = createRuntime(
     config({ p: fake('done', { concurrency: 1, responses: [{ output: 'done', latencyMs: 80 }] }) }),
@@ -418,13 +429,16 @@ test(
   async () => {
     for (const cancel of [false, true]) {
       const pidFile = join(root, `grandchild-${cancel}.pid`);
-      const code = `const{spawn}=require('node:child_process');const fs=require('node:fs');const c=spawn(process.execPath,['-e',"process.on('SIGTERM',()=>{});setInterval(()=>{},1000)"],{stdio:'ignore'});fs.writeFileSync(${JSON.stringify(pidFile)},String(c.pid));setInterval(()=>{},1000)`;
+      const code = `const{spawn}=require('node:child_process');const fs=require('node:fs');const c=spawn(process.execPath,['-e',"process.on('SIGTERM',()=>{});setInterval(()=>{},1000)"],{stdio:'ignore'});fs.writeFileSync(${JSON.stringify(pidFile)},String(c.pid));console.log('ready:'+c.pid);setInterval(()=>{},1000)`;
       const controller = new AbortController();
       const pending = run(process.execPath, ['-e', code], {
-        timeoutMs: cancel ? 3000 : 120,
+        timeoutMs: 5000,
         signal: controller.signal,
+        onOutput(kind, chunk) {
+          if (kind === 'stdout' && chunk.toString().startsWith('ready:'))
+            controller.abort({ code: cancel ? 'cancellation' : 'timeout' });
+        },
       });
-      if (cancel) setTimeout(() => controller.abort(), 120);
       const result = await pending;
       assert.equal(cancel ? result.cancelled : result.timedOut, true);
       assert.ok(existsSync(pidFile));

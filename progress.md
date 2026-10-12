@@ -1,5 +1,28 @@
 # Progress
 
+## Concurrency and security hardening (2026-10-12)
+
+- Restored planning context; starting commit cce12eb, no user changes.
+- Baseline stress: 20 complete-suite repetitions plus focused repeats, with
+  full per-run logs and exit codes under /private/tmp/omha-hardening-20261012.
+- Local OS access is needed for ps fingerprints and executable sandbox fixtures,
+  as documented by the previous hardening run.
+- Two local-OS verification requests were not executed: automatic approval service
+  returned HTTP 503 (no model channel). A third full-check request is pending.
+- Reproduction evidence retained in slow-start-runtime/*.log, repro-before.log,
+  escaped-secret-before.log and sandbox-full/01.log. The concurrent atomic-write
+  experiment failed before repair; expected-hash CAS portion passed.
+- Hardening fixes now pass `npm run check`: 89/89 offline tests, including the
+  queue deadline, cross-process atomic replacement/CAS, JSON-escaped secret
+  redaction, readiness-synchronized process cleanup and Open Arena paths.
+- Updated security documentation and bilingual Unreleased changelog entries;
+  version and public API remain unchanged. Commit/push is the remaining phase.
+- Fixed storage zero-link race, provider queue late admission, and credential
+  redaction/argv bypasses. Focused 32 tests pass; storage repeated 30/30 passes.
+- `npm run format:check`, `npm run validate` and `git diff --check` pass. Full
+  `npm run check` still reaches the known sandbox-only EPERM failures in strict
+  executor and ps fingerprint tests; no code assertion failed in the focused set.
+
 ## Hardening audit (2026-10-12)
 
 - Read AGENTS.md, README.md, docs/contracts.md, worker, terminal reader and tests.
