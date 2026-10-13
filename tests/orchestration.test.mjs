@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { temp, fake, config } from './helpers.mjs';
 import { createRuntime } from '../lib/runner.mjs';
+import { projectIdentity } from '../lib/core.mjs';
 import {
   executePlan,
   reviewTask,
@@ -192,6 +193,154 @@ test('independent task review validates frozen diff, tests and every criterion',
   });
   assert.equal(invalid.status, 'invalid');
   assert.equal(invalid.approved, false);
+});
+
+test('worktree admission excludes writes across runs while allowing independent readers and roots', async () => {
+  for (const modes of [
+    ['write', 'write'],
+    ['write', 'readonly'],
+    ['readonly', 'write'],
+    ['readonly', 'readonly'],
+  ]) {
+    const rt = runtime({ p: fake('reader'), w: fake('writer', { sandbox: 'workspace-write' }) });
+    const calls = [];
+    let finishFirst, firstStarted;
+    const started = new Promise((resolve) => {
+      firstStarted = resolve;
+    });
+    const held = new Promise((resolve) => {
+      finishFirst = resolve;
+    });
+    const original = rt.fake.bind(rt);
+    rt.fake = async (...args) => {
+      calls.push(args[1].mode);
+      if (calls.length === 1) {
+        firstStarted();
+        await held;
+      }
+      return original(...args);
+    };
+    const job = (mode) =>
+      executePlan(cwd, plan([task('job', { mode, profile: mode === 'write' ? 'w' : 'p' })]), {
+        runtime: rt,
+        allowWrite: true,
+      });
+    const first = job(modes[0]);
+    await started;
+    const second = job(modes[1]);
+    const identity = projectIdentity(cwd);
+    const gate = join(
+      process.env.OMHA_HOME,
+      'projects',
+      identity.projectId,
+      'worktrees',
+      identity.worktreeId,
+      'admission.json',
+    );
+    for (let i = 0; i < 100; i += 1) {
+      const state = JSON.parse(readFileSync(gate, 'utf8'));
+      if (state.waiters.length || calls.length === 2) break;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    assert.equal(calls.length, modes.every((mode) => mode === 'readonly') ? 2 : 1);
+    finishFirst();
+    assert.deepEqual(
+      (await Promise.all([first, second])).map((value) => value.status),
+      ['completed', 'completed'],
+    );
+    assert.equal(JSON.parse(readFileSync(gate, 'utf8')).leases.length, 0);
+  }
+  const roots = [join(root, 'workspace-a'), join(root, 'workspace-b')];
+  roots.forEach((directory) => mkdirSync(directory));
+  const rt = runtime({ w: fake('writer', { sandbox: 'workspace-write' }) });
+  let concurrent = 0,
+    max = 0;
+  const original = rt.fake.bind(rt);
+  rt.fake = async (...args) => {
+    concurrent += 1;
+    max = Math.max(max, concurrent);
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    try {
+      return await original(...args);
+    } finally {
+      concurrent -= 1;
+    }
+  };
+  await Promise.all(
+    roots.map((directory) =>
+      executePlan(directory, plan([task('job', { mode: 'write', profile: 'w' })]), {
+        runtime: rt,
+        allowWrite: true,
+      }),
+    ),
+  );
+  assert.equal(max, 2);
+});
+
+test('worktree admission cancels queued tasks without provider calls and removes dead owners', async () => {
+  const rt = runtime({ w: fake('writer', { sandbox: 'workspace-write' }) });
+  let started, finish;
+  const ready = new Promise((resolve) => {
+    started = resolve;
+  });
+  const hold = new Promise((resolve) => {
+    finish = resolve;
+  });
+  const original = rt.fake.bind(rt);
+  rt.fake = async (...args) => {
+    started();
+    await hold;
+    return original(...args);
+  };
+  const input = plan([task('job', { mode: 'write', profile: 'w' })]);
+  const first = executePlan(cwd, input, { runtime: rt, allowWrite: true });
+  await ready;
+  const cancelled = runtime({ w: fake('must not launch', { sandbox: 'workspace-write' }) });
+  const controller = new AbortController();
+  const second = executePlan(cwd, input, {
+    runtime: cancelled,
+    allowWrite: true,
+    signal: controller.signal,
+  });
+  const identity = projectIdentity(cwd);
+  const gate = join(
+    process.env.OMHA_HOME,
+    'projects',
+    identity.projectId,
+    'worktrees',
+    identity.worktreeId,
+    'admission.json',
+  );
+  for (let i = 0; i < 100 && JSON.parse(readFileSync(gate, 'utf8')).waiters.length === 0; i += 1)
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  controller.abort();
+  const result = await second;
+  assert.equal(result.status, 'cancelled');
+  assert.equal(cancelled.account.requests, 0);
+  assert.equal(JSON.parse(readFileSync(gate, 'utf8')).waiters.length, 0);
+  const expired = runtime({ w: fake('must not launch', { sandbox: 'workspace-write' }) });
+  const timedOut = await executePlan(
+    cwd,
+    plan([task('job', { mode: 'write', profile: 'w', timeoutMs: 10 })]),
+    { runtime: expired, allowWrite: true },
+  );
+  assert.equal(timedOut.tasks.job.failure, 'timeout');
+  assert.equal(expired.account.requests, 0);
+  assert.equal(JSON.parse(readFileSync(gate, 'utf8')).waiters.length, 0);
+  finish();
+  await first;
+  atomicWrite(
+    gate,
+    JSON.stringify({
+      version: 1,
+      waiters: [],
+      leases: [{ token: 'dead', pid: 2147483647, fingerprint: null, mode: 'write', children: [] }],
+    }),
+  );
+  assert.equal(
+    (await executePlan(cwd, input, { runtime: cancelled, allowWrite: true })).status,
+    'completed',
+  );
 });
 
 test('failure propagates through dependencies even when tasks are in reverse order', async () => {

@@ -1,5 +1,38 @@
 # Omha release candidate implementation
 
+## Authorized optimization (2026-10-13)
+
+Objective: implement the preceding project analysis recommendations end to end,
+preserving every host, ownership, budget, concurrency and offline guarantee.
+Deliver each bounded iteration directly to main without a version/release bump.
+
+- [complete] 1. Coordinate readers/writers across runs in one worktree;
+  cover independent processes, cancellation, dead owners and distinct worktrees.
+- [in_progress] 2. Enforce reviewer independence against actual author attempts and
+  every fallback candidate; preserve requested/served review provenance.
+- [pending] 3. Reject stream framing errors even if completion parsing succeeds;
+  add runner integration failure cases.
+- [pending] 4. Add immutable host verification policy and artifact-bound test
+  evidence; distinguish execution, acceptance and review outcomes.
+- [pending] 5. Connect existing roundtable/review APIs to Leader lifecycle with
+  host signals, durable evidence, shared budget, resume and CLI controls.
+- [pending] 6. Consume realtime events with bounded supervision, notifications
+  and read-only takeover; never automatically replay uncertain writes.
+- [pending] 7. Extract verified run lessons, select scoped relevant memory for
+  the next run and enforce freshness, provenance, privacy and injection caps.
+- [pending] 8. Add consolidated status/watch and outcome metrics; benchmark and
+  address repeated identity/event/index work without changing sources of truth.
+- [pending] 9. Synchronize capability documentation, remove legacy config
+  fallback, validate installed workflows, audit all requirements and push.
+
+ACP remains subsequent protocol work as recommended: this optimization reuses
+native provider channels and must never silently change subscription/API billing.
+
+Acceptance evidence: offline failure-path tests for each phase, appropriate full
+checks and bilingual changelogs per commit; installed CLI/API smoke checks for
+new workflows; final clean main matching origin/main. Old completed tasks below
+describe historical scope rather than authorization for this optimization.
+
 ## Concurrency and security hardening (2026-10-12)
 
 - [complete] 1. Preserve full logs for 20 suite repetitions and focused timing tests;

@@ -85,6 +85,14 @@ references. The immutable context file is written once and its hash is checked o
 resume. Dependency outputs and worker messages are references, not dynamic public
 prefix content.
 
+Runs under the same state directory coordinate task admission by canonical
+worktree identity. Readers can share a worktree lease; a writer excludes all
+other readers/writers, including tasks in other runs and CLI processes. Waiting
+counts toward the task deadline and cancellation removes queued admission without
+launching a provider. Different worktrees remain independent. Dead host leases
+are recovered only after fingerprint-checked cleanup of recorded workers; live
+leases are never expired by age.
+
 Roundtable voters return [schemas/proposal.schema.json](../schemas/proposal.schema.json).
 An evidence item must quote the supplied public anchor exactly. `abstention:true`
 requires `recommendation:null`; every non-abstention needs at least one anchor.

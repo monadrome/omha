@@ -14,6 +14,9 @@
 
 ### Fixes
 
+- Coordinate shared-worktree reads and writes across independent runs/processes,
+  with bounded cancellable admission and owned-worker cleanup after host loss.
+
 - Enforce provider queue deadlines before admitting a newly released lease and
   keep the remaining wait bounded by the request timeout.
 - Make concurrent atomic replacement tolerant of transient zero-link filesystem

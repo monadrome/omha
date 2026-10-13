@@ -1,5 +1,17 @@
 # Progress
 
+## Authorized optimization (2026-10-13)
+
+- Restored existing planning records and verified clean main at 1a615ae.
+- User authorized implementing the full analysis recommendations. Added nine
+  bounded phases, each with offline verification, documentation and main push.
+- Starting cross-run worktree admission; version remains 0.2.0-rc.2. No paid
+  provider, publication or unrelated terminal operation is authorized or needed.
+- Worktree admission now coordinates readers/writers across runs and independent
+  provider gates. Queued cancellation/deadlines launch no providers; dead owners
+  require fingerprint-checked worker cleanup. Focused tests pass 21/21 and full
+  `npm run check` passes 102/102 offline tests. Next: fallback reviewer authority.
+
 ## Concurrency and security hardening (2026-10-12)
 
 - Restored planning context; starting commit cce12eb, no user changes.

@@ -190,3 +190,53 @@ test('durable JSONL tolerates a torn final event then appends without corrupting
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test(
+  'independent Leader runs coordinate worktree writes across distinct provider gates',
+  { skip: process.platform === 'win32' },
+  async (t) => {
+    const root = temp('omha-worktree-gate-'),
+      cwd = join(root, 'project'),
+      state = join(root, 'state');
+    mkdirSync(cwd);
+    const log = join(root, 'workers.log'),
+      config = join(root, 'providers.json');
+    writeFileSync(
+      config,
+      JSON.stringify({
+        version: 1,
+        profiles: { a: profile('sleep', log), b: profile('sleep', log) },
+      }),
+    );
+    const pending = ['a', 'b'].map((name) => {
+      const plan = join(root, `${name}.json`);
+      writeFileSync(
+        plan,
+        JSON.stringify({
+          version: 1,
+          objective: 'Write fixture',
+          tasks: [
+            { id: 'job', role: 'writer', prompt: 'Local fixture', profile: name, mode: 'write' },
+          ],
+        }),
+      );
+      return start(cwd, state, ['leader', '--plan', plan, '--config', config, '--allow-write']);
+    });
+    t.after(() => {
+      pending.forEach(({ child }) => child.kill('SIGKILL'));
+      rmSync(root, { recursive: true, force: true });
+    });
+    const results = await Promise.all(pending.map((value) => value.done));
+    assert.ok(
+      results.every((value) => value.code === 0),
+      JSON.stringify(results),
+    );
+    assert.deepEqual(
+      readFileSync(log, 'utf8')
+        .trim()
+        .split('\n')
+        .map((line) => JSON.parse(line).kind),
+      ['start', 'end', 'start', 'end'],
+    );
+  },
+);

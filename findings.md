@@ -1,5 +1,22 @@
 # Research findings
 
+## Authorized optimization audit (2026-10-13)
+
+- Current clean baseline: main at 1a615ae. Previous analysis passed 99 offline
+  tests and reproduced three defects using only fake/local providers.
+- `.execution.lock` and scheduler `active` state are per run; distinct runs can
+  overlap writes in the same worktree. Worktree admission needs a durable shared
+  lease with asynchronous waits, because holding a synchronous storage lock
+  across provider execution would deadlock in-process runs.
+- `reviewTask()` compares requested reviewer and planned author names, allowing
+  both author-fallback and reviewer-fallback self-review. Actual attempt lineage
+  and served profiles must remain authoritative at routing and acceptance.
+- `streamFramer.finish()` errors are ignored when `parseOutput()` succeeds;
+  a complete JSON object without a terminating JSONL newline is accepted with
+  `ok:true` and `stream.complete:false`.
+- Existing review, roundtable, event, memory and Arena artifact/harness modules
+  are the implementation boundaries for the remaining lifecycle improvements.
+
 ## Concurrency and security hardening (2026-10-12)
 
 - Baseline cce12eb: clean main synchronized with origin/main. Read AGENTS.md,
