@@ -22,6 +22,12 @@
   with missing-newline, truncated, oversized-line and excess-event fixtures.
 - Next: share the existing Arena fixed-harness observation with DAG acceptance;
   keep planner output unable to authorize tests or promote CLI success.
+- Added bounded absolute host acceptance commands to plan tasks. Provider success
+  is recorded as `executionOk`; acceptance runs afterward with filtered env,
+  deadline/output bounds, hashes and no provider fallback. Failed acceptance
+  blocks dependent tasks. Focused orchestration tests pass 19/19; full check is
+  next before commit. Full check passes 105/105 after host acceptance integration;
+  version remains 0.2.0-rc.2 and acceptance uses only local fixed commands.
 
 ## Concurrency and security hardening (2026-10-12)
 

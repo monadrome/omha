@@ -1,5 +1,12 @@
 # Research findings
 
+## Authorized optimization evidence (2026-10-13)
+
+- DAG acceptance reuses the bounded local process path but does not copy the
+  Arena Git artifact collector. It persists only command, exit/signal, hashes,
+  byte counts and bounded outcome metadata; provider output is not passed to the
+  acceptance command.
+
 ## Authorized optimization audit (2026-10-13)
 
 - Current clean baseline: main at 1a615ae. Previous analysis passed 99 offline

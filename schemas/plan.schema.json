@@ -35,7 +35,18 @@
           "model": { "type": "string", "minLength": 1, "maxLength": 256 },
           "effort": { "enum": ["minimal", "low", "medium", "high", "xhigh", "max"] },
           "timeoutMs": { "type": "integer", "minimum": 10, "maximum": 86400000 },
-          "retry": { "$ref": "providers.schema.json#/$defs/retry" }
+          "retry": { "$ref": "providers.schema.json#/$defs/retry" },
+          "acceptance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["command", "args"],
+            "properties": {
+              "command": { "type": "string", "pattern": "^/", "maxLength": 4096 },
+              "args": { "type": "array", "items": { "type": "string" } },
+              "timeoutMs": { "type": "integer", "minimum": 10, "maximum": 86400000 },
+              "maxOutputBytes": { "type": "integer", "minimum": 256, "maximum": 16777216 }
+            }
+          }
         }
       }
     }

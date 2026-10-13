@@ -4,6 +4,9 @@
 
 ### 新功能
 
+- DAG 任务支持有界宿主验收命令，分开记录 provider 执行与验收结果，验收失败时
+  阻止依赖任务继续运行。
+
 - 导入冻结的 Open Arena 知识包与引用，记录 authority、证据标签、语义审核来源及
   原始/脱敏后 hash。
 - 独立授权的 Git/POSIX 双路批次使用独立 bundle clone，每路一次写 attempt，共享

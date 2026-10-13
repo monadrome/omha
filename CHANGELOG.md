@@ -4,6 +4,9 @@
 
 ### Features
 
+- Add bounded host acceptance commands to DAG tasks, recording execution and
+  acceptance separately and blocking dependencies on failed acceptance.
+
 - Import frozen Open Arena knowledge and reference packages with authority,
   evidence, semantic-review provenance and original/sanitized hashes.
 - Run separately authorized two-implementation Git/POSIX batches using independent

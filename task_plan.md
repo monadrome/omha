@@ -12,9 +12,9 @@ Deliver each bounded iteration directly to main without a version/release bump.
   every fallback candidate; preserve requested/served review provenance.
 - [complete] 3. Reject stream framing errors even if completion parsing succeeds;
   add runner integration failure cases.
-- [in_progress] 4. Add immutable host verification policy and artifact-bound test
+- [complete] 4. Add immutable host verification policy and artifact-bound test
   evidence; distinguish execution, acceptance and review outcomes.
-- [pending] 5. Connect existing roundtable/review APIs to Leader lifecycle with
+- [in_progress] 5. Connect existing roundtable/review APIs to Leader lifecycle with
   host signals, durable evidence, shared budget, resume and CLI controls.
 - [pending] 6. Consume realtime events with bounded supervision, notifications
   and read-only takeover; never automatically replay uncertain writes.

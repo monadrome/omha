@@ -74,6 +74,40 @@ test('plan validation rejects cycles, duplicate IDs, unknown profiles and unauth
       ),
     /dependency-ordered/,
   );
+  assert.throws(
+    () =>
+      validatePlan(plan([task('a', { acceptance: { command: 'relative', args: [] } })]), profiles),
+    /absolute/,
+  );
+});
+
+test('host acceptance separates execution success from dependency-eligible success', async () => {
+  const acceptance = join(root, 'acceptance.mjs');
+  writeFileSync(acceptance, "process.exit(process.argv[2] === 'pass' ? 0 : 1)");
+  const rt = runtime({ p: fake('implementation') });
+  const accepted = await executePlan(
+    cwd,
+    plan([task('a', { acceptance: { command: process.execPath, args: [acceptance, 'pass'] } })]),
+    { runtime: rt },
+  );
+  assert.equal(accepted.status, 'completed');
+  const acceptedRecord = JSON.parse(readFileSync(join(accepted.dir, 'a.result.json'), 'utf8'));
+  assert.equal(acceptedRecord.executionOk, true);
+  assert.equal(acceptedRecord.acceptance.accepted, true);
+  const failed = await executePlan(
+    cwd,
+    plan([
+      task('a', { acceptance: { command: process.execPath, args: [acceptance, 'fail'] } }),
+      task('b', { dependsOn: ['a'] }),
+    ]),
+    { runtime: rt },
+  );
+  const failedRecord = JSON.parse(readFileSync(join(failed.dir, 'a.result.json'), 'utf8'));
+  assert.equal(failed.status, 'failed');
+  assert.equal(failedRecord.executionOk, true);
+  assert.equal(failedRecord.ok, false);
+  assert.equal(failedRecord.failure, 'acceptance');
+  assert.equal(failed.tasks.b.status, 'blocked');
 });
 
 test('DAG scheduler runs ready readers together, passes dependency references and stores stable context once', async () => {

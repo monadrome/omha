@@ -96,6 +96,14 @@ references. The immutable context file is written once and its hash is checked o
 resume. Dependency outputs and worker messages are references, not dynamic public
 prefix content.
 
+Tasks may declare a host `acceptance` command with an absolute executable, fixed
+arguments, timeout and output cap. It runs after provider execution with a
+filtered environment and is recorded separately from the provider result. A
+provider can therefore finish successfully while host acceptance fails; the task
+is then ineligible for dependent tasks. Acceptance exit status is evidence only,
+not a correctness proof, and acceptance output is persisted only as bounded hashes
+and sizes. Acceptance never invokes a model or fallback route.
+
 Runs under the same state directory coordinate task admission by canonical
 worktree identity. Readers can share a worktree lease; a writer excludes all
 other readers/writers, including tasks in other runs and CLI processes. Waiting
