@@ -11,6 +11,11 @@
   provider gates. Queued cancellation/deadlines launch no providers; dead owners
   require fingerprint-checked worker cleanup. Focused tests pass 21/21 and full
   `npm run check` passes 102/102 offline tests. Next: fallback reviewer authority.
+- Worktree coordination delivered as af4380a and pushed to main.
+- Review now excludes the actual author attempt lineage before routing and
+  validates served reviewer authority again. Failed/invalid reviews preserve
+  execution state during replay. Focused tests pass 42/42; full check passes
+  103/103, including both disclosed fallback paths and post-dispatch refusal.
 
 ## Concurrency and security hardening (2026-10-12)
 

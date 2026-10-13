@@ -16,6 +16,9 @@
   `ok:true` and `stream.complete:false`.
 - Existing review, roundtable, event, memory and Arena artifact/harness modules
   are the implementation boundaries for the remaining lifecycle improvements.
+- The new post-routing authority test exposed another review boundary defect:
+  runStatus replayed `review.recorded.status` as task execution state. Filtering
+  task execution events preserves completed tasks after failed/invalid reviews.
 
 ## Concurrency and security hardening (2026-10-12)
 

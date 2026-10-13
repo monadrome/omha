@@ -50,6 +50,13 @@ capabilities, and computes approval only when every criterion is reported as
 `pass`. Failed, malformed or incomplete reviews are persisted as non-approved;
 the task result and write state are never changed by review.
 
+Reviewer independence follows actual execution: the planned author, served author
+and all author attempt profiles are excluded from the full reviewer fallback
+route before admission. Excluded candidates record an `authority` routing failure
+and consume no reservation. Review acceptance checks the served reviewer again.
+Packets retain requested/served author and reviewer provenance. Runtime callers
+can supply `excludeProfiles` for the same host-owned routing restriction.
+
 The result envelope has these fields when available:
 
 ```json

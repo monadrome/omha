@@ -277,6 +277,81 @@ test('worktree admission excludes writes across runs while allowing independent 
   assert.equal(max, 2);
 });
 
+test('review authority follows actual authors and excludes them from implicit reviewer fallbacks', async () => {
+  const output = JSON.stringify({
+    assessments: [{ id: 'scope', status: 'pass', finding: 'Independent scope check' }],
+    summary: 'Review',
+  });
+  const input = (rt, reviewerProfile) => ({
+    runtime: rt,
+    reviewerProfile,
+    diff: '+fixture',
+    testEvidence: [{ name: 'offline', status: 'passed', summary: 'Passed' }],
+    criteria: [{ id: 'scope', description: 'Scope' }],
+  });
+  const rt = runtime({
+    primary: fake('', { responses: [{ failure: 'rate_limit' }], fallback: ['actual'] }),
+    actual: fake('implementation'),
+    reviewer: fake(output),
+  });
+  const execution = await executePlan(cwd, plan([task('subject', { profile: 'primary' })]), {
+    runtime: rt,
+  });
+  await assert.rejects(() => reviewTask(cwd, execution.runId, 'subject', input(rt, 'actual')), {
+    code: 'review_authority',
+  });
+  const independent = await reviewTask(cwd, execution.runId, 'subject', input(rt, 'reviewer'));
+  assert.equal(independent.authorProfile, 'actual');
+  assert.equal(independent.requestedAuthorProfile, 'primary');
+  assert.equal(independent.servedReviewerProfile, 'reviewer');
+  assert.equal(independent.approved, true);
+
+  const fallback = runtime({
+    author: fake('implementation'),
+    reviewer: fake('', {
+      responses: [{ failure: 'rate_limit' }],
+      fallback: ['author', 'independent'],
+    }),
+    independent: fake(output),
+  });
+  const next = await executePlan(cwd, plan([task('subject', { profile: 'author' })]), {
+    runtime: fallback,
+  });
+  const review = await reviewTask(cwd, next.runId, 'subject', input(fallback, 'reviewer'));
+  assert.equal(review.approved, true);
+  assert.equal(review.servedReviewerProfile, 'independent');
+  assert.equal(fallback.fakeOffsets.get('author'), 1);
+  assert.equal(
+    review.runtime.attempts.find((attempt) => attempt.profile === 'author').failure,
+    'authority',
+  );
+
+  const refused = runtime({
+    author: fake('implementation'),
+    reviewer: fake('', { responses: [{ failure: 'rate_limit' }], fallback: ['author'] }),
+  });
+  const last = await executePlan(cwd, plan([task('subject', { profile: 'author' })]), {
+    runtime: refused,
+  });
+  const rejected = await reviewTask(cwd, last.runId, 'subject', input(refused, 'reviewer'));
+  assert.equal(rejected.approved, false);
+  assert.equal(rejected.status, 'failed');
+  assert.equal(refused.fakeOffsets.get('author'), 1);
+  assert.equal(rejected.runtime.failure, 'authority');
+  assert.equal(runStatus(cwd, last.runId).tasks.subject.status, 'completed');
+  refused.dispatch = async () => ({
+    ok: true,
+    stdout: output,
+    servedProfile: 'author',
+    attempts: [],
+  });
+  const invalid = await reviewTask(cwd, last.runId, 'subject', input(refused, 'reviewer'));
+  assert.equal(invalid.status, 'invalid');
+  assert.equal(invalid.approved, false);
+  assert.match(invalid.validationError, /author profile/);
+  assert.equal(runStatus(cwd, last.runId).tasks.subject.status, 'completed');
+});
+
 test('worktree admission cancels queued tasks without provider calls and removes dead owners', async () => {
   const rt = runtime({ w: fake('writer', { sandbox: 'workspace-write' }) });
   let started, finish;

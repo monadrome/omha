@@ -8,9 +8,9 @@ Deliver each bounded iteration directly to main without a version/release bump.
 
 - [complete] 1. Coordinate readers/writers across runs in one worktree;
   cover independent processes, cancellation, dead owners and distinct worktrees.
-- [in_progress] 2. Enforce reviewer independence against actual author attempts and
+- [complete] 2. Enforce reviewer independence against actual author attempts and
   every fallback candidate; preserve requested/served review provenance.
-- [pending] 3. Reject stream framing errors even if completion parsing succeeds;
+- [in_progress] 3. Reject stream framing errors even if completion parsing succeeds;
   add runner integration failure cases.
 - [pending] 4. Add immutable host verification policy and artifact-bound test
   evidence; distinguish execution, acceptance and review outcomes.
@@ -169,6 +169,10 @@ boundaries, and uses deterministic bounded indexes. Default checks are offline.
   main pushed with origin tracking (2026-10-10).
 
 ## Errors Encountered
+
+- Optimization phase 2 first full check: 102/103 passed; a failed review changed
+  the subject task to failed during runStatus replay. Fixed event-kind filtering
+  and added assertions that failed/invalid review never changes execution state.
 
 - Hardening first full check: two existing OS integration tests fail under the
   sandbox (temporary executor EPERM and ps fingerprint null); use unsandboxed

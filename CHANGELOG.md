@@ -14,6 +14,11 @@
 
 ### Fixes
 
+- Enforce review independence using actual author attempts, exclude authors from
+  implicit reviewer fallbacks before launch, and record served reviewer provenance.
+- Keep failed/invalid review events from overwriting the reviewed task's execution
+  status during event replay.
+
 - Coordinate shared-worktree reads and writes across independent runs/processes,
   with bounded cancellable admission and owned-worker cleanup after host loss.
 
