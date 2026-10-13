@@ -6,6 +6,9 @@
   Arena Git artifact collector. It persists only command, exit/signal, hashes,
   byte counts and bounded outcome metadata; provider output is not passed to the
   acceptance command.
+- Plan-level decision gates are evaluated after immutable run creation and before
+  the scheduler starts. Resume inspects the durable decision record and avoids
+  rerunning voters or charging a second decision after host approval.
 
 ## Authorized optimization audit (2026-10-13)
 

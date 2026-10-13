@@ -96,6 +96,15 @@ references. The immutable context file is written once and its hash is checked o
 resume. Dependency outputs and worker messages are references, not dynamic public
 prefix content.
 
+A plan may include a host-owned `decision` block with bounded risk, ambiguity and
+write signals, thresholds, evidence anchors, two or three voters, an optional
+chair, voting method and human gate. Below threshold, the plan records a no-op
+trigger and launches no provider. When triggered, the existing blind roundtable
+runs before any task; a split, abstention, failed chair or pending human gate
+leaves the run in `awaiting_decision`. `decision approve` followed by resume is
+required before execution continues. The decision id, trigger, tally and gate
+state are durable run evidence and use the same runtime budget.
+
 Tasks may declare a host `acceptance` command with an absolute executable, fixed
 arguments, timeout and output cap. It runs after provider execution with a
 filtered environment and is recorded separately from the provider result. A
@@ -103,6 +112,12 @@ provider can therefore finish successfully while host acceptance fails; the task
 is then ineligible for dependent tasks. Acceptance exit status is evidence only,
 not a correctness proof, and acceptance output is persisted only as bounded hashes
 and sizes. Acceptance never invokes a model or fallback route.
+
+Tasks may also declare `review` with a reviewer profile, frozen diff, test
+evidence and criteria. The host performs that independent review immediately
+after execution and before releasing dependent tasks. A rejection keeps the task
+execution result intact, records `reviewApproved:false`, and makes the run fail
+while dependent tasks remain blocked.
 
 Runs under the same state directory coordinate task admission by canonical
 worktree identity. Readers can share a worktree lease; a writer excludes all

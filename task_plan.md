@@ -14,9 +14,9 @@ Deliver each bounded iteration directly to main without a version/release bump.
   add runner integration failure cases.
 - [complete] 4. Add immutable host verification policy and artifact-bound test
   evidence; distinguish execution, acceptance and review outcomes.
-- [in_progress] 5. Connect existing roundtable/review APIs to Leader lifecycle with
+- [complete] 5. Connect existing roundtable/review APIs to Leader lifecycle with
   host signals, durable evidence, shared budget, resume and CLI controls.
-- [pending] 6. Consume realtime events with bounded supervision, notifications
+- [in_progress] 6. Consume realtime events with bounded supervision, notifications
   and read-only takeover; never automatically replay uncertain writes.
 - [pending] 7. Extract verified run lessons, select scoped relevant memory for
   the next run and enforce freshness, provenance, privacy and injection caps.

@@ -229,6 +229,46 @@ test('independent task review validates frozen diff, tests and every criterion',
   assert.equal(invalid.approved, false);
 });
 
+test('task review is part of the lifecycle and failed review blocks dependents', async () => {
+  const reviewOutput = JSON.stringify({
+    assessments: [
+      { id: 'scope', status: 'fail', finding: 'The fixture is intentionally rejected.' },
+    ],
+    summary: 'Rejected by independent reviewer.',
+  });
+  const rt = runtime({ author: fake('implementation'), reviewer: fake(reviewOutput) });
+  const result = await executePlan(
+    cwd,
+    plan([
+      task('subject', {
+        profile: 'author',
+        review: {
+          reviewerProfile: 'reviewer',
+          diff: '+fixture',
+          testEvidence: [{ name: 'offline', status: 'passed', summary: 'Passed' }],
+          criteria: [{ id: 'scope', description: 'Scope is correct.' }],
+        },
+      }),
+      task('dependent', { dependsOn: ['subject'], profile: 'author' }),
+    ]),
+    { runtime: rt },
+  );
+  assert.equal(result.status, 'failed');
+  assert.equal(result.tasks.subject.status, 'completed');
+  assert.equal(result.tasks.subject.reviewStatus, 'completed');
+  assert.equal(result.tasks.subject.reviewApproved, false);
+  assert.equal(result.tasks.dependent.status, 'blocked');
+  const record = JSON.parse(readFileSync(join(result.dir, 'subject.result.json'), 'utf8'));
+  assert.equal(record.executionOk, undefined);
+  assert.equal(record.review.approved, false);
+  assert.equal(record.review.servedReviewerProfile, 'reviewer');
+  assert.equal(
+    readEvents(join(result.dir, 'events.jsonl')).filter((event) => event.kind === 'review.recorded')
+      .length,
+    1,
+  );
+});
+
 test('worktree admission excludes writes across runs while allowing independent readers and roots', async () => {
   for (const modes of [
     ['write', 'write'],
@@ -628,6 +668,39 @@ test('automatic roundtable skips provider calls below thresholds and records tri
   assert.equal(started.triggered, true);
   assert.deepEqual(started.trigger.reasons, ['risk']);
   assert.deepEqual(decisionStatus(cwd, started.decision.decisionId).trigger, started.trigger);
+});
+
+test('leader gates a high-risk plan on its durable roundtable decision and resumes after approval', async () => {
+  const rt = runtime({
+    p: fake('unused', {
+      responses: [
+        { output: JSON.stringify(proposal('A')) },
+        { output: JSON.stringify(proposal('A')) },
+        { output: JSON.stringify(chair('A')) },
+        { output: 'implementation' },
+      ],
+    }),
+  });
+  const input = plan([task('job', { profile: 'p' })], {
+    decision: {
+      signals: { risk: 0.9 },
+      evidence,
+      voters: ['p', 'p'],
+      chairProfile: 'p',
+      humanGate: true,
+    },
+  });
+  const waiting = await executePlan(cwd, input, { runtime: rt });
+  assert.equal(waiting.status, 'awaiting_decision');
+  assert.equal(waiting.tasks.job.status, 'pending');
+  assert.equal(waiting.decision.outcome, 'decided');
+  const decisionId = waiting.decision.decisionId;
+  assert.equal(decisionStatus(cwd, decisionId).gate.status, 'pending');
+  resolveDecision(cwd, decisionId, 'approve', 'Approved by host test gate');
+  const resumed = await executePlan(cwd, null, { runtime: rt, resume: true, runId: waiting.runId });
+  assert.equal(resumed.status, 'completed');
+  assert.equal(resumed.tasks.job.status, 'completed');
+  assert.equal(rt.fakeOffsets.get('p'), 4);
 });
 
 test('blind votes share only the public prefix, preserve minority and produce an auditable gated decision', async () => {

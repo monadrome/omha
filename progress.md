@@ -28,6 +28,10 @@
   blocks dependent tasks. Focused orchestration tests pass 19/19; full check is
   next before commit. Full check passes 105/105 after host acceptance integration;
   version remains 0.2.0-rc.2 and acceptance uses only local fixed commands.
+- Leader now accepts validated task review blocks and plan decision blocks. High
+  risk decisions run before tasks and persist `awaiting_decision` until the
+  existing human approval command is followed by resume; failed reviews block
+  dependents. Focused orchestration tests pass 21/21.
 
 ## Concurrency and security hardening (2026-10-12)
 

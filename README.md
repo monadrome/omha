@@ -147,6 +147,11 @@ admission controls, not a universal billing cap; see [limitations](docs/security
   `leader --resume <id>` reuses successful task results and the immutable public
   prefix. Uncertain writes remain interrupted; replay requires
   `--allow-write --retry-failed --retry-interrupted-writes` after inspecting changes.
+  Plans can add host `acceptance` commands and independent `review` blocks per
+  task. A plan-level `decision` block automatically invokes the existing
+  evidence-bound roundtable when risk, ambiguity or write magnitude crosses its
+  threshold; pending human gates leave the run awaiting approval before tasks
+  start.
 - **Roundtable:** 2-3 fresh voters receive identical public evidence and separate
   private suffixes. No vote is persisted until collection finishes. Quotes must
   match supplied anchors. Majority or configured weights require over half the

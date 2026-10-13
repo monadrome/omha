@@ -4,6 +4,10 @@
 
 ### Features
 
+- Connect plan-level roundtable gates and task-level independent reviews to the
+  Leader lifecycle; durable decisions block execution until approval and failed
+  reviews block dependent tasks without rewriting execution results.
+
 - Add bounded host acceptance commands to DAG tasks, recording execution and
   acceptance separately and blocking dependencies on failed acceptance.
 
