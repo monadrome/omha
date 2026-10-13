@@ -14,6 +14,9 @@
 
 ### Fixes
 
+- Reject incomplete or oversized realtime streams even when accumulated provider
+  output contains valid completion JSON; preserve parse failures without fallback.
+
 - Enforce review independence using actual author attempts, exclude authors from
   implicit reviewer fallbacks before launch, and record served reviewer provenance.
 - Keep failed/invalid review events from overwriting the reviewed task's execution

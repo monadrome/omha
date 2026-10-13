@@ -10,9 +10,9 @@ Deliver each bounded iteration directly to main without a version/release bump.
   cover independent processes, cancellation, dead owners and distinct worktrees.
 - [complete] 2. Enforce reviewer independence against actual author attempts and
   every fallback candidate; preserve requested/served review provenance.
-- [in_progress] 3. Reject stream framing errors even if completion parsing succeeds;
+- [complete] 3. Reject stream framing errors even if completion parsing succeeds;
   add runner integration failure cases.
-- [pending] 4. Add immutable host verification policy and artifact-bound test
+- [in_progress] 4. Add immutable host verification policy and artifact-bound test
   evidence; distinguish execution, acceptance and review outcomes.
 - [pending] 5. Connect existing roundtable/review APIs to Leader lifecycle with
   host signals, durable evidence, shared budget, resume and CLI controls.
@@ -169,6 +169,10 @@ boundaries, and uses deterministic bounded indexes. Default checks are offline.
   main pushed with origin tracking (2026-10-10).
 
 ## Errors Encountered
+
+- Phase 3 integration exposed `stream.complete:true` after an event-count error
+  left an empty buffer. Completion now also requires absence of a framing error;
+  the first framing failure is preserved through finalization.
 
 - Optimization phase 2 first full check: 102/103 passed; a failed review changed
   the subject task to failed during runStatus replay. Fixed event-kind filtering

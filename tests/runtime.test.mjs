@@ -273,6 +273,39 @@ test('JSONL stream preserves UTF-8 characters split across output chunks', () =>
   assert.equal(summary.type, '进展');
 });
 
+test('runtime refuses incomplete and oversized streams even when completion JSON is parseable', async () => {
+  for (const code of [
+    'process.stdout.write(JSON.stringify({status:"success",type:"result",output:"done"}))',
+    'process.stdout.write(JSON.stringify({status:"success",type:"result",output:"done"})+"\\n"+"{\\"type\\":")',
+    'process.stdout.write(JSON.stringify({status:"success",type:"result",output:"x".repeat(524288)})+"\\n")',
+    'for(let i=0;i<4097;i++)process.stdout.write(JSON.stringify({status:"success",type:"result",output:"done"})+"\\n")',
+  ]) {
+    const runtime = local({
+      p: {
+        adapter: 'command',
+        command: process.execPath,
+        model: 'local',
+        sandbox: 'workspace-write',
+        outputFormat: 'jsonl',
+        args: ['-e', code],
+        retry: { maxRetries: 0 },
+      },
+      fallback: fake('must not launch'),
+    });
+    const result = await runtime.dispatch('stream', ['p', 'fallback'], {
+      mode: 'write',
+      streamEvents: true,
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.failure, 'malformed_output');
+    assert.equal(result.failureStage, 'parse');
+    assert.equal(result.stream.complete, false);
+    assert.equal(result.attempts.length, 1);
+    assert.equal(runtime.account.requests, 1);
+    assert.equal(runtime.fakeOffsets.has('fallback'), false);
+  }
+});
+
 test('stream callback failure aborts the provider and settles as a host task failure', async () => {
   const code = `process.stdout.write(JSON.stringify({status:'success',type:'progress',output:'progress'})+'\\n');setTimeout(()=>process.stdout.write(JSON.stringify({status:'success',type:'result',output:'done'})+'\\n'),100)`;
   const runtime = local({

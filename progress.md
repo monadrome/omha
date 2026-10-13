@@ -16,6 +16,12 @@
   validates served reviewer authority again. Failed/invalid reviews preserve
   execution state during replay. Focused tests pass 42/42; full check passes
   103/103, including both disclosed fallback paths and post-dispatch refusal.
+- Review authority delivered as 4929172 and pushed to main.
+- Stream framing failures now override valid completion JSON, retain the first
+  parse failure, stay incomplete and never fall back. Full check passes 104/104
+  with missing-newline, truncated, oversized-line and excess-event fixtures.
+- Next: share the existing Arena fixed-harness observation with DAG acceptance;
+  keep planner output unable to authorize tests or promote CLI success.
 
 ## Concurrency and security hardening (2026-10-12)
 

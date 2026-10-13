@@ -42,6 +42,10 @@ change Claude's JSON invocation, provider billing channel, completion validation
 retry policy or budget settlement. `result.stream` records whether streaming was
 requested, supported, delivered and complete. A stream callback may be
 synchronous or return a promise; a rejected callback is a host task failure.
+Framing failure is authoritative even if the accumulated JSON can otherwise be
+parsed as a completed result. A missing final newline, oversized frame or excess
+event count yields `malformed_output`, retains its reservation, and never triggers
+fallback. Host callback failures remain distinct from framing failures.
 
 `reviewTask()` reviews only a completed successful DAG task. The host freezes the
 task output hash, diff, test evidence and criteria in a packet, requires a
