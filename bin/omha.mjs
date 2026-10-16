@@ -19,7 +19,15 @@ import {
   injectMemory,
   doctorMemory,
 } from '../lib/memory.mjs';
-import { leader, listRuns, runStatus, cancelRun, sendTaskMessage } from '../lib/orchestrator.mjs';
+import {
+  leader,
+  listRuns,
+  runStatus,
+  cancelRun,
+  sendTaskMessage,
+  projectStatus,
+  watchStatus,
+} from '../lib/orchestrator.mjs';
 import { roundtable, decisionStatus, resolveDecision } from '../lib/roundtable.mjs';
 import {
   handoff,
@@ -58,6 +66,7 @@ const BOOLEAN = new Set([
   'interactive',
   'no_enter',
   'help',
+  'watch',
 ]);
 const ALLOWED = new Set([
   ...BOOLEAN,
@@ -197,6 +206,7 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha leader --task TEXT --profile planner --config providers.json
   omha leader --resume RUN_ID [--retry-failed --retry-interrupted-writes]
   omha runs list|status|cancel [--id RUN_ID]
+  omha status [--watch --wait-ms 30000 --interval-ms 1000]
   omha roundtable --input decision.json --config providers.json
   omha decision status|approve|reject --id ID [--reason TEXT]
   omha handoff --prompt TEXT --backend auto|cmux|tmux|file
@@ -234,6 +244,18 @@ async function main() {
   process.on('SIGTERM', abort);
   try {
     const options = runtimeOptions(cwd, o, controller);
+    if (command === 'status') {
+      if (!o.watch) return json(projectStatus(cwd));
+      for await (const snapshot of watchStatus(cwd, {
+        signal: controller.signal,
+        intervalMs: o.interval_ms === undefined ? undefined : Number(o.interval_ms),
+        durationMs: o.wait_ms === undefined ? undefined : Number(o.wait_ms),
+      }))
+        process.stdout.write(
+          `${JSON.stringify(redactData(snapshot, environmentSecrets(process.env)))}\n`,
+        );
+      return;
+    }
     if (command === 'arena') {
       const sub = o._[0];
       if (sub === 'import')

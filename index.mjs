@@ -9,6 +9,8 @@ export {
   runStatus,
   cancelRun,
   sendTaskMessage,
+  projectStatus,
+  watchStatus,
 } from './lib/orchestrator.mjs';
 export {
   roundtable,

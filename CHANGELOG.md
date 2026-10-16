@@ -4,6 +4,9 @@
 
 ### Features
 
+- Add consolidated project status, bounded JSONL watching and event-derived
+  outcome metrics; reuse project identity and memory index reads within a read.
+
 - Feed verified host acceptance observations into scoped worktree memory and
   select relevant fresh topics for the next immutable run with hashes and caps.
 

@@ -134,6 +134,11 @@ admission controls, not a universal billing cap; see [limitations](docs/security
 
 ## Lifecycles
 
+`omha status` shows runs, decision gates, owned handoffs and outcome metrics.
+`omha status --watch --wait-ms 30000` emits changed snapshots as JSONL for a
+bounded watch; Ctrl-C stops it. Execution, host acceptance and review remain
+separate outcomes, including when older runs have no acceptance evidence.
+
 - **Open Arena:** import reviewed `OPEN_ARENA.md` and references as frozen knowledge
   without starting a provider. A separately authorized Git/POSIX batch runs two
   independent bundle clones with one write attempt each, a shared durable budget

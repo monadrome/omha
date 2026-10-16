@@ -2,6 +2,10 @@
 
 ## Authorized optimization evidence (2026-10-13)
 
+- Status benchmark (Node 26, local non-Git fixture, 20 runs x 100 events, 5 reads):
+  baseline samples 249/246/246/245/254ms, mean 248ms; identity reuse samples
+  18/16/16/16/16ms, mean 16ms. `scripts/benchmark-status.mjs` reproduces the
+  workload offline. No durable cache or alternate source of truth was added.
 - Automatic memory stores only deterministic host acceptance observations, never
   provider output or inferred coding advice. Each observation has an originating
   run/task/result digest; configured review must pass before capture. Reading

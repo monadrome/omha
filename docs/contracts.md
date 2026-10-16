@@ -145,6 +145,23 @@ launching a provider. Different worktrees remain independent. Dead host leases
 are recovered only after fingerprint-checked cleanup of recorded workers; live
 leases are never expired by age.
 
+`projectStatus(cwd)` / `omha status` consolidate project runs, decision gates,
+owned handoff records and outcome metrics without starting providers or probing
+terminals. `runStatus()` derives current task execution, acceptance, review,
+last progress and escalation state from the append-only log. Metrics distinguish
+completed tasks from accepted tasks, review approval/rejection, worker attempts,
+failures, retries, profile transitions, takeovers, escalations, recorded lessons
+and summed worker-provider latency. Budget totals include the complete lifecycle;
+worker attempt metrics count worker dispatch events only. Historical events that
+lack acceptance fields remain unknown rather than becoming accepted.
+
+`watchStatus(cwd, {intervalMs, durationMs, signal})` yields changed snapshots only.
+`omha status --watch --wait-ms 30000 --interval-ms 1000` emits one JSON object per
+line, runs for a bounded duration (default 30 seconds) and stops on SIGINT/SIGTERM.
+Each poll rereads authoritative state; no durable cache can hide external updates.
+Run listing reuses one project identity within the read, and memory status/injection
+reuse one validated scope/index instead of resolving and reading it repeatedly.
+
 Roundtable voters return [schemas/proposal.schema.json](../schemas/proposal.schema.json).
 An evidence item must quote the supplied public anchor exactly. `abstention:true`
 requires `recommendation:null`; every non-abstention needs at least one anchor.

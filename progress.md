@@ -48,6 +48,12 @@
 - Phase 7 full check passes 118/118 offline tests and formatting/static validation.
   Verified provenance, next-run injection, failed/missing acceptance, review
   rejection, scope isolation, freshness, topic/byte/line caps and disable flags.
+- Phase 7 delivered at 1c98eb5. Phase 8 adds status/watch and event-replayed
+  metrics; benchmark improved the 20-run/2,000-event read from mean 248ms to 16ms
+  by reusing identity within a call. Sources of truth remain files and logs.
+- Phase 8 full check passes 121/121 offline tests. Unified status excludes payloads
+  and unrelated handoffs; watch observes external append-only events, yields only
+  changed snapshots and respects duration/cancellation. Starting final audit.
 
 ## Concurrency and security hardening (2026-10-12)
 

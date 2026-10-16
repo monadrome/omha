@@ -20,9 +20,9 @@ Deliver each bounded iteration directly to main without a version/release bump.
   and read-only takeover; never automatically replay uncertain writes.
 - [complete] 7. Extract verified run lessons, select scoped relevant memory for
   the next run and enforce freshness, provenance, privacy and injection caps.
-- [in_progress] 8. Add consolidated status/watch and outcome metrics; benchmark and
+- [complete] 8. Add consolidated status/watch and outcome metrics; benchmark and
   address repeated identity/event/index work without changing sources of truth.
-- [pending] 9. Synchronize capability documentation, remove legacy config
+- [in_progress] 9. Synchronize capability documentation, remove legacy config
   fallback, validate installed workflows, audit all requirements and push.
 
 ACP remains subsequent protocol work as recommended: this optimization reuses
@@ -87,7 +87,7 @@ repository at /private/tmp/omha-hardening-20261012.
 - [complete] Add an opt-in bounded provider stream for real JSONL adapters before
   adding automatic escalation/takeover; default and non-JSONL observation remains
   completion-time.
-- [pending] Add a supervision loop that consumes live heartbeats/input-wait events
+- [complete] Add a supervision loop that consumes live heartbeats/input-wait events
   and performs bounded notification/takeover decisions.
 - [pending] Standardize provider JSON-RPC capabilities without crossing native
   subscription/API billing channels.
@@ -170,6 +170,8 @@ boundaries, and uses deterministic bounded indexes. Default checks are offline.
 
 ## Errors Encountered
 
+- Phase 8 initial focused suite: 27/28 passed; a privacy assertion matched macOS
+  `/private` in valid state paths. Assert the actual payload sentinels instead.
 - Phase 7 focused suite: 31/32 passed; the cap test incorrectly assumed a short
   topic could not fit in 256 bytes. Use an oversized topic and assert whole-topic
   omission while preserving the existing injection limits.

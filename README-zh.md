@@ -103,6 +103,10 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
 
 ## 生命周期
 
+`omha status` 汇总运行、决策门控、自有交接与结果指标。
+`omha status --watch --wait-ms 30000` 限时输出变化的 JSONL 快照，可用 Ctrl-C 停止。
+执行、宿主验收与评审分开统计；缺少验收证据的旧运行保持未知。
+
 - **Open Arena：**将经过审核的 `OPEN_ARENA.md` 与 references 导入为冻结知识包，
   导入时不启动 provider。独立授权的 Git/POSIX 批次从同一 bundle 创建两份 clone，
   每路只写一次，共享持久预算并由 host 验证。报告保留全部终态和多份产物；strict
