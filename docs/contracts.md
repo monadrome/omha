@@ -169,6 +169,24 @@ results are explicit and carry an evidence gap. `conversationRewound` is always
 `false` because the wrapper only produces advice.
 
 Memory topic frontmatter is parsed as YAML and validated by `lib/memory.mjs`.
+Leader automatically selects relevant active, fresh `worktree`/`project` topics
+for its immutable context. `plan.memory` controls `read`, `write`, `scopes`,
+`maxTopics` (default 4), `maxBytes` (8000), `maxLines` (100) and `ttlDays` (30).
+Private user/session/role scopes are never selected automatically. Selection
+uses word overlap with the objective, deterministic ordering and whole-topic
+caps; it excludes stale records and records selected topic hashes/provenance in
+`run.created.memory`. Resume reuses that frozen context rather than rereading it.
+
+After host acceptance and any configured review pass, Leader records a bounded
+worktree procedure describing the observed acceptance recipe and its run/task,
+result digest, response hash and served profile. Provider output, prompts and
+transcripts are never copied into the observation. A reservation, exit status or
+unreviewed model claim alone cannot create a verified lesson. These are historical
+observations to revalidate, not proof about the next artifact. Conflicting writes
+and sensitive records are rejected with `memory.rejected` evidence. Set both
+memory flags to false to disable the lifecycle integration. Explicit memory CLI
+injection retains its requested-topic and private-opt-in behavior.
+
 `MEMORY.md` is an index; topic Markdown is the source of truth. Handoff records
 use an owner token, full backend reference and a final marker with the same token.
 The final state is successful only for exit code `0` and a valid marker.

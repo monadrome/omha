@@ -136,6 +136,10 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
 Markdown/frontmatter 是事实来源；`MEMORY.md` 是确定性的指针索引，最多 200 行 / 24,000
 字节。注入最多 200 行 / 16,000 字节，只包含明确选择的 topic，并返回过期告警。
 命令为 `memory init|status|list|read|search|put|forget|inject|doctor`。
+Leader 会自动选择相关且未过期的 project/worktree topic，将来源 hash 冻结到运行上下文。
+宿主验收和配置的评审均通过后，会记录含验收过程与运行来源的 worktree 经验，不复制
+provider 输出或原始对话。`plan.memory` 可配置注入上限、有效期及读写开关；私有作用域
+仍需显式选择。
 
 | 作用域                   | 隔离边界                                             |
 | ------------------------ | ---------------------------------------------------- |

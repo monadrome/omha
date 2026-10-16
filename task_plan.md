@@ -18,9 +18,9 @@ Deliver each bounded iteration directly to main without a version/release bump.
   host signals, durable evidence, shared budget, resume and CLI controls.
 - [complete] 6. Consume realtime events with bounded supervision, notifications
   and read-only takeover; never automatically replay uncertain writes.
-- [in_progress] 7. Extract verified run lessons, select scoped relevant memory for
+- [complete] 7. Extract verified run lessons, select scoped relevant memory for
   the next run and enforce freshness, provenance, privacy and injection caps.
-- [pending] 8. Add consolidated status/watch and outcome metrics; benchmark and
+- [in_progress] 8. Add consolidated status/watch and outcome metrics; benchmark and
   address repeated identity/event/index work without changing sources of truth.
 - [pending] 9. Synchronize capability documentation, remove legacy config
   fallback, validate installed workflows, audit all requirements and push.
@@ -170,6 +170,9 @@ boundaries, and uses deterministic bounded indexes. Default checks are offline.
 
 ## Errors Encountered
 
+- Phase 7 focused suite: 31/32 passed; the cap test incorrectly assumed a short
+  topic could not fit in 256 bytes. Use an oversized topic and assert whole-topic
+  omission while preserving the existing injection limits.
 - Phase 6 initial focused check: 26/27 passed; the live-progress fixture failed
   completion while all escalation paths passed. Inspect the bounded result and
   process exit before changing watchdog thresholds or repeating the suite.

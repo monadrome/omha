@@ -2,6 +2,10 @@
 
 ## Authorized optimization evidence (2026-10-13)
 
+- Automatic memory stores only deterministic host acceptance observations, never
+  provider output or inferred coding advice. Each observation has an originating
+  run/task/result digest; configured review must pass before capture. Reading
+  uses scoped, relevance-ranked fresh records with source hashes and shared caps.
 - Recovery on 2026-10-16 found only an uncommitted supervision plan/schema stub.
   The runtime already supplies live JSONL summaries; supervision will reuse that
   callback and existing fallback routing with a separate controller per attempt.

@@ -4,6 +4,9 @@
 
 ### Features
 
+- Feed verified host acceptance observations into scoped worktree memory and
+  select relevant fresh topics for the next immutable run with hashes and caps.
+
 - Supervise live progress and input waits with bounded escalation notifications
   and read-only fallback takeover; uncertain writes remain interrupted.
 - Keep task deadlines, cancellation and worktree exclusion active through host

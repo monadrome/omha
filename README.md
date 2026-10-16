@@ -183,6 +183,12 @@ admission controls, not a universal billing cap; see [limitations](docs/security
 Markdown/frontmatter topics are the source of truth. `MEMORY.md` is a deterministic
 pointer index capped at 200 lines / 24,000 bytes. Injection caps at 200 lines /
 16,000 bytes, includes only requested topics, and reports stale records.
+Leader also selects relevant fresh project/worktree topics automatically and
+freezes their source hashes in the run context. Successful host acceptance plus
+any required review records a worktree lesson containing the verified recipe and
+run provenance, without provider output or transcripts. `plan.memory` controls
+selection caps, freshness and read/write switches; private scopes require explicit
+manual selection.
 
 `memory init|status|list|read|search|put|forget|inject|doctor` supports these scopes:
 

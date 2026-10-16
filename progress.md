@@ -41,6 +41,13 @@
 - Phase 6 full check passes 114/114 offline tests, formatting and 44 syntax files.
   Preserve framing failures ahead of supervision failures; notification failure
   also leaves an uncertain supervised writer interrupted. Proceeding to phase 7.
+- Phase 6 delivered at 1990150. Phase 7 adds bounded relevance selection, frozen
+  source provenance and deterministic verified acceptance observations using the
+  existing memory records and injection path. Focused initial check: 31/32; the
+  sole failure was an incorrect short-topic cap assertion, now corrected.
+- Phase 7 full check passes 118/118 offline tests and formatting/static validation.
+  Verified provenance, next-run injection, failed/missing acceptance, review
+  rejection, scope isolation, freshness, topic/byte/line caps and disable flags.
 
 ## Concurrency and security hardening (2026-10-12)
 

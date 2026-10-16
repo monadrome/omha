@@ -9,6 +9,25 @@
     "publicContext": { "type": "string", "maxLength": 1000000 },
     "parallelism": { "type": "integer", "minimum": 1, "maximum": 16 },
     "decision": { "type": "object" },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "read": { "type": "boolean" },
+        "write": { "type": "boolean" },
+        "scopes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["project", "worktree"] }
+        },
+        "maxTopics": { "type": "integer", "minimum": 1, "maximum": 16 },
+        "maxBytes": { "type": "integer", "minimum": 256, "maximum": 16000 },
+        "maxLines": { "type": "integer", "minimum": 5, "maximum": 200 },
+        "ttlDays": { "type": "integer", "minimum": 1, "maximum": 365 }
+      }
+    },
     "supervision": {
       "type": "object",
       "additionalProperties": false,
