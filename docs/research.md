@@ -40,6 +40,8 @@ The first implementation borrowed from the Cline/Goose event model: an opt-in,
 bounded JSONL framer now emits redacted summaries while Codex or Kimi is still
 running. It reuses the existing adapter parser and process callback, enforces
 line/buffer/event limits, and leaves completion parsing, budgets, retries,
-sandbox checks and provider billing unchanged. OpenHands-style backend
-selection, LangGraph-style supervision and Goose ACP remain follow-up work;
-they require additional host contracts before they can be automated safely.
+sandbox checks and provider billing unchanged. The subsequent lifecycle work now
+consumes those events for bounded supervision and read-only takeover, freezes
+relevant memory and exposes consolidated status/watch. ACP and an evidence-driven
+automatic rewind subscription remain future protocol work; they require additional
+host contracts and must preserve native billing and causal rewind evidence.

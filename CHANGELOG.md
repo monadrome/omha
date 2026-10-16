@@ -32,6 +32,9 @@
 
 ### Fixes
 
+- Restrict automatic provider configuration discovery to `providers.json`, keeping
+  one canonical naming contract and removing legacy filename fallback.
+
 - Keep automatic decision gates closed when the chair fails or returns an invalid
   synthesis, even when the independent host tally has a majority.
 

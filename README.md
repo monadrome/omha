@@ -84,8 +84,8 @@ gate.
 ## Providers and Routing
 
 Use `--config providers.json`, `.omha/providers.json`, or
-`$OMHA_HOME/providers.json` (in that order). `agents.json` is a legacy filename
-alias, but its contents must use the version 1 schema. Invalid configuration fails
+`$OMHA_HOME/providers.json` (in that order). Automatic discovery uses only
+`providers.json`. All contents must use the version 1 schema. Invalid configuration fails
 closed. See [examples/providers.json](examples/providers.json) and
 [schemas/providers.schema.json](schemas/providers.schema.json).
 

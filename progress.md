@@ -70,6 +70,12 @@
   tally alone cannot release downstream tasks after a failed/malformed chair.
 - Decision gate focused suite passes 24/24 offline orchestration tests, including
   malformed/failed chair with majority and no downstream worker invocation.
+- Canonical configuration/docs/installed-flow check passes 130/130 offline tests,
+  48 syntax files and formatting. Node 20 passes 43/43 changed-lifecycle tests.
+  Clean HOME pack check passes with 72 files, generated host-policy workflow,
+  acceptance/review/memory/status/watch, API exports and uninstall verification.
+  Remaining final audit: reset review approval when a new execution attempt starts,
+  then rerun affected checks and verify clean main against origin/main.
 
 ## Concurrency and security hardening (2026-10-12)
 

@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -41,6 +49,7 @@ try {
     'skills/hide/LICENSE',
     'skills/butterfly-effect/LICENSE',
     'schemas/plan.schema.json',
+    'schemas/host-policy.schema.json',
     'examples/history.json',
     'docs/contracts.md',
   ])
@@ -128,16 +137,110 @@ try {
   assert.equal(run(['handoff', 'complete', '--id', h.id]).state, 'completed');
   assert.equal(run(['handoff', 'close', '--id', h.id]).state, 'closed');
   assert.equal(run(['memory', 'doctor']).ok, true);
+  const workflowConfig = join(temporary, 'workflow-providers.json');
+  const policy = join(temporary, 'host-policy.json');
+  const workflowPlan = {
+    version: 1,
+    objective: 'Verify installed workflow',
+    tasks: [
+      {
+        id: 'job',
+        role: 'verify',
+        prompt: 'Inspect installed artifact',
+        profile: 'worker',
+        mode: 'readonly',
+      },
+    ],
+  };
+  writeFileSync(
+    workflowConfig,
+    JSON.stringify({
+      version: 1,
+      profiles: {
+        planner: {
+          adapter: 'fake',
+          command: 'fake',
+          model: 'local',
+          responses: [{ output: JSON.stringify(workflowPlan) }],
+        },
+        worker: {
+          adapter: 'fake',
+          command: 'fake',
+          model: 'local',
+          responses: [{ output: 'Completed installed check' }],
+        },
+        reviewer: {
+          adapter: 'fake',
+          command: 'fake',
+          model: 'local',
+          responses: [
+            {
+              output: JSON.stringify({
+                summary: 'Installed evidence matches',
+                assessments: [{ id: 'spec', status: 'pass', finding: 'Verified' }],
+              }),
+            },
+          ],
+        },
+      },
+    }),
+  );
+  writeFileSync(
+    policy,
+    JSON.stringify({
+      supervision: { stallMs: 1000 },
+      tasks: {
+        job: {
+          acceptance: { command: process.execPath, args: ['-e', 'process.exit(0)'] },
+          review: {
+            reviewerProfile: 'reviewer',
+            diff: 'Frozen installed workflow',
+            testEvidence: [
+              { name: 'host', status: 'passed', summary: 'Installed host verification' },
+            ],
+            criteria: [{ id: 'spec', description: 'Match installed contract' }],
+          },
+        },
+      },
+    }),
+  );
+  const workflow = run([
+    'leader',
+    '--task',
+    workflowPlan.objective,
+    '--profile',
+    'planner',
+    '--config',
+    workflowConfig,
+    '--policy',
+    policy,
+  ]);
+  assert.equal(workflow.status, 'completed');
+  assert.equal(workflow.tasks.job.acceptanceAccepted, true);
+  assert.equal(workflow.tasks.job.reviewApproved, true);
+  assert.equal(workflow.budget.account.requests, 3);
+  assert.equal(run(['memory', 'list', '--scope', 'worktree']).length, 1);
+  assert.equal(run(['status']).metrics.accepted, 1);
+  const watch = execFileSync(
+    process.execPath,
+    [cli, 'status', '--watch', '--wait-ms', '30', '--interval-ms', '10'],
+    { cwd, env, encoding: 'utf8', timeout: 30000 },
+  )
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line));
+  assert.equal(watch.length, 1);
+  assert.equal(watch[0].metrics.reviewApproved, 1);
   const api = execFileSync(
     process.execPath,
     [
       '--input-type=module',
       '-e',
-      `import {createRuntime} from ${JSON.stringify(pathToFileURL(join(installed, 'index.mjs')).href)};console.log(typeof createRuntime)`,
+      `import {createRuntime,projectStatus,watchStatus} from ${JSON.stringify(pathToFileURL(join(installed, 'index.mjs')).href)};console.log([createRuntime,projectStatus,watchStatus].map(value=>typeof value).join(','))`,
     ],
     { cwd, env, encoding: 'utf8' },
   );
-  assert.match(api, /function/);
+  assert.match(api, /function,function,function/);
   invokeNpm(
     ['uninstall', '--global', '--prefix', prefix, '@huatalk/omha', '--ignore-scripts'],
     cwd,

@@ -522,6 +522,23 @@ test('invalid higher-priority configuration fails closed instead of loading a va
   assert.deepEqual(Object.keys(loadConfig(cwd, explicit).profiles), ['explicit']);
 });
 
+test('automatic configuration discovery uses only providers.json', () => {
+  const cwd = join(root, 'single-config-name');
+  mkdirSync(join(cwd, '.omha'), { recursive: true });
+  writeFileSync(join(cwd, '.omha', 'agents.json'), JSON.stringify(config({ legacy: fake() })));
+  writeFileSync(
+    join(process.env.OMHA_HOME, 'agents.json'),
+    JSON.stringify(config({ legacy: fake() })),
+  );
+  writeFileSync(
+    join(process.env.OMHA_HOME, 'providers.json'),
+    JSON.stringify(config({ canonical: fake() })),
+  );
+  assert.deepEqual(Object.keys(loadConfig(cwd).profiles), ['canonical']);
+  writeFileSync(join(cwd, '.omha', 'providers.json'), JSON.stringify(config({ project: fake() })));
+  assert.deepEqual(Object.keys(loadConfig(cwd).profiles), ['project']);
+});
+
 test('circuit cooldown and long Retry-After prevent rapid repeated launches', async () => {
   let clock = 0;
   const runtime = local(

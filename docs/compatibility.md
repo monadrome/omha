@@ -1,15 +1,18 @@
 # Compatibility matrix
 
-| Capability            | Required                     | Fallback                           |
-| --------------------- | ---------------------------- | ---------------------------------- |
-| Skills                | A host that reads `SKILL.md` | Copy/link `skills/`                |
-| CLI                   | Node 20+                     | None; skills remain portable       |
-| Provider              | Claude, Codex, or Kimi CLI   | Memory and file handoff            |
-| Visible handoff       | cmux                         | tmux, then Markdown file           |
-| Git identity          | Git repository               | Canonical real path                |
-| Native process groups | POSIX                        | Windows uses file/fake degradation |
-| Kimi read-only        | External sandbox wrapper     | Workspace-write only               |
-| JSON frontmatter      | Node 20+ with `yaml`         | No provider required               |
+| Capability            | Required                                                  | Fallback                                               |
+| --------------------- | --------------------------------------------------------- | ------------------------------------------------------ |
+| Skills                | A host that reads `SKILL.md`                              | Copy/link `skills/`                                    |
+| CLI                   | Node 20+                                                  | None; skills remain portable                           |
+| Provider              | Claude, Codex, or Kimi CLI                                | Memory and file handoff                                |
+| Visible handoff       | cmux                                                      | tmux, then Markdown file                               |
+| Git identity          | Git repository                                            | Canonical real path                                    |
+| Native process groups | POSIX                                                     | Windows uses file/fake degradation                     |
+| Kimi read-only        | External sandbox wrapper                                  | Workspace-write only                                   |
+| JSON frontmatter      | Node 20+ with `yaml`                                      | No provider required                                   |
+| Live supervision      | Codex/Kimi or command JSONL                               | Silence/deadline supervision for nonstreaming adapters |
+| Host acceptance       | Fixed local executable and bounded regular artifact files | Fail closed on changed harnesses/unsupported snapshots |
+| Status/watch          | Existing local records                                    | Read-only snapshots; no provider or terminal probe     |
 
 On Windows, npm places the global launcher directly under the configured prefix
 instead of `<prefix>/bin`; native process groups, tmux and cmux probes are

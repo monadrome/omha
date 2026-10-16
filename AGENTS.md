@@ -16,25 +16,25 @@ lowers an existing guarantee.
 Each target has three parts: **observe** (know when it applies), **decide** (choose
 an action), **act** (carry it out). Read "Status" and "Gap" as the backlog.
 
-| Target              | Observe                          | Decide                                  | Act                        |
-| ------------------- | -------------------------------- | --------------------------------------- | -------------------------- |
-| Auto execution      | user intent, run state           | `leader` plan validation + write gate   | PTY handoff, DAG (exists)  |
-| Auto handoff        | task type, load, rate limit      | backend choice (cmux→tmux→file, exists) | owned terminal (exists)    |
-| Auto rewind         | artifact hash drift              | butterfly evidence gate (exists)        | handoff to earliest point  |
-| Auto review         | change exists, author identified | **not implemented**                     | **not implemented**        |
-| Auto group decision | risk, ambiguity, write magnitude | roundtable tally (exists)               | **manual invocation only** |
-| Auto escalation     | stall, long silence, input wait  | **not implemented**                     | notify + takeover          |
+| Target              | Observe                            | Decide                                  | Act                         |
+| ------------------- | ---------------------------------- | --------------------------------------- | --------------------------- |
+| Auto execution      | user intent, run state             | `leader` plan validation + write gate   | PTY handoff, DAG (exists)   |
+| Auto handoff        | task type, load, rate limit        | backend choice (cmux→tmux→file, exists) | owned terminal (exists)     |
+| Auto rewind         | artifact hash drift                | butterfly evidence gate (exists)        | handoff to earliest point   |
+| Auto review         | task completion, frozen evidence   | host review criteria + author exclusion | lifecycle review + resume   |
+| Auto group decision | host risk/ambiguity/write signals  | threshold trigger + blind host tally    | Leader decision gate        |
+| Auto escalation     | live progress, silence, input wait | bounded supervision policy              | notify + read-only takeover |
 
-| Layer                     | Status                                                                        | Gap                                                                                                                                                                                                                                          |
-| ------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Execution channel**     | terminal only (`lib/backends.mjs`: cmux / tmux / file)                        | No headless structured channel. `claude -p --output-format stream-json` and `codex exec --json` give exact turn boundaries, tool calls, file changes and usage — strictly better than screen scraping, and usable for cheap parallel fan-out |
-| **Cross-CLI integration** | adapter argv per provider (`lib/adapters.mjs`)                                | No ACP (Agent Client Protocol, JSON-RPC over stdio). Standardizing here removes per-agent glue                                                                                                                                               |
-| **Capability model**      | profiles declare adapter, model, sandbox, budget, retry, circuit              | No declared capability tiers such as interactive / headless / tool-free / read-only, so routing cannot reason about them                                                                                                                     |
-| **Auto rewind**           | `butterfly` / `auto-butterfly` require an explicit chronological history JSON | No automatic detection loop. Turn "explicit evidence in" into "subscribe to an event stream, detect drift, act"                                                                                                                              |
-| **Auto review**           | review is only a task type                                                    | No review pipeline: isolated reviewer, diff plus test evidence, spec-consistency check, and a rule that the party under review never rules on its own result                                                                                 |
-| **Auto group decision**   | blind voters plus host tally (exists)                                         | No automatic trigger. The system should invoke a roundtable when risk, ambiguity or write magnitude crosses a threshold, not ask a human at every step                                                                                       |
-| **Escalation / takeover** | notifications (`set-progress`, `notify`), timeouts, `handoff cancel`          | No supervision loop. Detect stall, no-progress or input-wait and notify proactively instead of relying on a human polling the screen                                                                                                         |
-| **Input-wait detection**  | indirect heuristics (see `send` / `read-screen` in `lib/backends.mjs`)        | "The agent is waiting for an answer" is inferred from timeout or paste verification, not from a structured signal                                                                                                                            |
+| Layer                     | Status                                                                         | Gap                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **Execution channel**     | native headless adapters plus owned cmux / tmux / file handoffs                | Codex/Kimi JSONL stream live summaries; Claude remains native completion JSON. Preserve billing channels.               |
+| **Cross-CLI integration** | adapter argv per provider (`lib/adapters.mjs`)                                 | No ACP (Agent Client Protocol, JSON-RPC over stdio). Standardizing here removes per-agent glue                          |
+| **Capability model**      | validated interactive / headless / tool-free / read-only tiers                 | Host routing rejects incompatible and excluded profiles before launch. External wrappers cannot claim unverified tiers. |
+| **Auto rewind**           | `butterfly` / `auto-butterfly` require an explicit chronological history JSON  | No automatic detection loop. Turn "explicit evidence in" into "subscribe to an event stream, detect drift, act"         |
+| **Auto review**           | isolated, author-independent review with frozen diff/test/acceptance evidence  | Host policy chooses reviewer/criteria; pending reviews resume without replaying writes.                                 |
+| **Auto group decision**   | host thresholds automatically invoke blind voters and valid chair before tasks | Human gates and failed/split/invalid outcomes remain closed until resolved; policies cannot come from the planner.      |
+| **Escalation / takeover** | live event watchdog, durable escalation and CLI stderr notifications           | Read-only takeover uses existing fallbacks only, at most 3 times. Writes become interrupted and need explicit replay.   |
+| **Input-wait detection**  | structured inputWait summaries from live JSONL events                          | Nonstreaming adapters and terminal handoffs retain timeout/manual observation; no inferred live signal is claimed.      |
 
 ## Automation Invariants
 

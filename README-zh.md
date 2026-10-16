@@ -69,7 +69,7 @@ probe 会保留有限诊断并验证 file fallback；tmux 与离线检查仍是�
 ## Provider 配置与路由
 
 配置优先级为 `--config`、项目 `.omha/providers.json`、
-`$OMHA_HOME/providers.json`。`agents.json` 兼容旧文件名，但内容必须使用 version 1
+`$OMHA_HOME/providers.json`。自动发现只使用 `providers.json`，内容必须使用 version 1
 协议。无效配置直接失败。参见 [配置示例](examples/providers.json) 与
 [JSON Schema](schemas/providers.schema.json)。
 
