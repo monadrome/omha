@@ -32,6 +32,15 @@
   risk decisions run before tasks and persist `awaiting_decision` until the
   existing human approval command is followed by resume; failed reviews block
   dependents. Focused orchestration tests pass 21/21.
+- Restored on 2026-10-16: phase 5 is delivered at 541affd. Phase 6 now reuses live
+  provider summaries, records progress/escalation and retains request reservations
+  across bounded read-only takeover. Supervised writes stay interrupted.
+- Focused runtime/orchestration/supervision tests pass 52/52 after correcting a
+  command JSONL fixture. Added cancellation and lease coverage for acceptance;
+  the full task lifetime now remains under the task deadline/worktree admission.
+- Phase 6 full check passes 114/114 offline tests, formatting and 44 syntax files.
+  Preserve framing failures ahead of supervision failures; notification failure
+  also leaves an uncertain supervised writer interrupted. Proceeding to phase 7.
 
 ## Concurrency and security hardening (2026-10-12)
 

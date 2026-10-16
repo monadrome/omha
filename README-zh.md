@@ -113,6 +113,10 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
   `runs cancel --id <id>` 持久化取消请求；`leader --resume <id>` 复用成功结果与稳定前缀。
   中断且无法确定是否完成的写任务不会自动重放；检查变更后显式使用
   `--allow-write --retry-failed --retry-interrupted-writes`。
+  可配置 `supervision: {stallMs, inputWaitMs, maxTakeovers}`，消费实时 JSONL 进展，
+  检测停滞与输入等待，并将升级通知写入 stderr。默认值均为 0（关闭），最多接管 3 次，
+  只读任务仅能转给已有 fallback；写任务保持 interrupted，不能自动接管。
+  任务 deadline、取消和 worktree 租约覆盖执行、宿主验收与独立评审。
 - 圆桌使用 2-3 个独立 voter，共享相同公开证据与各自私有提示。在盲收集结束前不持久化
   任何投票。证据引文必须匹配 anchor。多数或权重结果须超过全部票权的一半，弃权和
   无效票也计入分母。Chair 随后综合，不能修改 host 计票结果；少数理由和失败记录保留。

@@ -9,6 +9,15 @@
     "publicContext": { "type": "string", "maxLength": 1000000 },
     "parallelism": { "type": "integer", "minimum": 1, "maximum": 16 },
     "decision": { "type": "object" },
+    "supervision": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stallMs": { "type": "integer", "minimum": 0, "maximum": 86400000 },
+        "inputWaitMs": { "type": "integer", "minimum": 0, "maximum": 86400000 },
+        "maxTakeovers": { "type": "integer", "minimum": 0, "maximum": 3 }
+      }
+    },
     "tasks": {
       "type": "array",
       "minItems": 1,

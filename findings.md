@@ -2,6 +2,14 @@
 
 ## Authorized optimization evidence (2026-10-13)
 
+- Recovery on 2026-10-16 found only an uncommitted supervision plan/schema stub.
+  The runtime already supplies live JSONL summaries; supervision will reuse that
+  callback and existing fallback routing with a separate controller per attempt.
+- Scheduler cleanup currently releases the worktree and task deadline before
+  acceptance/review. Extend their lifetime through the complete task lifecycle
+  so verification cannot overlap another run's writer or escape cancellation.
+- Final audit must check planner authority over acceptance/review/decision policy
+  and restart recovery of reviews that were pending at host interruption.
 - DAG acceptance reuses the bounded local process path but does not copy the
   Arena Git artifact collector. It persists only command, exit/signal, hashes,
   byte counts and bounded outcome metadata; provider output is not passed to the

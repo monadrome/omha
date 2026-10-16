@@ -338,6 +338,7 @@ async function main() {
         retryInterruptedWrites: o.retry_interrupted_writes,
         plannerProfile: o.profile,
         publicContext: o.public_context ? inputFile(o.public_context) : '',
+        onNotification: (notification) => process.stderr.write(`${JSON.stringify(notification)}\n`),
       });
       json(result);
       if (result.status !== 'completed') process.exitCode = 1;

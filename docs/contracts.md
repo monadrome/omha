@@ -47,6 +47,24 @@ parsed as a completed result. A missing final newline, oversized frame or excess
 event count yields `malformed_output`, retains its reservation, and never triggers
 fallback. Host callback failures remain distinct from framing failures.
 
+Dispatch and plans can set `supervision: {stallMs, inputWaitMs, maxTakeovers}`.
+The two deadlines are milliseconds (0 disables that deadline); takeovers are
+bounded to 0-3, default 0. Supervision automatically requests the existing live
+JSONL channel where supported. A progress summary refreshes the silence deadline;
+an input-wait summary starts its separate deadline until progress resumes. Other
+adapters retain silence/deadline supervision without claiming live input detection.
+Monitoring ends at process exit, before bounded process-group cleanup.
+
+Each escalation aborts only that provider attempt, retains its reservation and
+records `request.stalled`/`request.input_wait`. Read-only requests may continue to
+an existing configured fallback within the takeover limit; write requests never
+take over. Leader persists `task.progress`, `task.input_wait`, `task.escalated`
+and `task.takeover` evidence. `onNotification` receives escalation metadata; the
+CLI writes it as JSONL to stderr. Notification failures stop routing. Supervised
+writes become `interrupted` and require explicit interrupted-write replay approval.
+The task deadline, cancellation and worktree lease cover execution, acceptance
+and review together, including cancellation of local acceptance process groups.
+
 `reviewTask()` reviews only a completed successful DAG task. The host freezes the
 task output hash, diff, test evidence and criteria in a packet, requires a
 different reviewer profile with `headless`, `tool-free` and `read-only`

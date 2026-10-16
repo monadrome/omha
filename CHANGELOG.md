@@ -4,6 +4,11 @@
 
 ### Features
 
+- Supervise live progress and input waits with bounded escalation notifications
+  and read-only fallback takeover; uncertain writes remain interrupted.
+- Keep task deadlines, cancellation and worktree exclusion active through host
+  acceptance and independent review, and record owned acceptance workers.
+
 - Connect plan-level roundtable gates and task-level independent reviews to the
   Leader lifecycle; durable decisions block execution until approval and failed
   reviews block dependent tasks without rewriting execution results.

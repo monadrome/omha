@@ -16,9 +16,9 @@ Deliver each bounded iteration directly to main without a version/release bump.
   evidence; distinguish execution, acceptance and review outcomes.
 - [complete] 5. Connect existing roundtable/review APIs to Leader lifecycle with
   host signals, durable evidence, shared budget, resume and CLI controls.
-- [in_progress] 6. Consume realtime events with bounded supervision, notifications
+- [complete] 6. Consume realtime events with bounded supervision, notifications
   and read-only takeover; never automatically replay uncertain writes.
-- [pending] 7. Extract verified run lessons, select scoped relevant memory for
+- [in_progress] 7. Extract verified run lessons, select scoped relevant memory for
   the next run and enforce freshness, provenance, privacy and injection caps.
 - [pending] 8. Add consolidated status/watch and outcome metrics; benchmark and
   address repeated identity/event/index work without changing sources of truth.
@@ -170,6 +170,11 @@ boundaries, and uses deterministic bounded indexes. Default checks are offline.
 
 ## Errors Encountered
 
+- Phase 6 initial focused check: 26/27 passed; the live-progress fixture failed
+  completion while all escalation paths passed. Inspect the bounded result and
+  process exit before changing watchdog thresholds or repeating the suite.
+  The cause was command JSONL fixture events missing required status/output;
+  corrected the fixture to use the established adapter envelope.
 - Phase 3 integration exposed `stream.complete:true` after an event-count error
   left an empty buffer. Completion now also requires absence of a framing error;
   the first framing failure is preserved through finalization.
