@@ -20,6 +20,15 @@
   uninstall. No model invocation occurred.
 - Integrating this detached worktree with independently delivered main changes
   before final verification and ordinary main push.
+- Rebased on 41545de, preserving both the installed-workflow checks and new
+  plugin checks. Resolved import/table conflicts by retaining both changes.
+- Final combined `npm run check`: 131/131 offline tests, formatting, 48 syntax
+  files, seven skills and examples pass. Node 20 `scripts/pack-check.mjs`: 74-file
+  package, CLI/API/host-policy/review/memory/status/watch workflows, both plugin
+  manifests, actual isolated Claude install, seven-skill inventory and uninstall
+  all pass. Version remains 0.2.0-rc.2; no model calls, release or publication.
+- Feature commit 5d7178a was fast-forwarded into main and ordinary-pushed to
+  origin/main. All manual edits were made in the detached worktree as requested.
 
 ## Authorized optimization (2026-10-13)
 

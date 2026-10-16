@@ -10,13 +10,18 @@ where inputs, side effects and acceptance rules are explicit.
   checks; create an isolated detached worktree as requested.
 - [complete] 2. Make plugin entry points actionable, document prompt/runtime
   boundaries and verify both install surfaces without a model invocation.
-- [in_progress] 3. Run offline checks and clean installation checks, audit the user
+- [complete] 3. Run offline checks and clean installation checks, audit the user
   requirements, commit the task files, integrate with main and push.
 
 Completion evidence: installed CLI commands and package exports; a clean local
 `omha@omha` plugin install with seven skills discovered by Claude Code; accurate
 bilingual installation/usage docs; no new scripts for open-ended work; appropriate
 checks passing and the delivery commit on origin/main.
+
+Final evidence: combined-main `npm run check` passes 131/131 offline tests and
+static checks. Node 20 runs the 74-file clean HOME package check, including
+installed CLI/API workflows and actual Claude installation, seven-skill discovery
+and uninstall. Feature commit 5d7178a was fast-forwarded and pushed to main.
 
 ## Authorized optimization (2026-10-13)
 
