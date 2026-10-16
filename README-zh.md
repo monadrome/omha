@@ -121,6 +121,9 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
   检测停滞与输入等待，并将升级通知写入 stderr。默认值均为 0（关闭），最多接管 3 次，
   只读任务仅能转给已有 fallback；写任务保持 interrupted，不能自动接管。
   任务 deadline、取消和 worktree 租约覆盖执行、宿主验收与独立评审。
+  规划模型不能指定宿主策略；自动规划时用 `leader --policy host-policy.json` 绑定
+  `decision`、`supervision`、`memory` 和 `tasks: {taskId: {acceptance, review}}`。
+  恢复待评审任务时仅继续独立评审，不重放已经完成的写入。
 - 圆桌使用 2-3 个独立 voter，共享相同公开证据与各自私有提示。在盲收集结束前不持久化
   任何投票。证据引文必须匹配 anchor。多数或权重结果须超过全部票权的一半，弃权和
   无效票也计入分母。Chair 随后综合，不能修改 host 计票结果；少数理由和失败记录保留。

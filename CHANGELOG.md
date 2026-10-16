@@ -32,6 +32,9 @@
 
 ### Fixes
 
+- Reject planner-supplied host policies, resume pending independent reviews without
+  replaying completed writes, and persist review/decision reservations immediately.
+
 - Reject incomplete or oversized realtime streams even when accumulated provider
   output contains valid completion JSON; preserve parse failures without fallback.
 

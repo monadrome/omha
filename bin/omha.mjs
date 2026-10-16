@@ -87,6 +87,7 @@ const ALLOWED = new Set([
   'parallelism',
   'budget',
   'plan',
+  'policy',
   'resume',
   'id',
   'name',
@@ -203,7 +204,7 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
 
   omha run --profile fake --prompt 'Offline check'
   omha leader --plan plan.json [--allow-write]
-  omha leader --task TEXT --profile planner --config providers.json
+  omha leader --task TEXT --profile planner --config providers.json [--policy host-policy.json]
   omha leader --resume RUN_ID [--retry-failed --retry-interrupted-writes]
   omha runs list|status|cancel [--id RUN_ID]
   omha status [--watch --wait-ms 30000 --interval-ms 1000]
@@ -354,6 +355,7 @@ async function main() {
       const result = await leader(cwd, prompt(o), csv(o.providers) || [o.profile || 'claude'], {
         ...options,
         plan: o.plan ? inputJson(o.plan) : undefined,
+        policy: o.policy ? inputJson(o.policy) : undefined,
         resume: Boolean(o.resume),
         runId: o.resume || o.id,
         retryFailed: o.retry_failed,

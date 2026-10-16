@@ -54,6 +54,12 @@
 - Phase 8 full check passes 121/121 offline tests. Unified status excludes payloads
   and unrelated handoffs; watch observes external append-only events, yields only
   changed snapshots and respects duration/cancellation. Starting final audit.
+- Phase 8 delivered at fdda382. Final audit found planner authority and pending
+  review restart gaps; added host policy binding and review-only recovery, plus
+  immediate review/decision reservation events and durable decision cancellation.
+- Host authority/recovery audit passes full check: 123/123 offline tests, including
+  planner policy refusal and pending-review recovery without write replay. Next
+  audit item is binding acceptance evidence to immutable harness/artifact hashes.
 
 ## Concurrency and security hardening (2026-10-12)
 

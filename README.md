@@ -157,6 +157,9 @@ separate outcomes, including when older runs have no acceptance evidence.
   evidence-bound roundtable when risk, ambiguity or write magnitude crosses its
   threshold; pending human gates leave the run awaiting approval before tasks
   start.
+  Generated plans cannot authorize acceptance or lifecycle policy; bind those
+  host settings with `leader --policy host-policy.json` (global `decision`,
+  `supervision`, `memory`, plus `tasks: {taskId: {acceptance, review}}`).
   Optional `supervision: {stallMs, inputWaitMs, maxTakeovers}` consumes live JSONL
   progress, emits escalation notifications on stderr and bounds read-only
   takeover to configured fallbacks. All values default to 0 (disabled); the

@@ -114,6 +114,16 @@ references. The immutable context file is written once and its hash is checked o
 resume. Dependency outputs and worker messages are references, not dynamic public
 prefix content.
 
+Generated planner output cannot set `acceptance`, `review`, `decision`,
+`supervision` or `memory`; those fields are rejected before any worker starts.
+For generated plans, `leader(..., {policy})` / `leader --policy host-policy.json`
+binds host-owned global policy and `tasks: {taskId: {acceptance, review}}` after
+planning. A supplied `--plan` is itself a host execution specification. The bound
+policy is frozen with the run; prompts cannot create or replace host permission.
+Pending reviews resume independently of completed execution, including completed
+writes, and dependencies wait for approval. Review/decision request reservations
+are appended as they occur so interrupted lifecycle work retains its charged budget.
+
 A plan may include a host-owned `decision` block with bounded risk, ambiguity and
 write signals, thresholds, evidence anchors, two or three voters, an optional
 chair, voting method and human gate. Below threshold, the plan records a no-op

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "decision": { "$ref": "plan.schema.json#/properties/decision" },
+    "supervision": { "$ref": "plan.schema.json#/properties/supervision" },
+    "memory": { "$ref": "plan.schema.json#/properties/memory" },
+    "tasks": {
+      "type": "object",
+      "propertyNames": { "$ref": "providers.schema.json#/$defs/id" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "acceptance": {
+            "$ref": "plan.schema.json#/properties/tasks/items/properties/acceptance"
+          },
+          "review": { "$ref": "plan.schema.json#/properties/tasks/items/properties/review" }
+        }
+      }
+    }
+  }
+}

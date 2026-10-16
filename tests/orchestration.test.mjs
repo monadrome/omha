@@ -619,6 +619,93 @@ test('leader plans via a cheap tool-free profile and rejects malformed plans', a
   );
 });
 
+test('planner cannot authorize acceptance or replace host lifecycle policy', async () => {
+  for (const field of ['acceptance', 'review', 'decision', 'supervision', 'memory']) {
+    const proposed = plan([task('a')]);
+    if (['acceptance', 'review'].includes(field)) proposed.tasks[0][field] = {};
+    else proposed[field] = {};
+    const rt = runtime({ planner: fake(JSON.stringify(proposed)), p: fake() });
+    await assert.rejects(
+      leader(cwd, proposed.objective, ['planner'], {
+        runtime: rt,
+        publicContext: proposed.publicContext,
+      }),
+      /Planner cannot set host policy/,
+    );
+    assert.equal(rt.fakeOffsets.has('p'), false);
+  }
+  const proposed = plan([task('a')]);
+  const rt = runtime({ planner: fake(JSON.stringify(proposed)), p: fake() });
+  const result = await leader(cwd, proposed.objective, ['planner'], {
+    runtime: rt,
+    publicContext: proposed.publicContext,
+    policy: {
+      tasks: { a: { acceptance: { command: process.execPath, args: ['-e', 'process.exit(0)'] } } },
+    },
+  });
+  assert.equal(result.status, 'completed');
+  assert.equal(result.tasks.a.acceptanceAccepted, true);
+  assert.equal(result.budget.account.requests, 2);
+});
+
+test('resume completes a pending review without replaying a completed write or bypassing its dependent gate', async () => {
+  const rt = runtime({
+    p: fake('implementation', { sandbox: 'workspace-write' }),
+    d: fake('dependent'),
+    r: fake('invalid review', {
+      responses: [
+        { output: '{invalid}' },
+        {
+          output: JSON.stringify({
+            summary: 'Verified',
+            assessments: [{ id: 'spec', status: 'pass', finding: 'Matches' }],
+          }),
+        },
+      ],
+    }),
+  });
+  const input = plan([
+    task('subject', {
+      mode: 'write',
+      review: {
+        reviewerProfile: 'r',
+        diff: 'Frozen change',
+        testEvidence: [{ name: 'test', status: 'passed', summary: 'Host evidence' }],
+        criteria: [{ id: 'spec', description: 'Match requirements' }],
+      },
+    }),
+    task('dependent', { profile: 'd', dependsOn: ['subject'] }),
+  ]);
+  const first = await executePlan(cwd, input, { runtime: rt, allowWrite: true });
+  assert.equal(first.tasks.subject.status, 'completed');
+  assert.equal(first.tasks.dependent.status, 'blocked');
+  const events = join(first.dir, 'events.jsonl');
+  appendEvent(events, {
+    kind: 'task.reviewed',
+    taskId: 'subject',
+    status: 'pending',
+    approved: false,
+  });
+  appendEvent(events, { kind: 'task.recovered', taskId: 'dependent', status: 'pending' });
+  appendEvent(events, { kind: 'run.status', status: 'running' });
+  const resumed = await executePlan(cwd, null, {
+    runtime: rt,
+    resume: true,
+    runId: first.runId,
+    allowWrite: true,
+  });
+  assert.equal(resumed.status, 'completed');
+  assert.equal(resumed.tasks.subject.reviewApproved, true);
+  assert.equal(rt.fakeOffsets.get('p'), 1);
+  assert.equal(rt.fakeOffsets.get('r'), 2);
+  assert.equal(rt.fakeOffsets.get('d'), 1);
+  assert.ok(
+    readEvents(events).some(
+      (event) => event.kind === 'review.request.reserved' && event.account.requests === 2,
+    ),
+  );
+});
+
 const evidence = [{ id: 'source', text: 'Option A costs 3 units. Option B costs 8 units.' }];
 const proposal = (recommendation, reason = 'Use the lower cost', abstention = false) => ({
   recommendation: abstention ? null : recommendation,
