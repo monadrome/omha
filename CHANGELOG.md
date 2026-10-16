@@ -32,6 +32,9 @@
 
 ### Fixes
 
+- Keep automatic decision gates closed when the chair fails or returns an invalid
+  synthesis, even when the independent host tally has a majority.
+
 - Bind DAG acceptance to frozen harness hashes and bounded artifact snapshots;
   changed harnesses or candidates cannot pass or seed verified run memory.
 

@@ -66,6 +66,10 @@
 - Artifact/harness binding passes full check: 128/128 offline tests and formatting/
   static validation. Acceptance checks executable and file arguments plus explicit
   harness dependencies, preserves artifact/policy digests and rejects self-modification.
+- Final decision audit adds explicit successful/valid-chair gating: a majority
+  tally alone cannot release downstream tasks after a failed/malformed chair.
+- Decision gate focused suite passes 24/24 offline orchestration tests, including
+  malformed/failed chair with majority and no downstream worker invocation.
 
 ## Concurrency and security hardening (2026-10-12)
 

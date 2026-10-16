@@ -791,6 +791,38 @@ test('leader gates a high-risk plan on its durable roundtable decision and resum
   assert.equal(rt.fakeOffsets.get('p'), 4);
 });
 
+test('failed or invalid chair cannot release a decided plan to downstream execution', async () => {
+  for (const chairResponse of [{ failure: 'auth' }, { output: '{invalid}' }]) {
+    const rt = runtime({
+      p: fake('unused', {
+        responses: [
+          { output: JSON.stringify(proposal('A')) },
+          { output: JSON.stringify(proposal('A')) },
+          chairResponse,
+          { output: 'must not execute' },
+        ],
+      }),
+    });
+    const waiting = await executePlan(
+      cwd,
+      plan([task('job')], {
+        decision: {
+          signals: { risk: 0.9 },
+          evidence,
+          voters: ['p', 'p'],
+          chairProfile: 'p',
+        },
+      }),
+      { runtime: rt },
+    );
+    assert.equal(waiting.status, 'awaiting_decision');
+    assert.equal(waiting.tasks.job.status, 'pending');
+    assert.equal(waiting.decision.outcome, 'decided');
+    assert.equal(waiting.budget.account.requests, 3);
+    assert.equal(rt.fakeOffsets.get('p'), 3);
+  }
+});
+
 test('blind votes share only the public prefix, preserve minority and produce an auditable gated decision', async () => {
   const rt = runtime({
     a: fake(JSON.stringify(proposal('A'))),
