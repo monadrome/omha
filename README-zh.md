@@ -171,6 +171,7 @@ file 交接。Kimi 只读调用需外部沙箱；未验证 tool-free CLI 前不�
 [兼容矩阵](docs/compatibility.md)、[贡献指南](CONTRIBUTING.md) 与
 [发布检查](docs/releasing.md)。CI 覆盖 Node 20/22、Linux/macOS/Windows，检查格式、语法、
 manifest、技能发现、离线测试和安装包。唯一运行依赖是解析 frontmatter 的 `yaml`。
+[优化验收审计](docs/optimization-audit.md) 列出各项生命周期改动、离线证据和仍保留的协议边界。
 
 Apache-2.0 许可；[NOTICE](NOTICE) 与 [THIRD_PARTY.md](THIRD_PARTY.md) 区分保留的 upstream 技能与
 新编写的 Omha 代码。

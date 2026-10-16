@@ -76,6 +76,15 @@
   acceptance/review/memory/status/watch, API exports and uninstall verification.
   Remaining final audit: reset review approval when a new execution attempt starts,
   then rerun affected checks and verify clean main against origin/main.
+- Reproduced stale review approval with an offline event-replay regression;
+  starting another execution now resets prior review/acceptance/progress state.
+- Final verification: `npm run check` passes 131/131 offline tests, formatting,
+  48 syntax files and manifests/examples. Full Node 20 suite also passes 131/131.
+  The latest 73-file clean HOME package passes host-policy planning, acceptance,
+  independent review, memory, status/watch, API exports and uninstall checks.
+- All nine authorized phases have implementation and verification evidence in
+  `docs/optimization-audit.md`; current version remains 0.2.0-rc.2. No paid
+  provider calls, version bump, release tag or package publishing occurred.
 
 ## Concurrency and security hardening (2026-10-12)
 

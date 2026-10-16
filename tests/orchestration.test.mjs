@@ -647,6 +647,10 @@ test('planner cannot authorize acceptance or replace host lifecycle policy', asy
   assert.equal(result.status, 'completed');
   assert.equal(result.tasks.a.acceptanceAccepted, true);
   assert.equal(result.budget.account.requests, 2);
+  await assert.rejects(
+    leader(cwd, proposed.objective, ['planner'], { runtime: rt, plan: proposed, policy: {} }),
+    /requires a generated plan/,
+  );
 });
 
 test('resume completes a pending review without replaying a completed write or bypassing its dependent gate', async () => {
@@ -705,6 +709,51 @@ test('resume completes a pending review without replaying a completed write or b
       (event) => event.kind === 'review.request.reserved' && event.account.requests === 2,
     ),
   );
+});
+
+test('a new execution attempt invalidates previous review approval before crash recovery', async () => {
+  const approval = JSON.stringify({
+    summary: 'Approved',
+    assessments: [{ id: 'spec', status: 'pass', finding: 'Verified' }],
+  });
+  const rt = runtime({
+    p: fake('implementation', { sandbox: 'workspace-write' }),
+    r: fake(approval),
+  });
+  const input = plan([
+    task('subject', {
+      mode: 'write',
+      review: {
+        reviewerProfile: 'r',
+        diff: 'Frozen diff',
+        testEvidence: [{ name: 'check', status: 'passed', summary: 'Host evidence' }],
+        criteria: [{ id: 'spec', description: 'Match requirements' }],
+      },
+    }),
+  ]);
+  const first = await executePlan(cwd, input, { runtime: rt, allowWrite: true });
+  assert.equal(first.tasks.subject.reviewApproved, true);
+  const events = join(first.dir, 'events.jsonl');
+  appendEvent(events, { kind: 'task.started', taskId: 'subject', status: 'running', attempts: 2 });
+  appendEvent(events, {
+    kind: 'task.finished',
+    taskId: 'subject',
+    status: 'completed',
+    resultRef: 'subject.result.json',
+  });
+  appendEvent(events, { kind: 'run.status', status: 'running' });
+  const interrupted = runStatus(cwd, first.runId);
+  assert.equal(interrupted.tasks.subject.reviewStatus, 'pending');
+  assert.equal(interrupted.tasks.subject.reviewApproved, null);
+  const resumed = await executePlan(cwd, null, {
+    runtime: rt,
+    resume: true,
+    runId: first.runId,
+    allowWrite: true,
+  });
+  assert.equal(resumed.status, 'completed');
+  assert.equal(rt.fakeOffsets.get('p'), 1);
+  assert.equal(rt.fakeOffsets.get('r'), 2);
 });
 
 const evidence = [{ id: 'source', text: 'Option A costs 3 units. Option B costs 8 units.' }];

@@ -22,7 +22,7 @@ Deliver each bounded iteration directly to main without a version/release bump.
   the next run and enforce freshness, provenance, privacy and injection caps.
 - [complete] 8. Add consolidated status/watch and outcome metrics; benchmark and
   address repeated identity/event/index work without changing sources of truth.
-- [in_progress] 9. Synchronize capability documentation, remove legacy config
+- [complete] 9. Synchronize capability documentation, remove legacy config
   fallback, validate installed workflows, audit all requirements and push.
 
 ACP remains subsequent protocol work as recommended: this optimization reuses
@@ -32,6 +32,12 @@ Acceptance evidence: offline failure-path tests for each phase, appropriate full
 checks and bilingual changelogs per commit; installed CLI/API smoke checks for
 new workflows; final clean main matching origin/main. Old completed tasks below
 describe historical scope rather than authorization for this optimization.
+
+Final acceptance (2026-10-16): `npm run check` passes 131/131 tests with formatting,
+48 syntax files, manifests/examples; the full suite also passes 131/131 on Node 20.
+The 73-file clean HOME package runs host-policy planning, acceptance, independent
+review, memory feedback, status/watch and API export checks, then uninstalls.
+See `docs/optimization-audit.md` for the requirement/evidence mapping and limits.
 
 ## Concurrency and security hardening (2026-10-12)
 
@@ -170,6 +176,9 @@ boundaries, and uses deterministic bounded indexes. Default checks are offline.
 
 ## Errors Encountered
 
+- Final restart audit reproduced stale approval: a new task.started/finished pair
+  retained the previous completed review. Reset review/acceptance/progress state
+  at each task.started and require a fresh review before recovery can complete.
 - Phase 8 initial focused suite: 27/28 passed; a privacy assertion matched macOS
   `/private` in valid state paths. Assert the actual payload sentinels instead.
 - Phase 7 focused suite: 31/32 passed; the cap test incorrectly assumed a short

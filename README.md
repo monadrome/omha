@@ -232,6 +232,8 @@ See [security](docs/security.md), [contracts/API](docs/contracts.md),
 [release checks](docs/releasing.md). Runtime dependencies: `yaml` for frontmatter;
 development dependency: Prettier. CI checks Node 20/22 on Linux/macOS/Windows,
 syntax, formatting, manifests/skill discovery, offline tests and tarball installs.
+The [optimization audit](docs/optimization-audit.md) maps the lifecycle changes
+to their implementation, offline evidence and remaining protocol boundaries.
 
 Apache-2.0. [NOTICE](NOTICE) and [THIRD_PARTY.md](THIRD_PARTY.md) identify retained upstream
 work and newly authored Omha code.

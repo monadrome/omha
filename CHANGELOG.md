@@ -32,6 +32,9 @@
 
 ### Fixes
 
+- Invalidate previous review approval at each new task execution so restart cannot
+  reuse an approval belonging to an earlier attempt.
+
 - Restrict automatic provider configuration discovery to `providers.json`, keeping
   one canonical naming contract and removing legacy filename fallback.
 
