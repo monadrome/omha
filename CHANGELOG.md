@@ -32,6 +32,9 @@
 
 ### Fixes
 
+- Bind DAG acceptance to frozen harness hashes and bounded artifact snapshots;
+  changed harnesses or candidates cannot pass or seed verified run memory.
+
 - Reject planner-supplied host policies, resume pending independent reviews without
   replaying completed writes, and persist review/decision reservations immediately.
 

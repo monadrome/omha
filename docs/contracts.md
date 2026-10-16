@@ -134,7 +134,16 @@ required before execution continues. The decision id, trigger, tally and gate
 state are durable run evidence and use the same runtime budget.
 
 Tasks may declare a host `acceptance` command with an absolute executable, fixed
-arguments, timeout and output cap. It runs after provider execution with a
+arguments, timeout, output cap and optional `harnessFiles`. The host freezes
+executable/file-argument hashes plus declared harness dependencies when creating
+the run, checks them before and after acceptance, and binds the outcome to a
+metadata-only artifact snapshot. `harnessFiles` must list imported check resources
+that are not direct file arguments. Changed harnesses, unsupported artifacts,
+snapshot-limit failures or candidate changes during acceptance cannot pass.
+Git snapshots cover tracked and untracked nonignored files; non-Git snapshots
+cover regular worktree files, with the state directory excluded. Existing Arena
+collector limits apply (4,096 files, one MiB/file, eight MiB total); raw artifact
+contents are not persisted by DAG acceptance. It runs after provider execution with a
 filtered environment and is recorded separately from the provider result. A
 provider can therefore finish successfully while host acceptance fails; the task
 is then ineligible for dependent tasks. Acceptance exit status is evidence only,

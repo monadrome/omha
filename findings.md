@@ -2,6 +2,10 @@
 
 ## Authorized optimization evidence (2026-10-13)
 
+- Final acceptance audit found phase 4 had not bound checks to immutable harness
+  or candidate snapshots. Extend the existing Arena collector with a metadata-only
+  selection mode; freeze executable/file-argument/dependency hashes at run creation,
+  compare before/after checks and include artifact/policy hashes in review/memory.
 - Status benchmark (Node 26, local non-Git fixture, 20 runs x 100 events, 5 reads):
   baseline samples 249/246/246/245/254ms, mean 248ms; identity reuse samples
   18/16/16/16/16ms, mean 16ms. `scripts/benchmark-status.mjs` reproduces the

@@ -94,6 +94,7 @@ test('host acceptance separates execution success from dependency-eligible succe
   const acceptedRecord = JSON.parse(readFileSync(join(accepted.dir, 'a.result.json'), 'utf8'));
   assert.equal(acceptedRecord.executionOk, true);
   assert.equal(acceptedRecord.acceptance.accepted, true);
+  assert.equal(acceptedRecord.acceptance.artifactUnchanged, true);
   const failed = await executePlan(
     cwd,
     plan([

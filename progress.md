@@ -60,6 +60,12 @@
 - Host authority/recovery audit passes full check: 123/123 offline tests, including
   planner policy refusal and pending-review recovery without write replay. Next
   audit item is binding acceptance evidence to immutable harness/artifact hashes.
+- Artifact binding focused check passes 15/15. It rejects provider-modified frozen
+  harnesses, candidate-modifying checks, changed saved policy and unsupported/
+  oversized artifacts using the existing collector; no raw candidate bytes persist.
+- Artifact/harness binding passes full check: 128/128 offline tests and formatting/
+  static validation. Acceptance checks executable and file arguments plus explicit
+  harness dependencies, preserves artifact/policy digests and rejects self-modification.
 
 ## Concurrency and security hardening (2026-10-12)
 

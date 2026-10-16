@@ -73,7 +73,13 @@
               "command": { "type": "string", "pattern": "^/", "maxLength": 4096 },
               "args": { "type": "array", "items": { "type": "string" } },
               "timeoutMs": { "type": "integer", "minimum": 10, "maximum": 86400000 },
-              "maxOutputBytes": { "type": "integer", "minimum": 256, "maximum": 16777216 }
+              "maxOutputBytes": { "type": "integer", "minimum": 256, "maximum": 16777216 },
+              "harnessFiles": {
+                "type": "array",
+                "maxItems": 64,
+                "uniqueItems": true,
+                "items": { "type": "string", "minLength": 1, "maxLength": 4096 }
+              }
             }
           },
           "review": {
