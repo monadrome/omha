@@ -2,6 +2,13 @@
 
 Omha keeps host-readable instructions separate from side effects:
 
+The Claude Code plugin loads prompt skills from this same repository. Skills own
+open-ended reasoning: decomposition, alternatives, evidence interpretation and
+knowledge selection. The CLI owns fixed execution protocols once their inputs,
+side effects and acceptance rules are known. Neither a skill nor model output can
+replace host validation. The plugin adds no automatic execution hooks and does
+not install the CLI; see the [plugin guide](plugin.md).
+
 ```text
 skills/*/SKILL.md       -> portable trigger/evidence contracts
 bin/omha.mjs       -> strict CLI and signal boundary

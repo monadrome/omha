@@ -1,5 +1,22 @@
 # Research findings
 
+## CLI and plugin evidence (2026-10-16)
+
+- CLI and plugin share one repository: npm ships `bin/`, `lib/`,
+  `.claude-plugin/`, `skills/`, schemas, examples and docs. Plugin installation
+  does not install Node dependencies or register the `omha` executable.
+- Five Omha-authored skills need actionable commands and explicit guidance for
+  direct reasoning. Preserve both retained upstream skills and their licenses.
+- Installed Claude supports `plugin details`, allowing offline discovery to
+  supplement manifest validation after a clean plugin installation.
+- Independent runtime work was observed on main. The user's worktree request
+  isolates this task; integrate only its committed changes after verification.
+- Real Claude inventory after local installation reports Skills (7), Agents (0),
+  Hooks (0), MCP servers (0) and LSP servers (0). The packed copy also passes this
+  check with isolated HOME/config/state, without changing the user's installation.
+- Handoff accepts executable/argv rather than provider profiles; its skill must
+  point profile-based routing and budget admission to `run`/`leader`.
+
 ## Authorized optimization evidence (2026-10-13)
 
 - Final acceptance audit found phase 4 had not bound checks to immutable harness

@@ -5,6 +5,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   realpathSync,
   rmSync,
   writeFileSync,
@@ -12,6 +13,8 @@ import {
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { commandExists } from '../lib/core.mjs';
+import { parseMarkdown } from '../lib/frontmatter.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const temporary = realpathSync(mkdtempSync(join(tmpdir(), 'omha-pack-')));
@@ -26,6 +29,10 @@ const env = {
   OMHA_HOME: join(cleanHome, 'state'),
   npm_config_cache: join(temporary, 'npm-cache'),
   npm_config_update_notifier: 'false',
+  CLAUDE_CONFIG_DIR: join(cleanHome, '.claude'),
+  DISABLE_AUTOUPDATER: '1',
+  DISABLE_TELEMETRY: '1',
+  NO_COLOR: '1',
 };
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const invokeNpm = (args, workdir) =>
@@ -46,12 +53,14 @@ try {
     'bin/omha.mjs',
     'bin/handoff-worker.mjs',
     '.claude-plugin/plugin.json',
+    '.claude-plugin/marketplace.json',
     'skills/hide/LICENSE',
     'skills/butterfly-effect/LICENSE',
     'schemas/plan.schema.json',
     'schemas/host-policy.schema.json',
     'examples/history.json',
     'docs/contracts.md',
+    'docs/plugin.md',
   ])
     assert.ok(names.includes(required), `tarball missing ${required}`);
   assert.equal(
@@ -81,6 +90,56 @@ try {
   );
   const cli = join(installed, 'bin', 'omha.mjs');
   assert.ok(existsSync(cli));
+  const skillNames = (directory) =>
+    readdirSync(join(directory, 'skills'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+  const skills = skillNames(root);
+  assert.deepEqual(skillNames(installed), skills);
+  for (const name of skills) {
+    const source = readFileSync(join(installed, 'skills', name, 'SKILL.md'), 'utf8');
+    assert.equal(parseMarkdown(source).metadata.name, name);
+  }
+  const claudePlugin = {
+    available: commandExists('claude'),
+    installed: false,
+    inventoryVerified: false,
+  };
+  if (claudePlugin.available) {
+    const invokeClaude = (args) =>
+      execFileSync('claude', args, {
+        cwd,
+        env,
+        encoding: 'utf8',
+        timeout: 60000,
+        ...(process.platform === 'win32' ? { shell: true } : {}),
+      });
+    for (const manifest of ['plugin.json', 'marketplace.json'])
+      invokeClaude(['plugin', 'validate', join(installed, '.claude-plugin', manifest), '--strict']);
+    invokeClaude(['plugin', 'marketplace', 'add', installed]);
+    invokeClaude(['plugin', 'install', 'omha@omha']);
+    const entry = JSON.parse(invokeClaude(['plugin', 'list', '--json'])).find(
+      (plugin) => plugin.id === 'omha@omha',
+    );
+    assert.equal(entry?.enabled, true);
+    assert.equal(entry.version, packed.version);
+    assert.ok(entry.installPath.startsWith(env.CLAUDE_CONFIG_DIR));
+    for (const name of skills)
+      assert.ok(existsSync(join(entry.installPath, 'skills', name, 'SKILL.md')));
+    claudePlugin.installed = true;
+    if (invokeClaude(['plugin', '--help']).includes('details')) {
+      const inventory = invokeClaude(['plugin', 'details', 'omha@omha']);
+      const listed = inventory.match(/^\s*Skills \((\d+)\)\s+(.+)$/m);
+      assert.ok(listed, 'Claude did not report a skill inventory');
+      assert.equal(Number(listed[1]), skills.length);
+      assert.deepEqual(listed[2].split(', ').sort(), skills);
+      claudePlugin.inventoryVerified = true;
+    }
+    invokeClaude(['plugin', 'uninstall', 'omha@omha']);
+    invokeClaude(['plugin', 'marketplace', 'remove', 'omha']);
+    assert.equal(JSON.parse(invokeClaude(['plugin', 'list', '--json'])).length, 0);
+  }
   const installedBin =
     process.platform === 'win32' ? join(prefix, 'omha.cmd') : join(prefix, 'bin', 'omha');
   assert.ok(existsSync(installedBin));
@@ -253,6 +312,8 @@ try {
       filename: packed.filename,
       files: packed.files.length,
       cleanHome: true,
+      skills,
+      claudePlugin,
       examplesExecuted: true,
       uninstallVerified: true,
     }),

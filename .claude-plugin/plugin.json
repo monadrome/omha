@@ -1,6 +1,6 @@
 {
   "name": "omha",
-  "description": "Local, provider-neutral runtime and skills for agent collaboration: provider routing, validated task DAGs, blind roundtable votes, owned terminal handoff, drift advice, and scoped Markdown memory.",
+  "description": "Prompt skills for agent collaboration, backed by the Omha CLI for bounded provider execution, task DAGs, blind decisions, owned handoffs and scoped memory.",
   "version": "0.2.0-rc.2",
   "author": { "name": "HuaTalk", "url": "https://github.com/monadrome" },
   "repository": "https://github.com/monadrome/omha.git",

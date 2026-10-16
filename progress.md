@@ -1,5 +1,26 @@
 # Progress
 
+## CLI and Claude Code plugin delivery (2026-10-16)
+
+- `git pull --ff-only` returned already up to date. Inspected both manifests,
+  seven skills, installed-package checks and CLI contracts.
+- Existing runtime work is being delivered separately. Focused acceptance,
+  orchestration and memory verification passed 32/32; marketplace validation
+  passed without invoking a model.
+- User requested worktree isolation. Created detached worktree
+  `../omha-cli-plugin` at 8e5913b; all subsequent edits happen there.
+- Plugin skills state boundaries but lack practical invocation paths. Add
+  concrete CLI handoffs and explain when direct reasoning suffices, then verify
+  Claude's actual component inventory using an isolated config directory.
+- Added the plugin guide, bilingual installation/usage paths and actionable
+  guidance to the five Omha-owned skills. Retained upstream skills are unchanged.
+- `npm run check` passes formatting, static/skill validation and 129/129 offline
+  tests. `npm run pack:check` passes a 73-file clean installation, CLI/API examples,
+  both plugin manifests, actual Claude install and seven-skill inventory, then
+  uninstall. No model invocation occurred.
+- Integrating this detached worktree with independently delivered main changes
+  before final verification and ordinary main push.
+
 ## Authorized optimization (2026-10-13)
 
 - Restored existing planning records and verified clean main at 1a615ae.

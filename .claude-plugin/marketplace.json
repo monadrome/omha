@@ -1,14 +1,14 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "omha",
-  "description": "Portable agent collaboration skills and a provider-neutral execution CLI.",
+  "description": "Prompt skills for agent collaboration with an optional provider-neutral execution CLI.",
   "owner": { "name": "HuaTalk", "url": "https://github.com/monadrome" },
   "plugins": [
     {
       "name": "omha",
       "source": "./",
       "version": "0.2.0-rc.2",
-      "description": "Provider routing, validated task DAGs, blind roundtable votes, owned terminal handoff, dry-run drift advice, and scoped Markdown memory.",
+      "description": "Prompt-led planning, decisions and drift analysis; use the Omha CLI for validated execution, owned handoffs and scoped memory.",
       "category": "agent-collaboration"
     }
   ]

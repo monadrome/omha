@@ -4,6 +4,11 @@
 
 ### Features
 
+- Make the CLI and Claude Code plugin entry points explicit, with actionable
+  prompt skills that keep uncertain work in the current agent session.
+- Verify packed plugin installation and skill discovery in an isolated Claude
+  config directory when the CLI is available, without model calls.
+
 - Add consolidated project status, bounded JSONL watching and event-derived
   outcome metrics; reuse project identity and memory index reads within a read.
 

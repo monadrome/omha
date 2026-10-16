@@ -2,9 +2,13 @@
 
 [English](README.md) | [输入协议与 API](docs/contracts.md) | [安全边界](docs/security.md)
 
-Omha 是本地、跨 provider 的 agent 协作执行器。它提供 Claude/Codex/Kimi
-路由、经过验证的任务 DAG、盲投圆桌决策、受所有权保护的终端交接、基于返工证据的
-蝴蝶效应分析，以及分作用域的 Markdown 记忆。CLI 附带七个可移植的 Agent Skills。
+Omha 由本地、跨 provider 的 CLI 和 Claude Code plugin 组成。七个提示词 skills
+负责规划、决策、交接、漂移分析和记忆整理；CLI 提供 Claude/Codex/Kimi 路由、
+经过验证的任务 DAG、盲投圆桌、受所有权保护的终端以及分作用域的 Markdown 记忆。
+
+范围尚不明确、方案取舍、证据解释等工作直接由当前 agent 推理。输入、副作用和验收
+规则明确后，再使用固定 CLI 工作流；权限、所有权、预算与验收始终由宿主校验。
+不必为开放式任务编写脚本。可调用入口及职责边界见[插件指南](docs/plugin.md)。
 
 当前版本 **0.2.0-rc.2** 为候选版本。默认测试离线运行，不调用收费模型。
 真实模型行为、账单和沙箱约束仍依赖安装的 provider CLI。成功退出代表输出通过协议
@@ -39,12 +43,24 @@ npm uninstall -g --prefix "$HOME/.local" @huatalk/omha --ignore-scripts
 卸载保留记忆与运行记录。先用 `omha handoff close --id <id>` 关闭自己创建的交接。
 `omha doctor --json` 会显示状态目录；确认内容后再手动删除保留的数据。
 
-Claude 单次加载：`claude --plugin-dir .`。长期安装可在 checkout 中执行
-`claude plugin marketplace add .` 和 `claude plugin install omha@omha`。
-更新用 `claude plugin marketplace update omha`，并按 host 要求重新安装插件。
-卸载用 `claude plugin uninstall omha@omha` 和
+### Claude Code 插件与 Skills
+
+单次加载：`claude --plugin-dir .`。长期安装可使用 Git marketplace：
+
+```bash
+claude plugin marketplace add monadrome/omha
+claude plugin install omha@omha
+```
+
+本地源码安装时，将第一行替换为 `claude plugin marketplace add /源码绝对路径/omha`。
+重启 Claude Code 后，可调用 `/omha:leader-agent 任务`、`/omha:roundtable 问题`、
+`/omha:agent-handoff 任务` 等[七个 skills](skills/README.md)。插件只安装提示词；
+调用运行时功能还需要单独安装上面的 CLI。纯提示词任务可以直接完成。
+
+更新使用 `claude plugin marketplace update omha` 和 `claude plugin update omha@omha`，
+然后重启。卸载使用 `claude plugin uninstall omha@omha` 和
 `claude plugin marketplace remove omha`。其他 Agent Skills host 可发现或复制
-`skills/*/SKILL.md`，并保留相邻 references 和 LICENSE。技能是操作协议，实际运行需 CLI。
+`skills/*/SKILL.md`，并保留相邻 references 和 LICENSE。
 
 ## 可运行的离线示例
 
@@ -62,6 +78,8 @@ node bin/omha.mjs memory doctor
 ```
 
 `npm run pack:check` 会在临时 HOME 安装 tarball，验证已安装 CLI/API 的完整流程和卸载。
+本机有 Claude Code 时，还会在隔离配置目录验证两个插件清单、实际安装和发现 skills，
+最后卸载；不调用模型。
 `npm run probe:terminals` 单独进行真实本地终端探测：创建独有资源，验证 detached printf
 与长文本粘贴后单独回车，最后只关闭这些探测资源。如果本机 cmux RPC schema 不兼容，
 probe 会保留有限诊断并验证 file fallback；tmux 与离线检查仍是发布门槛，不会无限重试。

@@ -2,10 +2,16 @@
 
 [中文](README-zh.md) | [Contracts](docs/contracts.md) | [Security](docs/security.md)
 
-Omha is a local, provider-neutral runtime for agent collaboration. It routes
-Claude/Codex/Kimi jobs, executes validated task DAGs, collects blind roundtable
-votes, manages owned terminal handoffs, diagnoses supported artifact rework, and
-maintains scoped Markdown memory. Seven portable Agent Skills accompany the CLI.
+Omha combines a local, provider-neutral CLI with a Claude Code plugin for agent
+collaboration. Seven prompt skills guide planning, decisions, handoff, drift
+analysis and memory. The CLI routes Claude/Codex/Kimi jobs, executes validated
+task DAGs, collects blind votes and manages owned terminals and scoped memory.
+
+Keep uncertain work in the agent session: scope, design choices and evidence
+interpretation are prompt tasks. Use fixed CLI workflows when inputs, side effects
+and acceptance rules are explicit. Host checks enforce permission, ownership,
+budgets and acceptance. See the [plugin guide](docs/plugin.md) for this boundary
+and runnable skill entry points.
 
 **0.2.0-rc.2 is a release candidate.** Default verification is offline. Real model
 behavior, billing and sandbox enforcement remain dependent on the installed
@@ -45,17 +51,27 @@ directory; review it before manually removing any retained data.
 
 ### Claude Plugin and Agent Skills
 
-For a one-session checkout plugin: `claude --plugin-dir .`.
-For a persistent local marketplace, run `claude plugin marketplace add .` and
-`claude plugin install omha@omha` from the checkout. Update a registered
-marketplace with `claude plugin marketplace update omha` and reinstall the
-plugin if required by your host. Remove it with
+For a one-session checkout plugin: `claude --plugin-dir .`. For persistent use:
+
+```bash
+claude plugin marketplace add monadrome/omha
+claude plugin install omha@omha
+```
+
+Use `claude plugin marketplace add /absolute/path/to/omha` instead for a local
+checkout. Restart Claude Code, then invoke `/omha:leader-agent TASK`,
+`/omha:roundtable QUESTION`, `/omha:agent-handoff TASK` or another of the
+[seven skills](skills/README.md). The plugin installs prompts; CLI operations
+also require the separate CLI installation above. Prompt-only work needs no CLI.
+
+Update with `claude plugin marketplace update omha` and
+`claude plugin update omha@omha`, then restart. Remove it with
 `claude plugin uninstall omha@omha` and
 `claude plugin marketplace remove omha`.
 
 Other hosts can discover or copy `skills/*/SKILL.md` and its adjacent references
-and LICENSE files. Skills are instructions; hosts need an installed `omha`
-CLI to perform deterministic runtime operations. The upstream `butterfly-effect`
+and LICENSE files. Hosts need an installed `omha` CLI to perform deterministic
+runtime operations. The upstream `butterfly-effect`
 and `hide` contracts are retained, with their MIT notices.
 
 ## Offline Examples
@@ -74,7 +90,10 @@ node bin/omha.mjs memory doctor
 ```
 
 `npm run pack:check` installs a tarball in a clean temporary HOME, runs these
-workflows through the installed CLI/API, and verifies uninstall. Terminal probes
+workflows through the installed CLI/API, and verifies uninstall.
+When Claude Code is installed, it also validates both packed manifests, installs
+the plugin in an isolated config directory, checks its skills and uninstalls it
+without a model call. Terminal probes
 are separate: `npm run probe:terminals` creates unique owned resources, tests
 detached printf and long paste/Enter, and closes only those resources.
 When a local cmux RPC schema differs, the probe records bounded diagnostics and
