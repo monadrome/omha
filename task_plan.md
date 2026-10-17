@@ -12,7 +12,7 @@ host authority, billing channels, replay authorization and offline guarantees.
   invoke existing butterfly/handoff logic, and recover without duplicate actions.
 - [complete] 3. Cover success and failure paths offline; update bilingual docs,
   schemas, examples and changelogs; run checks and installed workflow verification.
-- [in_progress] 4. Audit requirements against current evidence, commit task files
+- [complete] 4. Audit requirements against current evidence, commit task files
   and push directly to main without version bumps or publishing.
 
 Completion requires automatic history collection and detection without manually
@@ -24,6 +24,8 @@ manifests/examples. Node 20 butterfly suites pass 15/15. The 75-file clean HOME
 package verifies installed automatic collection/detection/file handoff/resume,
 two worker requests only, plugin seven-skill discovery and uninstall. Requirement
 mapping and residual source/session limits are in docs/automatic-butterfly.md.
+Feature commit dff439d was pushed directly to origin/main and the worktree was
+clean and synchronized after delivery. No version or package release was made.
 
 Error: first planning patch assumed a different progress heading and was
 rejected atomically; read the actual heading and corrected the patch.

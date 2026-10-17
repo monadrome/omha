@@ -26,6 +26,9 @@
   Final requirement audit maps automatic observation, drift gates, bounded action,
   recovery, billing and existing guarantees to concrete sources and tests in
   docs/automatic-butterfly.md. No required implementation work remains.
+- Delivered feature commit dff439d directly to origin/main with an ordinary
+  push; verified clean synchronized main. No version bumps, tags or package
+  publication. This final documentation record closes the delivery phase.
 
 ## CLI and Claude Code plugin delivery (2026-10-16)
 
