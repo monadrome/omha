@@ -9,6 +9,17 @@
     "publicContext": { "type": "string", "maxLength": 1000000 },
     "parallelism": { "type": "integer", "minimum": 1, "maximum": 16 },
     "decision": { "type": "object" },
+    "butterfly": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "handoff": { "type": "boolean", "default": true },
+        "backend": { "enum": ["file", "auto", "cmux", "tmux"], "default": "file" },
+        "maxHandoffs": { "type": "integer", "minimum": 0, "maximum": 3, "default": 3 },
+        "maxObservations": { "type": "integer", "minimum": 1, "maximum": 1000, "default": 256 }
+      }
+    },
     "memory": {
       "type": "object",
       "additionalProperties": false,

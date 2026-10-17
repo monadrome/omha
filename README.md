@@ -198,7 +198,13 @@ separate outcomes, including when older runs have no acceptance evidence.
   handoff. Completed terminals remain visible until explicitly closed; timeouts
   and cancellation clean them up. Pipe-supervised interactive input supports
   line-oriented programs, not arbitrary full-screen TUIs.
-- **Butterfly:** explicit chronological JSON history must show production,
+- **Butterfly:** Leader automatically observes write tasks with frozen host
+  acceptance checks. A failed check followed by changed rework of the same
+  candidate triggers the existing drift detector and a bounded file handoff;
+  manual history JSON is unnecessary for this lifecycle. No extra model runs.
+  Host `plan.butterfly` controls observation and handoff bounds; see
+  [automatic butterfly](docs/automatic-butterfly.md).
+  Explicit chronological JSON history must show production,
   authoritative feedback on pre-existing requirements, and changed rework.
   Hash change alone, ordinary evolution, acceptance followed by new work, and
   missing history are no-op. Independent drifts keep separate boundaries.

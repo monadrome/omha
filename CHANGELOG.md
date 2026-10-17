@@ -2,7 +2,17 @@
 
 ## Unreleased
 
+### Fixes
+
+- Wait for durable worker ownership before SIGKILL recovery assertions, avoiding
+  a readiness race when the child starts before the host finishes recording it.
+
 ### Features
+
+- Automatically observe Leader write tasks with frozen acceptance evidence,
+  detect supported rework without manual history JSON, and prepare bounded file
+  handoffs with durable claims, explicit host provenance and restart deduplication.
+  Preserve write replay gates and expose report, handoff and uncertainty metrics.
 
 - Make the CLI and Claude Code plugin entry points explicit, with actionable
   prompt skills that keep uncertain work in the current agent session.

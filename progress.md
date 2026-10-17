@@ -1,5 +1,32 @@
 # Progress
 
+## Automatic butterfly lifecycle (2026-10-17)
+
+- Restored tracked plans and inspected clean main, butterfly detector, scheduler,
+  immutable host policy and acceptance snapshots. Session catchup had no output.
+- Applying butterfly-effect and planning-with-files skills. No paid providers,
+  version bumps, package publication or changes to retained upstream skills.
+- Added host-owned default butterfly policy, metadata-only lifecycle observation,
+  explicit host acceptance provenance, existing-detector reuse and bounded,
+  durable handoff claims. Existing focused suites pass 36/36.
+- New lifecycle tests initially failed because fake profiles lacked write
+  capability and planner fixtures contained host policy; fixed the fixtures.
+- Full offline check passed 139/139 tests plus format, 49 syntax files and
+  manifests/examples. The 75-file clean HOME package passed actual installed CLI
+  automatic detection/handoff/resume and isolated Claude seven-skill discovery.
+- Final audit tightened new-run policy freezing and removed duplicated command
+  arguments from observation metadata. Added Unicode-context and oversized-history
+  coverage before final verification.
+- Node 20 focused butterfly suites pass 15/15; updated clean HOME package passes.
+  Full suite exposed an existing SIGKILL fixture race (139/140): worker readiness
+  appeared before task.process persistence. Changed readiness to await the durable
+  ownership event rather than weakening the fingerprint assertion.
+- Final `npm run check` passes 140/140 tests, formatting, 49 syntax files and
+  manifests/examples, including the corrected actual SIGKILL recovery test.
+  Final requirement audit maps automatic observation, drift gates, bounded action,
+  recovery, billing and existing guarantees to concrete sources and tests in
+  docs/automatic-butterfly.md. No required implementation work remains.
+
 ## CLI and Claude Code plugin delivery (2026-10-16)
 
 - `git pull --ff-only` returned already up to date. Inspected both manifests,

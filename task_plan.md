@@ -1,5 +1,42 @@
 # Omha release candidate implementation
 
+## Automatic butterfly lifecycle (2026-10-17)
+
+Objective: optimize Omha with automatic butterfly-effect observation, evidence
+gating and bounded handoff through the existing execution lifecycle. Preserve
+host authority, billing channels, replay authorization and offline guarantees.
+
+- [complete] 1. Inspect lifecycle and butterfly contracts; define immutable
+  host observation policy using existing acceptance and artifact evidence.
+- [complete] 2. Subscribe to durable lifecycle events, detect supported rework,
+  invoke existing butterfly/handoff logic, and recover without duplicate actions.
+- [complete] 3. Cover success and failure paths offline; update bilingual docs,
+  schemas, examples and changelogs; run checks and installed workflow verification.
+- [in_progress] 4. Audit requirements against current evidence, commit task files
+  and push directly to main without version bumps or publishing.
+
+Completion requires automatic history collection and detection without manually
+authored history JSON, observable evidence and action bounds, no inferred drift
+from hashes alone, no automatic uncertain-write replay, and verified delivery.
+
+Verified: `npm run check` passes 140/140 tests, formatting, 49 syntax files and
+manifests/examples. Node 20 butterfly suites pass 15/15. The 75-file clean HOME
+package verifies installed automatic collection/detection/file handoff/resume,
+two worker requests only, plugin seven-skill discovery and uninstall. Requirement
+mapping and residual source/session limits are in docs/automatic-butterfly.md.
+
+Error: first planning patch assumed a different progress heading and was
+rejected atomically; read the actual heading and corrected the patch.
+Focused lifecycle tests initially rejected fake workers lacking write capability
+and a planner fixture containing host acceptance. Correct the fixtures without
+relaxing either existing authority check. A follow-up patch missed formatted
+context and was rejected atomically; inspect current lines before retrying.
+The fake sandbox enum is workspace-write, not write; corrected the fixture to
+use the established profile vocabulary. New lifecycle suite then passed 6/6.
+Final full-suite verification exposed an existing readiness race: a worker marker
+precedes the host's durable task.process record. Wait for that specific record
+before killing the host; keep all ownership/recovery assertions intact.
+
 ## CLI and Claude Code plugin delivery (2026-10-16)
 
 Objective: pull the current project and deliver a usable CLI plus Claude Code

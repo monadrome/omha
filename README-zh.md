@@ -151,7 +151,11 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
   只操作自身资源。终端 worker 必须有完成记录或经过 token 验证的最终 JSON marker；
   file 交接可显式 `handoff complete`。结束后 resume 会创建新交接。正常完成的终端保留
   供查看，需 close；超时和取消会清理。交互模式适合行式程序，不支持任意全屏 TUI。
-- 蝴蝶效应要求明确的时间顺序、产物版本、针对既有要求的用户反馈和实际返工。
+- Leader 默认自动观察带冻结验收检查的写任务：同一候选产物在验收失败后发生真实返工，
+  会自动调用现有蝴蝶效应检测器并生成有上限的 file 交接，不需要手写历史 JSON，
+  不额外调用模型。宿主 `plan.butterfly` 控制开关与上限，详见
+  [自动蝴蝶效应](docs/automatic-butterfly.md)。
+  手工历史仍要求明确的时间顺序、产物版本、针对既有要求的用户反馈和实际返工。
   单个哈希变化、正常演进、验收后的新工作、缺失历史均为 no-op。
   独立产物保留独立边界。`--analyze` 仅对可靠证据调用保留的 upstream contract。
   输出是回溯建议，**不会真的回退会话**。

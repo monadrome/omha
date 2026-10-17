@@ -21,7 +21,11 @@ omha auto-butterfly --input history.json
 The default check is offline advice. `--analyze --profile analyst --config
 providers.json` invokes a provider and may incur charges; `--handoff --backend
 file` preserves a supported continuation prompt without launching a worker.
-Despite the skill name, there is no background watcher or actual session rewind.
+Leader automatically observes write tasks with frozen host acceptance checks,
+detects supported rework on completion/resume, and prepares a bounded file
+handoff without history JSON or another model call. See
+[automatic butterfly](../../docs/automatic-butterfly.md) for host policy and
+limits. This does not install a background watcher or perform a session rewind.
 Return no-op when the evidence is insufficient; explain the missing evidence
 without treating every hash change as drift.
 

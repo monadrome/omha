@@ -199,10 +199,29 @@ has the same evidence trail as a manual one.
 
 Butterfly input uses [schemas/history.schema.json](../schemas/history.schema.json).
 The transcript is strictly chronological. A supported drift requires a previous
-agent-produced version, later user feedback tied to requirements that existed
+agent-produced version, later authoritative feedback tied to requirements that existed
 before it, a changed replacement version, and a visible causal action. No-op
 results are explicit and carry an evidence gap. `conversationRewound` is always
 `false` because the wrapper only produces advice.
+
+Leader automatically records `butterfly.observed` events for write tasks with
+host acceptance. The default host `butterfly` policy enables observation and file
+handoff, with `maxHandoffs:3` (0-3) and `maxObservations:256` (1-1000) per run.
+`enabled:false` disables the lifecycle; `handoff:false` retains advice only.
+`backend` accepts `file` (default), `auto`, `cmux` or `tmux`. Generated planners
+cannot set this policy; bind it using the host policy file. Resume retains it.
+Host history events have `actor:host` and explicit `authority` with
+`source:acceptance`, the frozen `policyHash`, and for feedback/acceptance the
+matching `artifactHash` and `exitCode`. Only complete, unchanged-harness,
+unchanged-candidate checks qualify; failed execution, timeout and cancellation
+remain evidence gaps. Consecutive attempts must preserve the prior candidate
+before writing, and a produced version must show an actual artifact change.
+Detection emits `butterfly.detected` with origin-linked advice. A durable
+`butterfly.handoff_requested` claim precedes the existing owned handoff API;
+missing completion remains uncertain and is never automatically repeated.
+Neither detection nor handoff alters task, review or decision outcomes or
+replays writes. See [automatic butterfly](automatic-butterfly.md) for examples,
+observability and limits.
 
 Memory topic frontmatter is parsed as YAML and validated by `lib/memory.mjs`.
 Leader automatically selects relevant active, fresh `worktree`/`project` topics

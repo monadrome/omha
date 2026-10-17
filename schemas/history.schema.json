@@ -29,7 +29,7 @@
         "properties": {
           "id": { "$ref": "providers.schema.json#/$defs/id" },
           "order": { "type": "integer", "minimum": 0 },
-          "actor": { "enum": ["user", "agent"] },
+          "actor": { "enum": ["user", "agent", "host"] },
           "kind": {
             "enum": [
               "objective",
@@ -53,7 +53,18 @@
           },
           "feedbackId": { "$ref": "providers.schema.json#/$defs/id" },
           "causeActionId": { "$ref": "providers.schema.json#/$defs/id" },
-          "reason": { "enum": ["missed_requirement", "ordinary_evolution"] }
+          "reason": { "enum": ["missed_requirement", "ordinary_evolution"] },
+          "authority": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source", "policyHash"],
+            "properties": {
+              "source": { "const": "acceptance" },
+              "policyHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "artifactHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "exitCode": { "type": "integer", "minimum": 0, "maximum": 255 }
+            }
+          }
         }
       }
     }

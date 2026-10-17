@@ -1,5 +1,29 @@
 # Research findings
 
+## Automatic butterfly lifecycle (2026-10-17)
+
+- Clean main supports explicit chronological history only. Preserve detection
+  gates for missing feedback, later requirements, identical hashes and ordinary
+  evolution, and leave the retained upstream skill unchanged.
+- Frozen host acceptance commands/harness hashes and candidate metadata snapshots
+  already exist under a shared worktree lease. Reuse them to establish narrowly
+  scoped host feedback about the original acceptance requirement.
+- Failed write replay already requires explicit authorization. Observation and
+  bounded handoff must retain that boundary and cannot alter task outcomes.
+- Observe before/after snapshots to reject external changes between attempts;
+  keep host provenance explicit rather than inventing user conversation turns.
+- Prior goal turn is conservatively treated as no progress on automatic
+  butterfly: the inspected baseline had no detection loop or live task handle
+  to wait for. This turn revalidated that gap and implemented the next action.
+- Default observation applies only to write tasks with predeclared host
+  acceptance. Default actions are file handoffs, never additional provider runs.
+  A run bounds observations (256, hard maximum 1000) and handoff claims (3).
+- A version requires an actual change from the pre-worker snapshot. Continuity
+  rejects external changes. Unchanged successful acceptance ends the failure
+  chain, so subsequent ordinary evolution cannot create false drift evidence.
+- Durable claims precede handoff. A crash preserves visible uncertainty rather
+  than replaying a possible side effect; deterministic reports can be recovered.
+
 ## CLI and plugin evidence (2026-10-16)
 
 - CLI and plugin share one repository: npm ships `bin/`, `lib/`,

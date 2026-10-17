@@ -6,6 +6,7 @@
     "decision": { "$ref": "plan.schema.json#/properties/decision" },
     "supervision": { "$ref": "plan.schema.json#/properties/supervision" },
     "memory": { "$ref": "plan.schema.json#/properties/memory" },
+    "butterfly": { "$ref": "plan.schema.json#/properties/butterfly" },
     "tasks": {
       "type": "object",
       "propertyNames": { "$ref": "providers.schema.json#/$defs/id" },

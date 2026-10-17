@@ -300,6 +300,91 @@ try {
     { cwd, env, encoding: 'utf8' },
   );
   assert.match(api, /function,function,function/);
+  const butterflyConfig = join(temporary, 'butterfly-providers.json');
+  const butterflyPlanFile = join(temporary, 'butterfly-plan.json');
+  const localWriter = join(temporary, 'butterfly-writer.cjs');
+  writeFileSync(join(cwd, 'butterfly.txt'), 'original');
+  writeFileSync(
+    localWriter,
+    `const fs = require('node:fs');
+process.stdin.resume();
+process.stdin.on('end', () => {
+  const previous = fs.readFileSync('butterfly.txt', 'utf8');
+  fs.writeFileSync('butterfly.txt', previous === 'original' ? 'bad' : 'good');
+  console.log(JSON.stringify({status:'success',output:'Local candidate produced'}));
+});`,
+  );
+  writeFileSync(
+    butterflyConfig,
+    JSON.stringify({
+      version: 1,
+      profiles: {
+        writer: {
+          adapter: 'command',
+          command: process.execPath,
+          args: [localWriter],
+          model: 'local',
+          sandbox: 'workspace-write',
+          outputFormat: 'json',
+          retry: { maxRetries: 0 },
+        },
+      },
+    }),
+  );
+  writeFileSync(
+    butterflyPlanFile,
+    JSON.stringify({
+      version: 1,
+      objective: 'Verify installed automatic butterfly',
+      tasks: [
+        {
+          id: 'build',
+          role: 'writer',
+          prompt: 'Produce butterfly.txt containing good',
+          profile: 'writer',
+          mode: 'write',
+          acceptance: {
+            command: process.execPath,
+            args: [
+              '-e',
+              "process.exit(require('node:fs').readFileSync('butterfly.txt','utf8') === 'good' ? 0 : 1)",
+            ],
+          },
+        },
+      ],
+    }),
+  );
+  let firstButterfly;
+  try {
+    run(['leader', '--plan', butterflyPlanFile, '--config', butterflyConfig, '--allow-write']);
+    assert.fail('Bad installed candidate must fail host acceptance');
+  } catch (error) {
+    assert.equal(error.status, 1);
+    firstButterfly = JSON.parse(error.stdout);
+  }
+  assert.equal(firstButterfly.tasks.build.acceptanceAccepted, false);
+  const butterflyResume = [
+    'leader',
+    '--resume',
+    firstButterfly.runId,
+    '--config',
+    butterflyConfig,
+    '--allow-write',
+    '--retry-failed',
+    '--retry-interrupted-writes',
+  ];
+  const repaired = run(butterflyResume);
+  assert.equal(repaired.status, 'completed');
+  assert.equal(repaired.metrics.butterflyDetections, 1);
+  assert.equal(repaired.metrics.butterflyHandoffs, 1);
+  assert.equal(repaired.budget.account.requests, 2);
+  const automaticReport = JSON.parse(readFileSync(repaired.tasks.build.butterfly.file, 'utf8'));
+  assert.equal(automaticReport.decisions[0].rewindBoundary.actionId, 'action-1');
+  assert.equal(
+    run(['handoff', 'status', '--id', repaired.tasks.build.butterfly.handoffId]).state,
+    'awaiting',
+  );
+  assert.equal(run(butterflyResume).metrics.butterflyHandoffs, 1);
   invokeNpm(
     ['uninstall', '--global', '--prefix', prefix, '@huatalk/omha', '--ignore-scripts'],
     cwd,
@@ -315,6 +400,7 @@ try {
       skills,
       claudePlugin,
       examplesExecuted: true,
+      automaticButterflyVerified: true,
       uninstallVerified: true,
     }),
   );

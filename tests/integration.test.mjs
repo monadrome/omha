@@ -101,10 +101,13 @@ test(
     previousPid = Number(readFileSync(join(cwd, 'first-launch'), 'utf8'));
     const previousHome = process.env.OMHA_HOME;
     process.env.OMHA_HOME = state;
-    const processEvent = readEvents(join(projectDir(cwd), 'runs', 'restart', 'events.jsonl')).find(
-      (event) => event.kind === 'task.process' && event.taskId === 'job',
-    );
+    const eventFile = join(projectDir(cwd), 'runs', 'restart', 'events.jsonl');
     process.env.OMHA_HOME = previousHome;
+    const processEvent = await until(() =>
+      readEvents(eventFile, state).find(
+        (event) => event.kind === 'task.process' && event.taskId === 'job',
+      ),
+    );
     assert.ok(processEvent?.fingerprint, JSON.stringify(processEvent));
     host.child.kill('SIGKILL');
     await host.done;

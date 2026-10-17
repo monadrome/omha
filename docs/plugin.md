@@ -54,7 +54,7 @@ hook or startup script dispatches a provider automatically.
 | Planning  | Scope, decomposition, implementation choices    | Validated DAG, write gate, budgets, resume            |
 | Decisions | Question, alternatives, evidence interpretation | Independent blind collection and host tally           |
 | Handoff   | Continuation context and next action            | Owned terminal/file lifecycle and completion evidence |
-| Drift     | Causal interpretation and revised prompt        | Explicit-history validation and optional handoff      |
+| Drift     | Causal interpretation and revised prompt        | Host lifecycle observation, evidence gate and handoff |
 | Memory    | Selection and wording of durable knowledge      | Scope, hashes, locks, indexes and bounded injection   |
 
 Start uncertain work in the current session. Introduce a fixed workflow when its
