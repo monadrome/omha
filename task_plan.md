@@ -13,7 +13,7 @@ connected to auto-butterfly-effect without weakening evidence or ownership gates
   to explicit host-owned history locations rather than fabricated turn numbers.
 - [complete] 3. Add offline success/failure/recovery coverage and update skills,
   contracts, examples and bilingual changelogs.
-- [in_progress] 4. Run appropriate checks and installed CLI verification, review the
+- [complete] 4. Run appropriate checks and installed CLI verification, review the
   final diff, commit task files and push main without version or release changes.
 
 Acceptance: fork targets an exact validated history location; terminal billing
@@ -25,7 +25,9 @@ Verification: full offline check 150/150, final native protocol/cleanup/Leader
 regressions 3/3, formatting and 51 syntax files, installed 77-file package with
 native adopt/fork/message/accept plus plugin discovery and uninstall. Real cmux
 read-only probing verifies the native source binding and checkpoint timeline.
-All implementation and review work is complete; direct-main delivery is next.
+Feature commit 7e6d023 was pushed directly to origin/main with an ordinary push.
+No version bump, tag or package publication was performed. Final documentation
+records the completed delivery and all verification evidence.
 
 Error: the first planning patch used an incorrect progress heading and was
 rejected atomically. Read the actual heading and reapplied the patch.

@@ -28,6 +28,10 @@
   final 77-file package passes installed native workflow, actual isolated plugin
   discovery and uninstall. Remote main fetched successfully; ready to commit and
   push task files. No real models or existing user terminals were launched/closed.
+- Feature commit 7e6d023 is delivered directly to origin/main. Native history
+  selection, launch/bootstrap, structured messaging, source retirement, recovery,
+  authorization and failure paths are implemented and verified. No required
+  implementation work remains; final planning records close the delivery phase.
 
 ## Automatic butterfly lifecycle (2026-10-17)
 
