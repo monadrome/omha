@@ -1,5 +1,34 @@
 # Progress
 
+## cmux butterfly continuation (2026-10-17)
+
+- Restored tracked planning context; main started clean and synchronized.
+- Applying use-cmux, butterfly-effect and planning-with-files guidance; consulted
+  cmux-handoff for terminal launch conventions.
+- Started local capability inspection and existing lifecycle integration review;
+  no providers launched and no existing terminals changed.
+- Verified installed help/RPC and read upstream Vault/message/fork contracts from
+  a temporary SSH checkout after HTTPS failed. Added native session registration,
+  checkpoint lookup, fork, structured messaging and successor acceptance paths.
+- Existing handoff/butterfly focused suites remain green (24/24). First native
+  fixtures exposed an empty-directory admission bug; corrected before rerunning.
+- Native offline fixtures passed 7/7, then full checks passed 148/148 with the
+  Leader gate integration. The 77-file clean HOME package verifies installed
+  adopt/checkpoints/fork/message/accept, plugin skill discovery and uninstall.
+- Read-only production backend probe confirms real native Codex binding and five
+  cmux checkpoints. Final audit added deterministic spec normalization, exact
+  source executable preservation, positional startup bootstrap, matching CLI/state
+  home, refusal of unsafe same-surface closure and explicit source-close uncertainty.
+- Final full offline check passes 150/150 tests, including unsupported timelines,
+  cancelled-launch successor cleanup and completed-run native gate validation.
+  Rechecked the installed package successfully. A final native-only audit preserves
+  captured Claude provider selection explicitly through cmux's wrapper; validating
+  that branch with the main native protocol fixture before delivery.
+- Final native regressions pass 3/3, formatting/static validation pass, and the
+  final 77-file package passes installed native workflow, actual isolated plugin
+  discovery and uninstall. Remote main fetched successfully; ready to commit and
+  push task files. No real models or existing user terminals were launched/closed.
+
 ## Automatic butterfly lifecycle (2026-10-17)
 
 - Restored tracked plans and inspected clean main, butterfly detector, scheduler,

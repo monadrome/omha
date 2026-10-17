@@ -48,6 +48,10 @@ The retained `/omha:butterfly-effect` and `/omha:hide` skills also remain availa
 with their upstream references and licenses. Claude can select relevant skills
 from their descriptions. Skills receive the task as prompt context; no plugin
 hook or startup script dispatches a provider automatically.
+With an authorized cmux continuation, `auto-butterfly-effect` can gather history
+evidence, bind a real checkpoint and drive the CLI fork/message/accept workflow.
+The successor confirms takeover before optional source retirement; see
+[cmux historical continuation](cmux-fork.md).
 
 | Work      | Prompt skill owns                               | CLI owns when needed                                  |
 | --------- | ----------------------------------------------- | ----------------------------------------------------- |

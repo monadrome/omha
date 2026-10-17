@@ -38,4 +38,12 @@ prompt path/hash, memory pointer and cwd. Poll for a token-bound final JSON
 marker or explicit completion record; a process exit without that marker is a
 failure. Timeout/cancel/close only resources owned by this handoff.
 
+For an existing native cmux Claude/Codex session, use `handoff adopt`, then
+`handoff checkpoints` and `handoff fork --id SOURCE_ID --turn N --prompt-file
+handoff.md --allow-write`. `--close-source` requests retirement only after the
+successor runs `handoff accept --id FORK_ID`; never close the source early.
+Use `handoff message` for structured follow-up delivery. Native sessions use
+cmux's verified session binding and takeover acknowledgement rather than the
+pipe worker's final marker. See the [native fork contract](../../docs/cmux-fork.md).
+
 Installation and input contracts: [plugin guide](../../docs/plugin.md).

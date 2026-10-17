@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import {
   existsSync,
+  chmodSync,
+  copyFileSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -11,7 +14,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { delimiter, dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { commandExists } from '../lib/core.mjs';
 import { parseMarkdown } from '../lib/frontmatter.mjs';
@@ -295,11 +298,73 @@ try {
     [
       '--input-type=module',
       '-e',
-      `import {createRuntime,projectStatus,watchStatus} from ${JSON.stringify(pathToFileURL(join(installed, 'index.mjs')).href)};console.log([createRuntime,projectStatus,watchStatus].map(value=>typeof value).join(','))`,
+      `import {createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff} from ${JSON.stringify(pathToFileURL(join(installed, 'index.mjs')).href)};console.log([createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff].map(value=>typeof value).join(','))`,
     ],
     { cwd, env, encoding: 'utf8' },
   );
   assert.match(api, /function,function,function/);
+  if (process.platform !== 'win32') {
+    const nativeBin = join(temporary, 'native-bin');
+    const nativeHome = join(cleanHome, 'native-state');
+    mkdirSync(nativeBin);
+    mkdirSync(nativeHome);
+    copyFileSync(join(root, 'tests/fixtures/cmux.mjs'), join(nativeBin, 'cmux'));
+    chmodSync(join(nativeBin, 'cmux'), 0o700);
+    const ref = randomUUID(),
+      surfaceRef = randomUUID();
+    writeFileSync(
+      join(nativeHome, 'cmux-fixture.json'),
+      JSON.stringify({
+        cwd,
+        agent: 'codex',
+        calls: [],
+        forks: [],
+        messages: [],
+        closed: [],
+        owners: {},
+        checkpoints: [{ id: 'turn:ordinal:8', turn: 1, source: 'turn', anchor: 'ordinal:8' }],
+        surfaces: { [surfaceRef]: { ref, agent: 'codex', sessionId: randomUUID(), source: true } },
+      }),
+    );
+    const nativeEnv = {
+      ...env,
+      PATH: `${nativeBin}${delimiter}${env.PATH}`,
+      OMHA_HOME: nativeHome,
+      CMUX_WORKSPACE_ID: ref,
+      CMUX_SURFACE_ID: surfaceRef,
+    };
+    const nativeRun = (args) =>
+      JSON.parse(
+        execFileSync(process.execPath, [cli, ...args], {
+          cwd,
+          env: nativeEnv,
+          encoding: 'utf8',
+          timeout: 30000,
+        }),
+      );
+    const source = nativeRun(['handoff', 'adopt']);
+    assert.equal(nativeRun(['handoff', 'checkpoints', '--id', source.id]).checkpoints.length, 1);
+    const fork = nativeRun([
+      'handoff',
+      'fork',
+      '--id',
+      source.id,
+      '--turn',
+      '1',
+      '--allow-write',
+      '--close-source',
+      '--prompt',
+      'Verify installed native continuation.',
+    ]);
+    assert.equal(fork.fork.state, 'awaiting_acceptance');
+    assert.equal(
+      nativeRun(['handoff', 'message', '--id', fork.id, '--prompt', 'Installed message.']).state,
+      'queued',
+    );
+    nativeEnv.CMUX_WORKSPACE_ID = fork.ref;
+    nativeEnv.CMUX_SURFACE_ID = fork.surfaceRef;
+    assert.equal(nativeRun(['handoff', 'accept', '--id', fork.id]).fork.sourceClose, 'closed');
+  }
   const butterflyConfig = join(temporary, 'butterfly-providers.json');
   const butterflyPlanFile = join(temporary, 'butterfly-plan.json');
   const localWriter = join(temporary, 'butterfly-writer.cjs');

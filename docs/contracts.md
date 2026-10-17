@@ -223,6 +223,17 @@ Neither detection nor handoff alters task, review or decision outcomes or
 replays writes. See [automatic butterfly](automatic-butterfly.md) for examples,
 observability and limits.
 
+Native historical continuation uses [schemas/fork.schema.json](../schemas/fork.schema.json)
+and [the cmux fork contract](cmux-fork.md). `handoff adopt` registers the calling
+Claude/Codex surface; `checkpoints`, `fork`, `message` and `accept` retain exact
+native history, ownership and receipt evidence. `auto-butterfly --fork` requires
+an exact detector `actionId` binding and host write authorization. Leader host
+`butterfly.forks` maps task IDs to those same bindings and only launches after
+all configured run gates pass. Native sessions preserve their source arguments
+and terminal billing channel. A queued message is not a takeover; successor
+identity and prompt hash authorize optional source-surface closure. Uncertain
+fork/close claims never replay automatically, and file restoration is not implied.
+
 Memory topic frontmatter is parsed as YAML and validated by `lib/memory.mjs`.
 Leader automatically selects relevant active, fresh `worktree`/`project` topics
 for its immutable context. `plan.memory` controls `read`, `write`, `scopes`,

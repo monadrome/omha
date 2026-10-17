@@ -9,6 +9,11 @@
 
 ### Features
 
+- Add owned native cmux Claude/Codex historical forks, checkpoint discovery,
+  structured messages and successor-confirmed source-surface retirement. Bind
+  auto-butterfly actions to real host-selected checkpoints, retain source launch
+  permissions/billing, and persist bounded claims without uncertain replay.
+
 - Automatically observe Leader write tasks with frozen acceptance evidence,
   detect supported rework without manual history JSON, and prepare bounded file
   handoffs with durable claims, explicit host provenance and restart deduplication.

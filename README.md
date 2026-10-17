@@ -198,6 +198,12 @@ separate outcomes, including when older runs have no acceptance evidence.
   handoff. Completed terminals remain visible until explicitly closed; timeouts
   and cancellation clean them up. Pipe-supervised interactive input supports
   line-oriented programs, not arbitrary full-screen TUIs.
+  Registered native cmux Claude/Codex sessions additionally support exact
+  checkpoint/turn forks, structured continuation messages and source-surface
+  retirement after successor acceptance. Use `handoff adopt|checkpoints|fork|message|accept`
+  or `auto-butterfly --fork` with an explicit history binding and write authorization.
+  Native permissions/billing are preserved; files are not restored. See
+  [cmux historical continuation](docs/cmux-fork.md).
 - **Butterfly:** Leader automatically observes write tasks with frozen host
   acceptance checks. A failed check followed by changed rework of the same
   candidate triggers the existing drift detector and a bounded file handoff;

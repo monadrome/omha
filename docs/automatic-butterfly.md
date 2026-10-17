@@ -4,6 +4,9 @@ Leader now observes its own write-task lifecycle and automatically invokes the
 existing butterfly detector. No manually authored transcript or additional model
 call is needed. It generates advice and, by default, an owned file handoff with
 the continuation prompt. It does not rewind a conversation or restore files.
+An explicitly bound native cmux continuation can instead fork session history at
+a real checkpoint, deliver the revised prompt and retire the source after
+successor acceptance. See [cmux historical continuation](cmux-fork.md).
 
 ## Evidence And Trigger
 
@@ -95,6 +98,10 @@ arbitrary semantic criticism or reviewer prose. Snapshots inherit the existing
 acceptance limits and tracked/nonignored Git selection. Automatic observation
 does not extend into arbitrary terminal sessions, and no background daemon is
 installed. Explicit history is still needed for those sources.
+The current-session skill can collect that evidence and use native cmux forks;
+this is an invoked workflow, not an unattended watcher. Leader native forks also
+require completed host gates, explicit write authorization and an exact host
+`butterfly.forks` binding; a failed run only produces advice.
 
 ## Offline Verification
 

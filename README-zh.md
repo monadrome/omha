@@ -159,6 +159,11 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
   单个哈希变化、正常演进、验收后的新工作、缺失历史均为 no-op。
   独立产物保留独立边界。`--analyze` 仅对可靠证据调用保留的 upstream contract。
   输出是回溯建议，**不会真的回退会话**。
+  已登记的原生 cmux Claude/Codex 会话还支持按真实 checkpoint/turn fork，
+  发送结构化续写消息，并由新会话确认接管后关闭来源 surface。使用
+  `handoff adopt|checkpoints|fork|message|accept` 或 `auto-butterfly --fork`；
+  需要明确的历史位置绑定与写入授权，保留原终端权限和计费通道。只复制新会话的
+  历史，不恢复文件；详见 [cmux 历史接续](docs/cmux-fork.md)。
 
 ## 记忆与安全边界
 

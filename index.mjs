@@ -29,6 +29,11 @@ export {
   cancelHandoff,
   closeHandoff,
   completeHandoff,
+  adoptHandoff,
+  handoffCheckpoints,
+  forkHandoff,
+  messageHandoff,
+  acceptHandoff,
 } from './lib/terminal.mjs';
 export {
   initMemory,

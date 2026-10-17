@@ -40,6 +40,11 @@ import {
   cancelHandoff,
   closeHandoff,
   completeHandoff,
+  adoptHandoff,
+  handoffCheckpoints,
+  forkHandoff,
+  messageHandoff,
+  acceptHandoff,
 } from '../lib/terminal.mjs';
 import { autoButterfly } from '../lib/butterfly.mjs';
 import { importOpenArena, readOpenArena } from '../lib/open-arena.mjs';
@@ -67,6 +72,7 @@ const BOOLEAN = new Set([
   'no_enter',
   'help',
   'watch',
+  'close_source',
 ]);
 const ALLOWED = new Set([
   ...BOOLEAN,
@@ -125,6 +131,9 @@ const ALLOWED = new Set([
   'transcript',
   'artifact',
   'secret_policy',
+  'fork',
+  'checkpoint',
+  'turn',
 ]);
 
 function parse(args) {
@@ -212,7 +221,12 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha decision status|approve|reject --id ID [--reason TEXT]
   omha handoff --prompt TEXT --backend auto|cmux|tmux|file
   omha handoff list|status|read|poll|send|resume|cancel|close|complete --id ID
+  omha handoff adopt
+  omha handoff checkpoints|accept --id ID
+  omha handoff fork --id SOURCE_ID (--checkpoint ID | --turn N) --prompt TEXT --allow-write [--close-source]
+  omha handoff message --id ID --prompt TEXT
   omha auto-butterfly --input history.json [--analyze --profile analyst]
+  omha auto-butterfly --input history.json --fork fork.json --allow-write
   omha arena import --source DIRECTORY --input knowledge-metadata.json
   omha arena knowledge --id KNOWLEDGE_ID
   omha arena run --input execution.json --config providers.json --allow-write
@@ -409,7 +423,35 @@ async function main() {
         enter: !o.no_enter,
         waitMs: o.wait_ms === undefined ? undefined : Number(o.wait_ms),
         intervalMs: o.interval_ms ? Number(o.interval_ms) : undefined,
+        allowWrite: options.allowWrite,
       };
+      if (sub === 'adopt') return json(await adoptHandoff(cwd, terminal));
+      if (sub === 'checkpoints') return json(await handoffCheckpoints(o.id, terminal));
+      if (sub === 'accept') return json(await acceptHandoff(o.id, terminal));
+      if (sub === 'message')
+        return json(
+          await messageHandoff(
+            o.id,
+            o.prompt_file ? inputFile(o.prompt_file) : o.prompt || o._.slice(1).join(' '),
+            terminal,
+          ),
+        );
+      if (sub === 'fork') {
+        const result = await forkHandoff(
+          cwd,
+          o.prompt_file ? inputFile(o.prompt_file) : o.prompt,
+          {
+            sourceHandoffId: o.id,
+            ...(o.checkpoint !== undefined ? { checkpoint: o.checkpoint } : {}),
+            ...(o.turn !== undefined ? { turn: Number(o.turn) } : {}),
+            closeSource: Boolean(o.close_source),
+          },
+          terminal,
+        );
+        json(result);
+        if (result.state !== 'running') process.exitCode = 1;
+        return;
+      }
       if (sub === 'start' || o.prompt || o.prompt_file) {
         if (sub === 'send') return json(await sendHandoff(o.id, prompt(o), terminal));
         if (sub === 'resume')
@@ -457,8 +499,11 @@ async function main() {
         handoff: o.handoff,
         backend: o.backend,
         providers: csv(o.providers) || [o.profile || 'claude'],
+        fork: o.fork ? inputJson(o.fork) : undefined,
       });
       if (o.artifact) result.currentHash = hash(inputFile(resolve(cwd, o.artifact)));
+      if (o.fork && result.handoffs?.some((record) => record.state !== 'running'))
+        process.exitCode = 1;
       return json(result);
     }
     if (command === 'doctor') {

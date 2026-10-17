@@ -1,5 +1,40 @@
 # Omha release candidate implementation
 
+## cmux butterfly continuation (2026-10-17)
+
+Objective: support owned cmux session forks at an explicit historical checkpoint
+or turn, structured continuation messages and successor-confirmed self-close,
+connected to auto-butterfly-effect without weakening evidence or ownership gates.
+
+- [complete] 1. Verify installed cmux fork/vault/message contracts and inspect
+  existing terminal, butterfly, worker and CLI lifecycle boundaries.
+- [complete] 2. Extend the existing handoff/backend path with validated historical
+  fork, durable outcomes, messaging and safe source close; bind butterfly actions
+  to explicit host-owned history locations rather than fabricated turn numbers.
+- [complete] 3. Add offline success/failure/recovery coverage and update skills,
+  contracts, examples and bilingual changelogs.
+- [in_progress] 4. Run appropriate checks and installed CLI verification, review the
+  final diff, commit task files and push main without version or release changes.
+
+Acceptance: fork targets an exact validated history location; terminal billing
+is retained; source and successor ownership are checked before messaging/close;
+failure never closes the source; action claims survive restarts without replay;
+no paid model calls or changes to unrelated user terminals during verification.
+
+Verification: full offline check 150/150, final native protocol/cleanup/Leader
+regressions 3/3, formatting and 51 syntax files, installed 77-file package with
+native adopt/fork/message/accept plus plugin discovery and uninstall. Real cmux
+read-only probing verifies the native source binding and checkpoint timeline.
+All implementation and review work is complete; direct-main delivery is next.
+
+Error: the first planning patch used an incorrect progress heading and was
+rejected atomically. Read the actual heading and reapplied the patch.
+HTTPS cloning of the cmux reference timed out; SSH cloning succeeded. First
+native-fork tests found that a pre-created empty target directory broke strict
+handoff enumeration. Defer target creation until validation and admission pass.
+One final test patch missed Prettier's line wrapping and was rejected atomically;
+reread the formatted context before applying the failure-path additions.
+
 ## Automatic butterfly lifecycle (2026-10-17)
 
 Objective: optimize Omha with automatic butterfly-effect observation, evidence

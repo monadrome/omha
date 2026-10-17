@@ -1,5 +1,38 @@
 # Research findings
 
+## cmux butterfly continuation (2026-10-17)
+
+- Installed cmux advertises `fork`/`restore`, `vault fork --checkpoint|--turn`,
+  `vault checkpoints` and structured `agent message`/inbox. Exact local help
+  confirms --turn selects history; --open starts a new workspace.
+- Existing automatic butterfly observes only frozen Leader acceptance/rework,
+  and defaults to an awaiting file handoff. It neither selects native session
+  turns nor starts the provider from an earlier history point.
+- Existing terminal/backends already enforce full workspace UUIDs and ownership
+  tokens, persist launch attempts, and provide send/close; extend those modules.
+- Planning files are tracked; the current main worktree started clean. The user
+  authorizes implementing this flow, and AGENTS.md authorizes direct main pushes.
+- Upstream implementation confirms `cmux fork --surface` execs a native provider
+  in its calling terminal; it does not return a new workspace. Exact historical
+  forks instead use `vault.fork` without `open`, then the existing owned workspace
+  creator and structured source resume argv with only the session ID replaced.
+- Native source resume arguments preserve permissions/model options. Launch uses
+  the bare provider command so cmux's terminal wrapper/hooks remain in place;
+  captured environment values are not stored in Omha records, only their keys.
+- Structured messages return queued/delivered/read receipts. Queued is not proof
+  of takeover: only the successor's matching native session and surface can run
+  `handoff accept`; source closure happens afterward and targets one surface.
+- Source attempts and chained fork depth are bounded to three. Durable claims
+  and deterministic IDs preserve uncertainty rather than replay a possible fork.
+- Installed provider help confirms both Claude and Codex support a positional
+  startup prompt with native resume. Use a short protocol bootstrap as well as
+  the structured message, so an idle inbox cannot stall continuation. Bootstrap
+  uses the creating CLI's exact Node/path/state home; custom cmux binary-path
+  variables preserve the source executable while retaining the wrapper/hooks.
+- Native Leader actions require a completed run and each configured task's
+  acceptance/review gate. Source-close uncertainty remains visible and repeated
+  acceptance fails rather than claiming exclusive takeover or retrying closure.
+
 ## Automatic butterfly lifecycle (2026-10-17)
 
 - Clean main supports explicit chronological history only. Preserve detection
