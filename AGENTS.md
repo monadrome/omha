@@ -70,6 +70,44 @@ threshold.
 - Keep one bounded change per iteration. Run the checks, update the docs and
   changelogs, then commit and push.
 
+## Claude Code Plugin
+
+The Claude Code plugin is a first-class distribution surface, not an optional
+extra. The repository must stay loadable both as `claude --plugin-dir <repo>`
+and as `omha@omha` from the Git marketplace. Prompt-only use must work without
+the CLI; runtime commands may require it.
+
+- **Shipped files.** Keep `.claude-plugin/plugin.json`,
+  `.claude-plugin/marketplace.json`, `skills/*/SKILL.md`, `skills/README.md` and
+  `docs/plugin.md` present and consistent. `package.json` must keep
+  `.claude-plugin` and `skills` in `files`.
+- **One identity.** Plugin and marketplace names stay `omha`; the marketplace
+  source stays `./`; every manifest version matches `package.json`. A release
+  version bump updates all three together. Never add a second plugin manifest or
+  a provider-specific fork of the skill set.
+- **Skill contract.** Skills own open-ended reasoning and discovery; the CLI
+  owns validated execution. Every `SKILL.md` has valid frontmatter, references
+  only commands that exist, tolerates an absent CLI or provider, and contains no
+  secrets, machine-specific absolute paths, automatic hooks or silent installs.
+- **Host boundary applies to prompts.** A skill may propose an action but cannot
+  grant permission, bypass budget/concurrency/ownership gates, or turn a host
+  check into prompt text. Execution always routes through CLI validation.
+- **No capability inflation.** Do not claim a capability, cache hit or provider
+  guarantee in plugin docs that the CLI cannot validate. Unknown stays unknown.
+- **Capability coverage.** A new user-facing lifecycle capability needs either a
+  discoverable skill entry point or an explicit note in `docs/plugin.md`
+  explaining why it is CLI-only.
+- **Verification.** Plugin-affecting changes pass
+  `claude plugin validate .claude-plugin/plugin.json --strict`,
+  `claude plugin validate .claude-plugin/marketplace.json --strict` and
+  `npm run pack:check`. The pack check covers tarball contents plus plugin
+  install/list in a clean home. If `claude` is unavailable or the local npm
+  cannot run the pack check, run the offline manifest and packaging checks and
+  report the skipped check; never claim it passed.
+- **Docs stay linked.** Changing a skill or a plugin-visible workflow updates
+  `docs/plugin.md` and `skills/README.md`. New skills need an offline test of
+  every CLI path they reference, when that path is executable.
+
 ## Naming
 
 The project is **Omha** (`omha`). Use it consistently across every surface:
