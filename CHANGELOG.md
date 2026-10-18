@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Design
+
+- Document a proposed host-validated Claude Code auto-compaction policy with
+  configurable 57-minute cache timing, a 20% context floor, conversation-based
+  deduplication, native idle coordination and an offline acceptance matrix.
+  Runtime behavior is not implemented by this documentation change.
+
 ### Fixes
 
 - Wait for durable worker ownership before SIGKILL recovery assertions, avoiding
