@@ -4,6 +4,10 @@
 
 ### Design
 
+- Archive the independent Kimi auto-compaction review and a verified synthesis
+  covering activation, host RPC, durable session accounting, uncertainty and
+  offline acceptance. Exclude snapshot artifacts and unsafe budget downgrades;
+  preserve the original design as the reviewed baseline.
 - Document a proposed host-validated Claude Code auto-compaction policy with
   configurable 57-minute cache timing, a 20% context floor, conversation-based
   deduplication, native idle coordination and an offline acceptance matrix.
