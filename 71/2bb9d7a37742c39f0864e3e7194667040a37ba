@@ -1,0 +1,97 @@
+docs/contracts.md
+  s_19e2d971bd69b6::t_dac58d99501d5a 3
+  s_19e2d971bd69b6::t_8474bc5df4c9cf 9-23
+lib/arena.mjs
+  s_19e2d971bd69b6::t_1b8e7ee7c42809 12,76-101,107-108,153-159,162-167,170-176,183-185,196-197,199-206,225-230
+  s_19e2d971bd69b6::t_70501654da8e26 33,177-182,401-404,533-537,632-636
+  s_19e2d971bd69b6::t_715ac709c8b9e8 102-106,168-169,545,590,706-716,899-903,914-919
+  s_19e2d971bd69b6::t_c9f86c5eb3bf58 160-161,778-779
+  s_19e2d971bd69b6::t_0136390f5e625b 189,1101-1105,1167-1171
+  s_19e2d971bd69b6::t_ba2883e5d83498 198
+  s_19e2d971bd69b6::t_0c154a56a3f33a 218
+  s_19e2d971bd69b6::t_ce964e768779bc 385-393,399-400,405-429,459,505-532,538-544,546-559,584-589,592-593,598,615-631,637,678-680,698-699,717-733,735-740,752-753,761,776-777,780-787,800-806
+  s_19e2d971bd69b6::t_ef393696f24e27 394-398
+  s_19e2d971bd69b6::t_82628535ab01fc 641,931-936,972-978
+  s_19e2d971bd69b6::t_332052ac50e68c 904-913
+lib/arena-spec.mjs
+  s_19e2d971bd69b6::t_715ac709c8b9e8 31
+  s_19e2d971bd69b6::t_59cb0e93cbadb2 87-88,91,93-99,109
+  s_19e2d971bd69b6::t_8f5087c1c46e3b 110-111
+lib/session-fork.mjs
+  s_19e2d971bd69b6::t_59cb0e93cbadb2 1-45,49-52,54-58,66-69,73-85,91-112
+  s_19e2d971bd69b6::t_70501654da8e26 46-48,59-65,86-90
+  s_19e2d971bd69b6::t_0c154a56a3f33a 53,70-72
+tests/arena.test.mjs
+  s_19e2d971bd69b6::t_ba2883e5d83498 39-45
+  s_19e2d971bd69b6::t_0c154a56a3f33a 418-421
+  s_19e2d971bd69b6::t_459fd2ab5b20c9 965-974,976-1010,1012-1014,1016-1019,1021-1038,1047,1052-1094,1099-1141,1147-1149
+  s_19e2d971bd69b6::t_27ecc84466cf51 975,1015,1020,1039-1046
+  s_19e2d971bd69b6::t_8a5e2a3bc056bb 1011,1048-1051,1095-1098,1142-1146
+  s_19e2d971bd69b6::t_7b151911a1382a 1150-1204
+tests/runtime.test.mjs
+  s_19e2d971bd69b6::t_d2ddcc8b3f8f97 10,169-213,535-538
+  s_19e2d971bd69b6::t_173dfe9c024cd8 516-527,539-542
+lib/fork.mjs
+  s_19e2d971bd69b6::t_70501654da8e26 1
+  s_19e2d971bd69b6::t_0136390f5e625b 2-42
+AGENTS.md
+  s_19e2d971bd69b6::t_8f5087c1c46e3b 27-33,35-39
+  s_58f720d8bd14b4::t_510432558fe15b 75-104,109-112
+  s_58f720d8bd14b4::t_ae18ccbddd55ff 105-108
+docs/session-fork.md
+  s_19e2d971bd69b6::t_8474bc5df4c9cf 1-22,32-142,150-157,171-187
+  s_19e2d971bd69b6::t_8f5087c1c46e3b 23-31,143-149,158-170
+docs/architecture.md
+  s_19e2d971bd69b6::t_8474bc5df4c9cf 23-25,42-47
+CHANGELOG.zh.md
+  s_19e2d971bd69b6::t_8474bc5df4c9cf 16-20
+index.mjs
+  s_19e2d971bd69b6::t_0136390f5e625b 63-71
+lib/runner.mjs
+  s_19e2d971bd69b6::t_1567736e66966b 18-24,60,66-67,69-71,73,82,553,589
+  s_19e2d971bd69b6::t_d2ddcc8b3f8f97 72,76-78
+  s_19e2d971bd69b6::t_9b8b515acd593c 86
+  s_19e2d971bd69b6::t_952522b912d640 547
+docs/open-arena.md
+  s_19e2d971bd69b6::t_8f5087c1c46e3b 124
+  s_19e2d971bd69b6::t_dac58d99501d5a 129
+README.md
+  s_19e2d971bd69b6::t_8474bc5df4c9cf 92-96
+CHANGELOG.md
+  s_19e2d971bd69b6::t_8474bc5df4c9cf 17-22
+README-zh.md
+  s_19e2d971bd69b6::t_dac58d99501d5a 203-206
+lib/adapters.mjs
+  s_19e2d971bd69b6::t_1567736e66966b 210-216,218-249,252-259,261-264,376,386,407,417
+  s_19e2d971bd69b6::t_d2ddcc8b3f8f97 217,250-251
+  s_19e2d971bd69b6::t_952522b912d640 260
+  s_19e2d971bd69b6::t_9b8b515acd593c 299-317
+lib/arena-isolation.mjs
+  s_19e2d971bd69b6::t_a57b32ae4b5c03 34,42
+bin/omha.mjs
+  s_19e2d971bd69b6::t_56605a2a504e36 59,236-237,309-331
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.43-trip",
+  "base_commit_sha": "712bb9d7a37742c39f0864e3e7194667040a37ba",
+  "prompts": {},
+  "sessions": {
+    "s_19e2d971bd69b6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14dfc-315c-7d80-b395-b2202456c1f0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "linqh <linqh@trip.com>"
+    },
+    "s_58f720d8bd14b4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "59b92062-783d-4829-8b57-bfe0d8a6d1de",
+        "model": "deepseek-flash"
+      },
+      "human_author": "linqh <linqh@trip.com>"
+    }
+  }
+}
