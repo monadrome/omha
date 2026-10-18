@@ -8,6 +8,9 @@
   configurable 57-minute cache timing, a 20% context floor, conversation-based
   deduplication, native idle coordination and an offline acceptance matrix.
   Runtime behavior is not implemented by this documentation change.
+- Specify immediate invalidation of auto-compaction timers and unsubmitted
+  claims on new business input, with cache-evidence-based rescheduling and
+  explicit 53-minute, delayed-response and stale-callback acceptance cases.
 
 ### Fixes
 
