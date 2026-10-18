@@ -9,6 +9,11 @@
 
 ### 新功能
 
+- Session Fork 在三分支及以上默认开启 `warmFirst`，并在树创建事件上记录实际生效的
+  调度模式；仅当预热分支的 usage 明确报告 provider cache 写入时，根节点 cache 证据
+  才升级为 `write-reported` 并持久化 epoch，status/resume 会按事件摘要校验该记录。
+  补齐混合路由拒绝、9 分支越界与 suffix 篡改的失败路径测试。
+
 - 支持原生 cmux Claude/Codex 历史 fork、checkpoint 查询、结构化消息及新会话确认
   后关闭来源 surface；auto-butterfly 绑定宿主指定的真实历史位置，保留来源权限与
   终端计费通道，并持久化有上限的动作请求，不重放不确定操作。

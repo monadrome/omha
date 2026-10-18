@@ -58,6 +58,7 @@ The state uses schema version 1 under `OMHA_HOME/arena/batches/<treeId>`:
       "systemHash": "sha256",
       "toolsHash": "sha256",
       "workspaceSnapshot": {},
+      "cache": { "epoch": null, "ttlMs": null, "expiresAt": null, "status": "unknown" },
       "pendingToolCalls": 0,
       "pendingApproval": false,
       "backgroundProcesses": false
@@ -72,9 +73,9 @@ suffix and full-prompt hashes, status, per-attempt raw and normalized usage,
 cache evidence and artifact digest. The exact prefix is `context.md`; each exact
 suffix is `suffixes/<candidate>.txt`.
 
-`fork.tree.created`, `fork.node.created` and `fork.node.prompt_sealed` are
-append-only events. Status and resume compare immutable event digests, files and
-state. A missing/unsealed parent, pending tool call/approval/background process,
+`fork.tree.created`, `fork.node.created`, `fork.node.prompt_sealed` and
+`fork.root.cache` are append-only events. Status and resume compare immutable
+event digests, files and state. A missing/unsealed parent, pending tool call/approval/background process,
 changed prefix, changed suffix, changed prompt, owner drift or changed bundle is
 an integrity failure. A changed prefix means a new tree; no node is edited into a
 different parent. Resume reports sealed results and terminalizes uncertain
@@ -112,12 +113,21 @@ existing `ProviderRuntime` also enforces provider concurrency, circuit, timeout
 and reservation settlement. Fork disables retry/fallback exactly as Arena does,
 so every child has one attributable attempt.
 
-`warmFirst:true` executes the first already-budgeted child before the remaining
+`warmFirst` executes the first already-budgeted child before the remaining
 fan-out. It never sends an extra metered warming request. This can reduce an
-implicit-cache stampede, but it cannot guarantee a cache write or hit. With the
-default `false`, branches fan out immediately within the bounded groups.
+implicit-cache stampede, but it cannot guarantee a cache write or hit. It
+defaults to `true` for three or more branches and `false` for two; an explicit
+`warmFirst:false` restores immediate fan-out within the bounded groups. The
+effective mode is recorded as `scheduling: 'warm-first' | 'parallel'` on the
+`fork.tree.created` event.
 
-Provider TTL, cache epoch and expiry remain `null` unless the provider reports a
+When the warm child reports a positive cache-creation count in its usage, the
+root cache evidence upgrades to `status: 'write-reported'` with `epoch` set to
+the observed write time, persisted through a `fork.root.cache` event. TTL and
+expiry stay `null` because usage carries no verifiable lifetime. A failed warm
+child, missing usage or a zero count keeps `unknown`. Status and resume require
+any non-baseline root cache record to match its event digest. Provider TTL,
+cache epoch and expiry otherwise remain `null` unless the provider reports a
 verifiable value. An expired/evicted cache remains an ordinary charged request.
 Unknown or estimated usage retains the original reservation; cache evidence
 never refunds admission budget.
@@ -165,6 +175,7 @@ remain separate.
 | shared/per-profile budget cannot reserve all children | reject all; launch zero                                   |
 | concurrency unavailable                               | bounded queue/timeout through `ProviderRuntime`           |
 | cache field absent or process interrupted             | `unknown`; reservation retained                           |
+| root cache record without a matching event digest     | integrity failure on status/resume                        |
 | one child fails                                       | retain its evidence and continue unaffected siblings      |
 | host crashes                                          | no automatic write replay; sealed artifacts survive       |
 | cancellation                                          | kill only fingerprint-owned processes and retain evidence |

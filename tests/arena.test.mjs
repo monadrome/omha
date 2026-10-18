@@ -419,6 +419,14 @@ test('arena bundle refs and complete objects fail closed, including unapproved r
     () => validateArenaSpec({ ...f.spec, contenders: [{ profile: 'alpha' }] }),
     /between 2 and 8/,
   );
+  assert.throws(
+    () =>
+      validateArenaSpec({
+        ...f.spec,
+        contenders: Array.from({ length: 9 }, () => ({ profile: 'alpha' })),
+      }),
+    /between 2 and 8/,
+  );
 });
 
 test('arena strict rejects absent or unverified write executors before provider reservations', async () => {
@@ -1201,4 +1209,208 @@ test('session fork CLI runs an offline three-branch tree and prints observable n
     output.tree.nodes.map((node) => node.cache.status),
     ['unknown', 'unknown', 'unknown'],
   );
+});
+
+test('session fork rejects mixed provider routes or models before any launch', async () => {
+  const f = fixture({ criteria: false });
+  f.spec.contenders = [{ profile: 'one' }, { profile: 'two' }, { profile: 'three' }];
+  f.spec.parallelism = 3;
+  f.spec.budget.maxRequests = 3;
+  f.profiles = {
+    one: fake('one', { sandbox: 'workspace-write', model: 'shared-model' }),
+    two: fake('two', { sandbox: 'workspace-write', model: 'different-model' }),
+    three: fake('three', { sandbox: 'workspace-write', model: 'shared-model' }),
+  };
+  let launched = 0;
+  await assert.rejects(
+    runFork(f.source, f.spec, {
+      profiles: f.profiles,
+      onPrompt: () => (launched += 1),
+      offlineCollector: inject,
+    }),
+    /same provider route and model/,
+  );
+  assert.equal(launched, 0);
+  assert.equal(existsSync(join(f.root, 'state', 'arena', 'batches')), false);
+  f.profiles.two = {
+    adapter: 'command',
+    command: process.execPath,
+    args: ['-e', 'console.log("local fixture")'],
+    model: 'shared-model',
+    sandbox: 'workspace-write',
+    budget: { reserveTokens: 10, reserveCostUsd: 0 },
+  };
+  await assert.rejects(
+    runFork(f.source, f.spec, {
+      profiles: f.profiles,
+      onPrompt: () => (launched += 1),
+      offlineCollector: inject,
+    }),
+    /same provider route and model/,
+  );
+  assert.equal(launched, 0);
+  assert.equal(existsSync(join(f.root, 'state', 'arena', 'batches')), false);
+});
+
+test('session fork rejects tampered branch suffix evidence on status and resume', async () => {
+  const f = fixture({ criteria: false });
+  f.profiles.alpha.model = 'shared-model';
+  f.profiles.beta.model = 'shared-model';
+  const result = await runFork(f.source, f.spec, {
+    profiles: f.profiles,
+    offlineCollector: inject,
+  });
+  assert.equal(result.status, 'completed');
+  const suffixPath = join(f.batchDir(result.batchId), 'suffixes', 'candidate-A.txt');
+  const original = readFileSync(suffixPath, 'utf8');
+  writeFileSync(suffixPath, `${original}tampered\n`);
+  assert.throws(() => forkStatus(result.batchId), /suffix hash changed/);
+  await assert.rejects(resumeArena(result.batchId), /suffix hash changed/);
+});
+
+test('session fork defaults to warm-first for three or more branches and records scheduling', async () => {
+  const f = fixture({ criteria: false });
+  f.spec.contenders = [{ profile: 'one' }, { profile: 'two' }, { profile: 'three' }];
+  f.spec.parallelism = 3;
+  f.spec.budget.maxRequests = 3;
+  f.profiles = Object.fromEntries(
+    ['one', 'two', 'three'].map((name) => [
+      name,
+      fake(name, { sandbox: 'workspace-write', model: 'shared-model' }),
+    ]),
+  );
+  const events = [];
+  const result = await runFork(f.source, f.spec, {
+    profiles: f.profiles,
+    onEvent: (event) => events.push(event),
+    offlineCollector: inject,
+  });
+  assert.equal(result.status, 'completed');
+  assert.equal(events.find((event) => event.kind === 'fork.tree.created').scheduling, 'warm-first');
+  assert.ok(
+    events.findIndex(
+      (event) => event.kind === 'attempt.finished' && event.candidateId === 'candidate-A',
+    ) <
+      events.findIndex(
+        (event) => event.kind === 'attempt.started' && event.candidateId === 'candidate-B',
+      ),
+  );
+
+  const pair = fixture({ criteria: false });
+  pair.profiles.alpha.model = 'shared-model';
+  pair.profiles.beta.model = 'shared-model';
+  const pairEvents = [];
+  await runFork(pair.source, pair.spec, {
+    profiles: pair.profiles,
+    onEvent: (event) => pairEvents.push(event),
+    offlineCollector: inject,
+  });
+  assert.equal(
+    pairEvents.find((event) => event.kind === 'fork.tree.created').scheduling,
+    'parallel',
+  );
+
+  const explicit = fixture({ criteria: false });
+  explicit.spec.contenders = [{ profile: 'one' }, { profile: 'two' }, { profile: 'three' }];
+  explicit.spec.parallelism = 3;
+  explicit.spec.warmFirst = false;
+  explicit.spec.budget.maxRequests = 3;
+  explicit.profiles = Object.fromEntries(
+    ['one', 'two', 'three'].map((name) => [
+      name,
+      fake(name, { sandbox: 'workspace-write', model: 'shared-model' }),
+    ]),
+  );
+  const parallelEvents = [];
+  await runFork(explicit.source, explicit.spec, {
+    profiles: explicit.profiles,
+    onEvent: (event) => parallelEvents.push(event),
+    offlineCollector: inject,
+  });
+  assert.equal(
+    parallelEvents.find((event) => event.kind === 'fork.tree.created').scheduling,
+    'parallel',
+  );
+  assert.ok(
+    parallelEvents.findIndex(
+      (event) => event.kind === 'attempt.started' && event.candidateId === 'candidate-B',
+    ) <
+      parallelEvents.findIndex(
+        (event) => event.kind === 'attempt.finished' && event.candidateId === 'candidate-A',
+      ),
+  );
+});
+
+test('session fork upgrades root cache evidence only from a provider-reported warm write', async () => {
+  const f = fixture({ criteria: false });
+  f.spec.contenders = [{ profile: 'one' }, { profile: 'two' }, { profile: 'three' }];
+  f.spec.parallelism = 3;
+  f.spec.budget.maxRequests = 3;
+  f.profiles = {
+    one: fake('one', {
+      sandbox: 'workspace-write',
+      model: 'shared-model',
+      responses: [
+        {
+          output: 'one',
+          usage: {
+            input_tokens: 10,
+            output_tokens: 1,
+            cache_creation_input_tokens: 40,
+            costUsd: 0.1,
+          },
+        },
+      ],
+    }),
+    two: fake('two', { sandbox: 'workspace-write', model: 'shared-model' }),
+    three: fake('three', { sandbox: 'workspace-write', model: 'shared-model' }),
+  };
+  const events = [];
+  const result = await runFork(f.source, f.spec, {
+    profiles: f.profiles,
+    onEvent: (event) => events.push(event),
+    offlineCollector: inject,
+  });
+  assert.equal(result.status, 'completed');
+  assert.equal(result.tree.root.cache.status, 'write-reported');
+  assert.equal(typeof result.tree.root.cache.epoch, 'string');
+  assert.equal(result.tree.root.cache.ttlMs, null);
+  assert.equal(result.tree.root.cache.expiresAt, null);
+  const evidence = events.find((event) => event.kind === 'fork.root.cache');
+  assert.equal(evidence.cacheCreationInputTokens, 40);
+  assert.equal(forkStatus(result.batchId).tree.root.cache.status, 'write-reported');
+
+  const control = fixture({ criteria: false });
+  control.spec.contenders = [{ profile: 'one' }, { profile: 'two' }, { profile: 'three' }];
+  control.spec.parallelism = 3;
+  control.spec.budget.maxRequests = 3;
+  control.profiles = Object.fromEntries(
+    ['one', 'two', 'three'].map((name) => [
+      name,
+      fake(name, { sandbox: 'workspace-write', model: 'shared-model' }),
+    ]),
+  );
+  const controlEvents = [];
+  const controlResult = await runFork(control.source, control.spec, {
+    profiles: control.profiles,
+    onEvent: (event) => controlEvents.push(event),
+    offlineCollector: inject,
+  });
+  assert.equal(controlResult.tree.root.cache.status, 'unknown');
+  assert.equal(controlResult.tree.root.cache.epoch, null);
+  assert.equal(
+    controlEvents.some((event) => event.kind === 'fork.root.cache'),
+    false,
+  );
+
+  const statePath = join(control.batchDir(controlResult.batchId), 'state.json');
+  const tampered = jsonFile(statePath);
+  tampered.tree.root.cache = {
+    epoch: tampered.tree.root.createdAt,
+    ttlMs: null,
+    expiresAt: null,
+    status: 'write-reported',
+  };
+  writeFileSync(statePath, JSON.stringify(tampered, null, 2));
+  assert.throws(() => forkStatus(controlResult.batchId), /cache evidence/);
 });

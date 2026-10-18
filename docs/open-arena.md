@@ -115,20 +115,20 @@ omha arena review-record --id BATCH_ID --input human-review.json
 `runArena(cwd, specification, { config })` is the API equivalent. A specification
 has these version 1 fields; `validateArenaSpec()` is the executable contract:
 
-| Field              | Required Value                                                                                            |
-| ------------------ | --------------------------------------------------------------------------------------------------------- |
-| `authorization`    | Independent `{by, source, at}` execution authority                                                        |
-| `objective`        | Authorized implementation objective                                                                       |
-| `knowledgeId`      | Imported knowledge digest                                                                                 |
-| `bundle`           | Absolute path, SHA-256, base commit/tree, approved refs, complete sorted object IDs, forbidden object IDs |
-| `contenders`       | 2-8 write profiles; optional suffix-only `role`, `name`, `label` and `suffix`                             |
-| `allowedPaths`     | Relative files/directories; `"."` authorizes the entire clone                                             |
-| `securityMode`     | Explicit `cooperative` or `strict`                                                                        |
-| `deadlineMs`       | Overall preparation, implementation and verification deadline                                             |
-| `attemptTimeoutMs` | Each lane's admission/execution deadline, at most the overall deadline                                    |
-| `parallelism`      | 1-N, bounding implementations and verification together; optional `warmFirst` orders the first lane       |
-| `budget`           | Explicit shared runtime admission budget                                                                  |
-| `verification`     | Independent authority plus an array of fixed host criteria                                                |
+| Field              | Required Value                                                                                                                |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `authorization`    | Independent `{by, source, at}` execution authority                                                                            |
+| `objective`        | Authorized implementation objective                                                                                           |
+| `knowledgeId`      | Imported knowledge digest                                                                                                     |
+| `bundle`           | Absolute path, SHA-256, base commit/tree, approved refs, complete sorted object IDs, forbidden object IDs                     |
+| `contenders`       | 2-8 write profiles; optional suffix-only `role`, `name`, `label` and `suffix`                                                 |
+| `allowedPaths`     | Relative files/directories; `"."` authorizes the entire clone                                                                 |
+| `securityMode`     | Explicit `cooperative` or `strict`                                                                                            |
+| `deadlineMs`       | Overall preparation, implementation and verification deadline                                                                 |
+| `attemptTimeoutMs` | Each lane's admission/execution deadline, at most the overall deadline                                                        |
+| `parallelism`      | 1-N, bounding implementations and verification together; optional `warmFirst` (default on for 3+ lanes) orders the first lane |
+| `budget`           | Explicit shared runtime admission budget                                                                                      |
+| `verification`     | Independent authority plus an array of fixed host criteria                                                                    |
 
 The bundle is limited to 16 MiB, self-contained and verified in an empty host
 repository. `allowedRefs` is a sorted array of `{ref, commit}`. `objectIds` lists
