@@ -1,0 +1,20 @@
+AGENTS.md
+  s_58f720d8bd14b4::t_ae18ccbddd55ff 103-106
+  s_58f720d8bd14b4::t_510432558fe15b 73-102,107-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.43-trip",
+  "base_commit_sha": "a78ac1aa7c88bbd1ac0224d5c65bf936a2745272",
+  "prompts": {},
+  "sessions": {
+    "s_58f720d8bd14b4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "59b92062-783d-4829-8b57-bfe0d8a6d1de",
+        "model": "deepseek-flash"
+      },
+      "human_author": "linqh <linqh@trip.com>"
+    }
+  }
+}
