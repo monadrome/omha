@@ -1,10 +1,25 @@
 # Omha Contracts
 
-Open Arena knowledge import and the separately authorized two-implementation
+Open Arena knowledge import and the separately authorized multi-implementation
 batch have an additive version 1 contract described in
 [Open Arena Content and Independent Implementations](open-arena.md).
 `validateArenaSpec()` and the knowledge importer validate those records. They
 preserve the existing string public-context and leader write-exclusion contracts.
+
+Session Fork v1 is the stricter 2-8 lane projection documented in
+[Session Fork v1](session-fork.md). `omha fork create|run` atomically seals and
+executes a tree through `runArena()`; `status`, `tree`, `cancel` and report-only
+`resume` use the same records. All children must use the same adapter invocation
+shape and requested model, and shared/per-profile budgets must reserve every
+child before any launch. `warmFirst` may serialize the first existing child but
+cannot add an unbudgeted request. Names, roles, workspaces and instructions are
+suffix-only. Status verifies the sealed root and immutable node events against
+the exact `context.md` and suffix bytes.
+
+Provider usage retains `raw` fields and adds normalized input/output/total and
+cache creation/read/miss token counts. Positive read is `hit`, explicit zero is
+`miss`, and missing evidence is `unknown`. Prefix equality is never cache proof;
+unknown/interrupted usage keeps its reservation.
 
 All JSON inputs use version `1` and reject unknown fields. Paths are resolved
 relative to the supplied working directory, while durable state is under

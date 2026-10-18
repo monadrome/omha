@@ -24,17 +24,19 @@ an action), **act** (carry it out). Read "Status" and "Gap" as the backlog.
 | Auto review         | task completion, frozen evidence   | host review criteria + author exclusion | lifecycle review + resume   |
 | Auto group decision | host risk/ambiguity/write signals  | threshold trigger + blind host tally    | Leader decision gate        |
 | Auto escalation     | live progress, silence, input wait | bounded supervision policy              | notify + read-only takeover |
+| Session fork        | sealed prefix and snapshot         | same-route/model + budget/name gates    | 2-8 isolated Arena lanes    |
 
-| Layer                     | Status                                                                                          | Gap                                                                                                                     |
-| ------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **Execution channel**     | native headless adapters plus owned cmux / tmux / file handoffs                                 | Codex/Kimi JSONL stream live summaries; Claude remains native completion JSON. Preserve billing channels.               |
-| **Cross-CLI integration** | adapter argv per provider (`lib/adapters.mjs`)                                                  | No ACP (Agent Client Protocol, JSON-RPC over stdio). Standardizing here removes per-agent glue                          |
-| **Capability model**      | validated interactive / headless / tool-free / read-only tiers                                  | Host routing rejects incompatible and excluded profiles before launch. External wrappers cannot claim unverified tiers. |
-| **Auto rewind**           | Leader detects rework; native cmux forks message successors and retire sources after acceptance | Native forks need real checkpoints; semantic feedback needs evidence. No in-place transcript or file restore.           |
-| **Auto review**           | isolated, author-independent review with frozen diff/test/acceptance evidence                   | Host policy chooses reviewer/criteria; pending reviews resume without replaying writes.                                 |
-| **Auto group decision**   | host thresholds automatically invoke blind voters and valid chair before tasks                  | Human gates and failed/split/invalid outcomes remain closed until resolved; policies cannot come from the planner.      |
-| **Escalation / takeover** | live event watchdog, durable escalation and CLI stderr notifications                            | Read-only takeover uses existing fallbacks only, at most 3 times. Writes become interrupted and need explicit replay.   |
-| **Input-wait detection**  | structured inputWait summaries from live JSONL events                                           | Nonstreaming adapters and terminal handoffs retain timeout/manual observation; no inferred live signal is claimed.      |
+| Layer                     | Status                                                                                            | Gap                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Execution channel**     | native headless adapters plus owned cmux / tmux / file handoffs                                   | Codex/Kimi JSONL stream live summaries; Claude remains native completion JSON. Preserve billing channels.               |
+| **Cross-CLI integration** | adapter argv per provider (`lib/adapters.mjs`)                                                    | No ACP (Agent Client Protocol, JSON-RPC over stdio). Standardizing here removes per-agent glue                          |
+| **Capability model**      | validated interactive / headless / tool-free / read-only tiers                                    | Host routing rejects incompatible and excluded profiles before launch. External wrappers cannot claim unverified tiers. |
+| **Auto rewind**           | Leader detects rework; native cmux forks message successors and retire sources after acceptance   | Native forks need real checkpoints; semantic feedback needs evidence. No in-place transcript or file restore.           |
+| **Auto review**           | isolated, author-independent review with frozen diff/test/acceptance evidence                     | Host policy chooses reviewer/criteria; pending reviews resume without replaying writes.                                 |
+| **Auto group decision**   | host thresholds automatically invoke blind voters and valid chair before tasks                    | Human gates and failed/split/invalid outcomes remain closed until resolved; policies cannot come from the planner.      |
+| **Escalation / takeover** | live event watchdog, durable escalation and CLI stderr notifications                              | Read-only takeover uses existing fallbacks only, at most 3 times. Writes become interrupted and need explicit replay.   |
+| **Input-wait detection**  | structured inputWait summaries from live JSONL events                                             | Nonstreaming adapters and terminal handoffs retain timeout/manual observation; no inferred live signal is claimed.      |
+| **Session fork**          | sealed byte-identical host prefix, deterministic names, isolated lanes and normalized cache usage | Hidden CLI prompt/tool bytes and provider KV lifetime remain unknown; only explicit usage proves cache reads.           |
 
 ## Automation Invariants
 

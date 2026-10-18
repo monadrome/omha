@@ -60,3 +60,12 @@ export {
   recordArenaReview,
   validateArenaSpec,
 } from './lib/arena.mjs';
+export { runFork, forkStatus, forkTree, cancelFork, resumeFork } from './lib/fork.mjs';
+export {
+  FORK_LIMITS,
+  FORK_NAME_PATTERN,
+  sanitizeForkName,
+  forkNames,
+  assertSealedForkRoot,
+  aggregateForkCache,
+} from './lib/session-fork.mjs';

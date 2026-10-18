@@ -36,6 +36,13 @@ import { git, snapshotFiles } from '../lib/arena-artifacts.mjs';
 import { invocation } from '../lib/adapters.mjs';
 import { validateProfiles } from '../lib/profiles.mjs';
 import { delay } from '../lib/runner.mjs';
+import { forkStatus, forkTree, runFork } from '../lib/fork.mjs';
+import {
+  assertSealedForkRoot,
+  forkNames,
+  FORK_NAME_PATTERN,
+  sanitizeForkName,
+} from '../lib/session-fork.mjs';
 
 const time = '2026-10-10T12:00:00.000Z';
 const authorization = { by: 'fixture-user', source: 'offline-fixture-authorization', at: time };
@@ -408,7 +415,10 @@ test('arena bundle refs and complete objects fail closed, including unapproved r
   );
   const nonGit = temp();
   await assert.rejects(runArena(nonGit, f.spec, { profiles: f.profiles }), /Git source/);
-  assert.throws(() => validateArenaSpec({ ...f.spec, contenders: [{ profile: 'alpha' }] }), /N=2/);
+  assert.throws(
+    () => validateArenaSpec({ ...f.spec, contenders: [{ profile: 'alpha' }] }),
+    /between 2 and 8/,
+  );
 });
 
 test('arena strict rejects absent or unverified write executors before provider reservations', async () => {
@@ -951,4 +961,244 @@ test('arena host crash during verification cleans its recorded process and retai
   }
   assert.ok(!status || status.startsWith('Z'), 'Recorded verification process remains active');
   assert.equal(result.budget.account.requests, state.budget.account.requests);
+});
+
+test('session fork runs three isolated fake branches with stable names, one sealed prefix and cache evidence', async () => {
+  const f = fixture();
+  f.spec.objective = '缓存分叉';
+  f.spec.contenders = [
+    { profile: 'one', name: '../../Writer One', label: '实现一' },
+    { profile: 'two' },
+    { profile: 'three' },
+  ];
+  f.spec.parallelism = 3;
+  f.spec.warmFirst = true;
+  f.spec.budget.maxRequests = 3;
+  f.profiles = {
+    one: fake('one', {
+      sandbox: 'workspace-write',
+      model: 'shared-model',
+      responses: [
+        {
+          output: 'one',
+          usage: {
+            input_tokens: 10,
+            output_tokens: 1,
+            cache_read_input_tokens: 5,
+            costUsd: 0.1,
+          },
+        },
+      ],
+    }),
+    two: fake('two', {
+      sandbox: 'workspace-write',
+      model: 'shared-model',
+      responses: [
+        {
+          output: 'two',
+          usage: {
+            input_tokens: 10,
+            output_tokens: 1,
+            cache_read_input_tokens: 0,
+            costUsd: 0.1,
+          },
+        },
+      ],
+    }),
+    three: fake('three', {
+      sandbox: 'workspace-write',
+      model: 'shared-model',
+      responses: [{ output: 'three', usage: { input_tokens: 10, output_tokens: 1, costUsd: 0.1 } }],
+    }),
+  };
+  const prompts = [];
+  const events = [];
+  const result = await runFork(f.source, f.spec, {
+    profiles: f.profiles,
+    name: '../../KV Fork!!!',
+    onPrompt: (entry) => prompts.push(entry),
+    onEvent: (entry) => events.push(entry),
+    offlineCollector: inject,
+  });
+  assert.equal(result.status, 'completed');
+  assert.equal(result.executionKind, 'session-fork');
+  assert.equal(result.tree.nodes.length, 3);
+  assert.equal(new Set(prompts.map((entry) => entry.prefix)).size, 1);
+  assert.equal(hash(prompts[0].prefix), result.prefixHash);
+  assert.ok(prompts.every((entry) => !entry.prefix.includes(entry.name)));
+  assert.ok(prompts.every((entry) => entry.suffix.includes(`branch_name: ${entry.name}`)));
+  assert.ok(result.tree.nodes.every((node) => FORK_NAME_PATTERN.test(node.name)));
+  assert.equal(new Set(result.tree.nodes.map((node) => node.name)).size, 3);
+  assert.equal(result.tree.nodes[0].name, 'writer-one');
+  assert.deepEqual(
+    result.tree.nodes.map((node) => node.cache.status),
+    ['hit', 'miss', 'unknown'],
+  );
+  assert.equal(result.tree.cache.status, 'unknown');
+  assert.equal(result.tree.cache.readInputTokens, 5);
+  assert.ok(
+    events.findIndex(
+      (event) => event.kind === 'attempt.finished' && event.candidateId === 'candidate-A',
+    ) <
+      events.findIndex(
+        (event) => event.kind === 'attempt.started' && event.candidateId === 'candidate-B',
+      ),
+  );
+  assert.equal(forkStatus(result.batchId).tree.nodes[0].name, 'writer-one');
+  assert.deepEqual(
+    forkTree(result.batchId).nodes.map((node) => node.name),
+    result.tree.nodes.map((node) => node.name),
+  );
+
+  const cliTree = JSON.parse(
+    execFileSync(process.execPath, [cli, 'fork', 'tree', '--id', result.batchId], {
+      encoding: 'utf8',
+      env: process.env,
+    }),
+  );
+  assert.equal(cliTree.treeId, result.batchId);
+  assert.equal(cliTree.nodes.length, 3);
+
+  const packet = arenaReviewPacket(result.batchId);
+  assert.equal(packet.candidates[0].name, 'writer-one');
+  writeFileSync(join(f.batchDir(result.batchId), 'context.md'), 'changed prefix');
+  assert.throws(() => forkStatus(result.batchId), /prefix|parent/i);
+});
+
+test('session fork naming, sealed-parent and full-budget gates fail closed before launch', async () => {
+  assert.equal(sanitizeForkName('../你好/../../'), 'fork');
+  assert.ok(FORK_NAME_PATTERN.test(sanitizeForkName(`${'very-long/'.repeat(100)}objective`)));
+  assert.throws(
+    () =>
+      forkNames({
+        treeId: 'tree',
+        prefixHash: hash('prefix'),
+        objective: 'objective',
+        branches: [
+          { profile: 'a', name: 'same' },
+          { profile: 'b', name: 'same' },
+        ],
+      }),
+    /Duplicate/,
+  );
+  const root = {
+    kind: 'root',
+    sealed: true,
+    pendingToolCalls: 0,
+    pendingApproval: false,
+    backgroundProcesses: false,
+    prefixHash: hash('prefix'),
+    prefixBytes: Buffer.byteLength('prefix'),
+  };
+  assert.doesNotThrow(() => assertSealedForkRoot(root, 'prefix'));
+  assert.throws(() => assertSealedForkRoot({ ...root, sealed: false }, 'prefix'), /sealed/);
+  assert.throws(
+    () => assertSealedForkRoot({ ...root, pendingToolCalls: 1 }, 'prefix'),
+    /pending tool/,
+  );
+  assert.throws(() => assertSealedForkRoot(root, 'changed'), /prefix changed/);
+
+  const f = fixture();
+  f.spec.contenders = [{ profile: 'one' }, { profile: 'two' }, { profile: 'three' }];
+  f.spec.parallelism = 3;
+  f.spec.budget.maxRequests = 2;
+  f.profiles = Object.fromEntries(
+    ['one', 'two', 'three'].map((name) => [
+      name,
+      fake(name, { sandbox: 'workspace-write', model: 'shared-model' }),
+    ]),
+  );
+  let launched = 0;
+  await assert.rejects(
+    runFork(f.source, f.spec, {
+      profiles: f.profiles,
+      onPrompt: () => (launched += 1),
+      offlineCollector: inject,
+    }),
+    /cannot reserve every branch/,
+  );
+  assert.equal(launched, 0);
+});
+
+test('session fork preserves successful sibling evidence when one branch fails', async () => {
+  const f = fixture({ criteria: false });
+  f.spec.contenders = [{ profile: 'one' }, { profile: 'two' }, { profile: 'three' }];
+  f.spec.parallelism = 3;
+  f.spec.budget.maxRequests = 3;
+  f.profiles = {
+    one: fake('one', { sandbox: 'workspace-write', model: 'shared-model' }),
+    two: fake('two', {
+      sandbox: 'workspace-write',
+      model: 'shared-model',
+      responses: [{ failure: 'transport' }],
+    }),
+    three: fake('three', { sandbox: 'workspace-write', model: 'shared-model' }),
+  };
+  const result = await runFork(f.source, f.spec, {
+    profiles: f.profiles,
+    offlineCollector: inject,
+  });
+  assert.equal(result.status, 'completed-with-partial-results');
+  assert.deepEqual(result.tree.nodes.map((node) => node.status).sort(), [
+    'failed',
+    'produced',
+    'produced',
+  ]);
+  assert.equal(Object.keys(result.budget.ledger).length, 3);
+  assert.equal(result.tree.nodes.filter((node) => node.artifactDigest).length, 3);
+});
+
+test('session fork CLI runs an offline three-branch tree and prints observable names', () => {
+  const f = fixture({ criteria: false });
+  f.spec.objective = 'CLI fork demonstration';
+  f.spec.contenders = [{ profile: 'one' }, { profile: 'two' }, { profile: 'three' }];
+  f.spec.parallelism = 2;
+  f.spec.budget.maxRequests = 3;
+  f.profiles = Object.fromEntries(
+    ['one', 'two', 'three'].map((name) => [
+      name,
+      fake(`offline-${name}`, {
+        sandbox: 'workspace-write',
+        model: 'shared-cli-model',
+        responses: [
+          {
+            output: `offline-${name}`,
+            usage: { input_tokens: 2, output_tokens: 1, costUsd: 0 },
+          },
+        ],
+      }),
+    ]),
+  );
+  const specPath = join(f.root, 'fork.json');
+  const profilesPath = join(f.root, 'fork-profiles.json');
+  writeFileSync(specPath, JSON.stringify(f.spec));
+  writeFileSync(profilesPath, JSON.stringify({ version: 1, profiles: f.profiles }));
+  const output = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [
+        cli,
+        'fork',
+        'run',
+        '--cwd',
+        f.source,
+        '--input',
+        specPath,
+        '--config',
+        profilesPath,
+        '--allow-write',
+        '--name',
+        'CLI Demo',
+      ],
+      { encoding: 'utf8', env: process.env },
+    ),
+  );
+  assert.equal(output.status, 'completed');
+  assert.equal(output.tree.nodes.length, 3);
+  assert.ok(output.tree.name.startsWith('cli-demo-'));
+  assert.ok(output.tree.nodes.every((node) => FORK_NAME_PATTERN.test(node.name)));
+  assert.deepEqual(
+    output.tree.nodes.map((node) => node.cache.status),
+    ['unknown', 'unknown', 'unknown'],
+  );
 });

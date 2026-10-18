@@ -56,6 +56,7 @@ import {
   arenaReviewPacket,
   recordArenaReview,
 } from '../lib/arena.mjs';
+import { cancelFork, forkStatus, forkTree, resumeFork, runFork } from '../lib/fork.mjs';
 
 const BOOLEAN = new Set([
   'json',
@@ -232,6 +233,8 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha arena run --input execution.json --config providers.json --allow-write
   omha arena status|resume|cancel|review --id BATCH_ID
   omha arena review-record --id BATCH_ID --input human-review.json
+  omha fork create|run --input execution.json --config providers.json --allow-write [--name NAME]
+  omha fork status|tree|resume|cancel --id TREE_ID
   omha memory init|status|list|read|search|put|forget|inject|doctor
   omha doctor --json
   omha --version
@@ -302,6 +305,30 @@ async function main() {
         return;
       }
       throw new OmhaError('configuration', 'Unknown arena command');
+    }
+    if (command === 'fork') {
+      const sub = o._[0];
+      if (sub === 'status') return json(forkStatus(o.id));
+      if (sub === 'tree') return json(forkTree(o.id));
+      if (sub === 'cancel') return json(cancelFork(o.id));
+      if (sub === 'resume')
+        return json(await resumeFork(o.id, { spec: o.input ? inputJson(o.input) : undefined }));
+      if (sub === 'create' || sub === 'run') {
+        check(
+          o.allow_write,
+          'Session fork execution requires --allow-write and a separate authorized specification',
+        );
+        const result = await runFork(cwd, inputJson(o.input), {
+          config: o.config,
+          signal: controller.signal,
+          batchId: o.id,
+          name: o.name,
+        });
+        json(result);
+        if (result.status !== 'completed') process.exitCode = 1;
+        return;
+      }
+      throw new OmhaError('configuration', 'Unknown fork command');
     }
     if (command === 'memory') {
       const sub = o._.shift() || 'status',

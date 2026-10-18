@@ -14,6 +14,12 @@
   auto-butterfly actions to real host-selected checkpoints, retain source launch
   permissions/billing, and persist bounded claims without uncertain replay.
 
+- Add Session Fork v1 as a 2-8 lane projection of Open Arena, with sealed
+  prefix/suffix evidence, deterministic observable names, full reservation
+  gates, optional warm-first ordering and `fork` lifecycle commands. Normalize
+  raw Anthropic, OpenAI-compatible, DeepSeek and Kimi cache usage without
+  inferring hits from prefix equality.
+
 - Automatically observe Leader write tasks with frozen acceptance evidence,
   detect supported rework without manual history JSON, and prepare bounded file
   handoffs with durable claims, explicit host provenance and restart deduplication.
