@@ -9,6 +9,13 @@
 
 ### Features
 
+- Default Session Fork `warmFirst` on for three or more branches and record the
+  effective scheduling mode on the tree creation event. Upgrade root cache
+  evidence to `write-reported` with a persisted epoch only when the warm branch
+  usage reports a positive provider cache write; status and resume verify that
+  record against its event digest. Cover mixed-route rejection, the 9-branch
+  bound and tampered suffix evidence with fail-closed tests.
+
 - Add owned native cmux Claude/Codex historical forks, checkpoint discovery,
   structured messages and successor-confirmed source-surface retirement. Bind
   auto-butterfly actions to real host-selected checkpoints, retain source launch

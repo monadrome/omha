@@ -12,7 +12,8 @@ executes a tree through `runArena()`; `status`, `tree`, `cancel` and report-only
 `resume` use the same records. All children must use the same adapter invocation
 shape and requested model, and shared/per-profile budgets must reserve every
 child before any launch. `warmFirst` may serialize the first existing child but
-cannot add an unbudgeted request. Names, roles, workspaces and instructions are
+cannot add an unbudgeted request; it defaults on for three or more children and
+records the effective mode on the creation event. Names, roles, workspaces and instructions are
 suffix-only. Status verifies the sealed root and immutable node events against
 the exact `context.md` and suffix bytes.
 
