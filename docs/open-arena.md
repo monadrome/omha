@@ -121,12 +121,12 @@ has these version 1 fields; `validateArenaSpec()` is the executable contract:
 | `objective`        | Authorized implementation objective                                                                       |
 | `knowledgeId`      | Imported knowledge digest                                                                                 |
 | `bundle`           | Absolute path, SHA-256, base commit/tree, approved refs, complete sorted object IDs, forbidden object IDs |
-| `contenders`       | Exactly two `{profile}` entries; each selects one write profile                                           |
+| `contenders`       | 2-8 write profiles; optional suffix-only `role`, `name`, `label` and `suffix`                             |
 | `allowedPaths`     | Relative files/directories; `"."` authorizes the entire clone                                             |
 | `securityMode`     | Explicit `cooperative` or `strict`                                                                        |
 | `deadlineMs`       | Overall preparation, implementation and verification deadline                                             |
 | `attemptTimeoutMs` | Each lane's admission/execution deadline, at most the overall deadline                                    |
-| `parallelism`      | 1 or 2, bounding implementations and verification together                                                |
+| `parallelism`      | 1-N, bounding implementations and verification together; optional `warmFirst` orders the first lane       |
 | `budget`           | Explicit shared runtime admission budget                                                                  |
 | `verification`     | Independent authority plus an array of fixed host criteria                                                |
 

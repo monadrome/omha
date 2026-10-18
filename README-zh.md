@@ -200,5 +200,9 @@ file 交接。Kimi 只读调用需外部沙箱；未验证 tool-free CLI 前不�
 manifest、技能发现、离线测试和安装包。唯一运行依赖是解析 frontmatter 的 `yaml`。
 [优化验收审计](docs/optimization-audit.md) 列出各项生命周期改动、离线证据和仍保留的协议边界。
 
+Session Fork 复用 Open Arena 执行规范与冻结知识包，在同一逐字节 prefix 后创建 2-8 路
+自动命名、相互隔离的分支，但不声称复制 provider session 或命中 KV cache。CLI、cache
+证据与失败契约见 [Session Fork v1](docs/session-fork.md)。
+
 Apache-2.0 许可；[NOTICE](NOTICE) 与 [THIRD_PARTY.md](THIRD_PARTY.md) 区分保留的 upstream 技能与
 新编写的 Omha 代码。

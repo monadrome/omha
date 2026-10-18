@@ -7,6 +7,7 @@ import { temp, fake, config } from './helpers.mjs';
 import { createRuntime } from '../lib/runner.mjs';
 import {
   createEventFramer,
+  normalizeUsage,
   parseEvents,
   parseOutput,
   summarizeEvent,
@@ -163,6 +164,51 @@ test('adapters require completed, valid JSON/JSONL and extract provenance', () =
     parseOutput('claude', '{"type":"result","subtype":"error_max_turns","result":"partial"}'),
   );
   assert.throws(() => parseOutput('command', '{"output":"unverified"}', 'json'));
+});
+
+test('provider usage normalization preserves raw evidence and distinguishes cache hit, miss and unknown', () => {
+  const anthropic = normalizeUsage('claude', {
+    input_tokens: 12,
+    output_tokens: 3,
+    cache_creation_input_tokens: 7,
+    cache_read_input_tokens: 5,
+    future_metric: { retained: true },
+  });
+  assert.deepEqual(anthropic.normalized, {
+    inputTokens: 12,
+    outputTokens: 3,
+    totalTokens: null,
+    cacheCreationInputTokens: 7,
+    cacheReadInputTokens: 5,
+    cacheMissInputTokens: null,
+    cacheStatus: 'hit',
+  });
+  assert.deepEqual(anthropic.raw.future_metric, { retained: true });
+  assert.equal(anthropic.input_tokens, 12);
+
+  const openai = normalizeUsage('codex', {
+    prompt_tokens: 20,
+    completion_tokens: 4,
+    prompt_tokens_details: { cached_tokens: 0, cache_write_tokens: 9, future: 2 },
+  });
+  assert.equal(openai.normalized.cacheReadInputTokens, 0);
+  assert.equal(openai.normalized.cacheCreationInputTokens, 9);
+  assert.equal(openai.normalized.cacheStatus, 'miss');
+  assert.equal(openai.raw.prompt_tokens_details.future, 2);
+
+  const deepseek = normalizeUsage('deepseek', {
+    prompt_cache_hit_tokens: 11,
+    prompt_cache_miss_tokens: 6,
+  });
+  assert.equal(deepseek.normalized.cacheReadInputTokens, 11);
+  assert.equal(deepseek.normalized.cacheMissInputTokens, 6);
+  assert.equal(deepseek.normalized.cacheStatus, 'hit');
+
+  const unknown = normalizeUsage('kimi', { input_tokens: 1, vendor_extension: 'kept' });
+  assert.equal(unknown.normalized.cacheStatus, 'unknown');
+  assert.equal(unknown.normalized.cacheReadInputTokens, null);
+  assert.equal(unknown.raw.vendor_extension, 'kept');
+  assert.equal(normalizeUsage('kimi', null), null);
 });
 
 test('structured provider events expose bounded tool, file, usage and input-wait evidence', async () => {
@@ -467,6 +513,18 @@ test('unknown and partial usage retain token and cost reservations, including na
       costUsd: 0.1,
       estimated: false,
     },
+    {
+      usage: {
+        prompt_tokens: 20,
+        completion_tokens: 4,
+        prompt_tokens_details: { cached_tokens: 0 },
+        cost_usd: 0,
+      },
+      tokens: 24,
+      costUsd: 0,
+      estimated: false,
+      cacheStatus: 'miss',
+    },
   ];
   for (const item of cases) {
     const rt = local({
@@ -474,11 +532,14 @@ test('unknown and partial usage retain token and cost reservations, including na
     });
     const result = await rt.dispatch('prompt', ['p']);
     assert.equal(result.ok, true);
-    assert.deepEqual(result.usage, {
-      tokens: item.tokens,
-      costUsd: item.costUsd,
-      estimated: item.estimated,
-    });
+    assert.equal(result.usage.tokens, item.tokens);
+    assert.equal(result.usage.costUsd, item.costUsd);
+    assert.equal(result.usage.estimated, item.estimated);
+    assert.deepEqual(result.usage.raw, item.usage || null);
+    assert.equal(
+      result.usage.normalized?.cacheStatus ?? null,
+      item.usage ? item.cacheStatus || 'unknown' : null,
+    );
     assert.equal(result.budget.account.tokens, item.tokens);
     assert.equal(result.budget.profileAccounts.p.tokens, item.tokens);
     assert.ok(Math.abs(result.budget.account.costUsd - item.costUsd) < 1e-9);

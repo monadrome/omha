@@ -13,6 +13,11 @@
   后关闭来源 surface；auto-butterfly 绑定宿主指定的真实历史位置，保留来源权限与
   终端计费通道，并持久化有上限的动作请求，不重放不确定操作。
 
+- 增加 Session Fork v1：复用 Open Arena 执行链支持 2-8 路隔离分支，记录冻结的
+  prefix/suffix 证据、确定性可观测名称、全量预算预留门控、可选 warm-first 顺序和
+  `fork` 生命周期命令；归一化 Anthropic、OpenAI 兼容、DeepSeek 与 Kimi 的原始
+  cache usage，但不根据 prefix 相同推断命中。
+
 - Leader 自动收集写任务的冻结验收证据，无需手写历史 JSON 即可检测实际返工并生成
   有上限的 file 交接；记录宿主来源、持久化动作请求和重启去重，保留写任务重放门槛，
   在状态中展示回溯报告、交接结果和不确定动作数量。

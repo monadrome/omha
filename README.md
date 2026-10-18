@@ -89,6 +89,11 @@ node bin/omha.mjs memory inject --topics api-contract
 node bin/omha.mjs memory doctor
 ```
 
+Session Fork uses the existing Open Arena execution specification and frozen
+knowledge bundle. It fans out 2-8 isolated, automatically named branches without
+claiming provider-session cloning. See [Session Fork v1](docs/session-fork.md)
+for the CLI, cache evidence and failure contract.
+
 `npm run pack:check` installs a tarball in a clean temporary HOME, runs these
 workflows through the installed CLI/API, and verifies uninstall.
 When Claude Code is installed, it also validates both packed manifests, installs
