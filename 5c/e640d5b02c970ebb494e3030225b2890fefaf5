@@ -1,0 +1,10 @@
+AGENTS.md
+  s_58f720d8bd14b4::t_510432558fe15b 73-102,107-110
+  s_58f720d8bd14b4::t_ae18ccbddd55ff 103-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.43-trip",
+  "base_commit_sha": "5ce640d5b02c970ebb494e3030225b2890fefaf5",
+  "prompts": {}
+}
