@@ -55,6 +55,7 @@ try {
     'index.mjs',
     'bin/omha.mjs',
     'bin/handoff-worker.mjs',
+    'bin/auto-close-worker.mjs',
     '.claude-plugin/plugin.json',
     '.claude-plugin/marketplace.json',
     'skills/hide/LICENSE',
@@ -64,6 +65,8 @@ try {
     'examples/history.json',
     'docs/contracts.md',
     'docs/plugin.md',
+    'docs/auto-close.md',
+    'skills/auto-close/SKILL.md',
   ])
     assert.ok(names.includes(required), `tarball missing ${required}`);
   assert.equal(
@@ -298,7 +301,7 @@ try {
     [
       '--input-type=module',
       '-e',
-      `import {createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff} from ${JSON.stringify(pathToFileURL(join(installed, 'index.mjs')).href)};console.log([createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff].map(value=>typeof value).join(','))`,
+      `import {createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff,autoCloseHandoff} from ${JSON.stringify(pathToFileURL(join(installed, 'index.mjs')).href)};console.log([createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff,autoCloseHandoff].map(value=>typeof value).join(','))`,
     ],
     { cwd, env, encoding: 'utf8' },
   );
@@ -364,6 +367,25 @@ try {
     nativeEnv.CMUX_WORKSPACE_ID = fork.ref;
     nativeEnv.CMUX_SURFACE_ID = fork.surfaceRef;
     assert.equal(nativeRun(['handoff', 'accept', '--id', fork.id]).fork.sourceClose, 'closed');
+    const closing = nativeRun([
+      'auto-close',
+      '--completed',
+      '--reason',
+      'Installed goal and checks completed',
+      '--delay-ms',
+      '100',
+    ]);
+    assert.equal(closing.id, fork.id);
+    assert.equal(closing.autoClose.state, 'scheduled');
+    let closed = closing;
+    const closeDeadline = Date.now() + 15000;
+    while (closed.autoClose.state === 'scheduled' || closed.autoClose.state === 'closing') {
+      assert.ok(Date.now() < closeDeadline, 'Installed auto-close worker timed out');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      closed = nativeRun(['handoff', 'status', '--id', fork.id]);
+    }
+    assert.equal(closed.autoClose.state, 'closed');
+    assert.equal(closed.backendClosed, true);
   }
   const butterflyConfig = join(temporary, 'butterfly-providers.json');
   const butterflyPlanFile = join(temporary, 'butterfly-plan.json');

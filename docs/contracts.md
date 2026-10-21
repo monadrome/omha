@@ -250,6 +250,13 @@ and terminal billing channel. A queued message is not a takeover; successor
 identity and prompt hash authorize optional source-surface closure. Uncertain
 fork/close claims never replay automatically, and file restoration is not implied.
 
+`auto-close --completed --reason TEXT` is an explicit completion hook for the
+calling native cmux surface. It persists caller-reported completion, or binds
+verified host gates with `--run-id RUN_ID`, then detaches a bounded close worker.
+The worker rechecks the same session, ownership and run evidence before closing
+only that surface. Duplicate requests reuse their claim; uncertain requests are
+never replayed. See the [auto-close contract](auto-close.md).
+
 Memory topic frontmatter is parsed as YAML and validated by `lib/memory.mjs`.
 Leader automatically selects relevant active, fresh `worktree`/`project` topics
 for its immutable context. `plan.memory` controls `read`, `write`, `scopes`,

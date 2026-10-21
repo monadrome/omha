@@ -9,6 +9,10 @@
 
 ### 新功能
 
+- 增加 `auto-close` 完成钩子命令和插件 skill：任务完成后先持久化记录，再由独立
+  进程仅关闭当前原生 cmux 标签页；复查宿主运行门槛、所有权与会话身份，不重放
+  不确定的关闭，也不将普通单轮回复结束当作目标完成。
+
 - Session Fork 在三分支及以上默认开启 `warmFirst`，并在树创建事件上记录实际生效的
   调度模式；仅当预热分支的 usage 明确报告 provider cache 写入时，根节点 cache 证据
   才升级为 `write-reported` 并持久化 epoch，status/resume 会按事件摘要校验该记录。

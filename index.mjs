@@ -34,6 +34,7 @@ export {
   forkHandoff,
   messageHandoff,
   acceptHandoff,
+  autoCloseHandoff,
 } from './lib/terminal.mjs';
 export {
   initMemory,

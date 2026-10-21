@@ -43,6 +43,7 @@ const skills = readdirSync(join(root, 'skills'), { withFileTypes: true })
 assert.deepEqual(skills, [
   'agent-handoff',
   'auto-butterfly-effect',
+  'auto-close',
   'butterfly-effect',
   'hide',
   'leader-agent',
