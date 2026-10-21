@@ -17,9 +17,10 @@ function files(dir) {
   );
 }
 let syntax = 0;
-for (const path of ['index.mjs', ...['bin', 'lib', 'tests', 'scripts'].flatMap(files)].filter(
-  (path) => path.endsWith('.mjs'),
-)) {
+for (const path of [
+  'index.mjs',
+  ...['bin', 'lib', 'hooks', 'tests', 'scripts'].flatMap(files),
+].filter((path) => path.endsWith('.mjs'))) {
   execFileSync(process.execPath, ['--check', join(root, path)], { stdio: 'pipe' });
   syntax += 1;
 }

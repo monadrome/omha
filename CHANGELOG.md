@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Auto Compact
+
+- Add opt-in native Claude auto compact with configurable 57-minute cache timing,
+  a 20% context floor, immediate new-input invalidation, durable one-use intents,
+  session/profile budgets, structured cache bridging and native Mod execution.
+- Add short ADRs and AGENTS.md context pointers. Cover timing, deduplication,
+  failure, reload, ownership and installed plugin/CLI paths offline; real supported
+  Claude Mod execution remains an explicit verification prerequisite.
+
 ### Design
 
 - Archive the independent Kimi auto-compaction review and a verified synthesis

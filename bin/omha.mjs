@@ -46,7 +46,14 @@ import {
   messageHandoff,
   acceptHandoff,
   autoCloseHandoff,
+  compactRpc,
+  compactStatus,
+  observeCompactBridge,
+  compactBridgeCommand,
+  prepareCompact,
+  startCompactSession,
 } from '../lib/terminal.mjs';
+import { run } from '../lib/process.mjs';
 import { autoButterfly } from '../lib/butterfly.mjs';
 import { importOpenArena, readOpenArena } from '../lib/open-arena.mjs';
 import {
@@ -170,7 +177,7 @@ const csv = (value) =>
     .map((part) => part.trim())
     .filter(Boolean);
 function inputFile(file) {
-  const value = readFileSync(file, 'utf8');
+  const value = readFileSync(file === '-' ? 0 : file, 'utf8');
   check(Buffer.byteLength(value) <= 8 * 1024 * 1024, 'Input file exceeds 8 MiB');
   return value;
 }
@@ -240,6 +247,10 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha arena review-record --id BATCH_ID --input human-review.json
   omha fork create|run --input execution.json --config providers.json --allow-write [--name NAME]
   omha fork status|tree|resume|cancel --id TREE_ID
+  omha compact status
+  omha compact setup|start --config providers.json [--input claude-settings.json --args JSON]
+  omha compact rpc --input -
+  omha compact bridge --id ACTIVATION_ID
   omha memory init|status|list|read|search|put|forget|inject|doctor
   omha doctor --json
   omha --version
@@ -267,6 +278,46 @@ async function main() {
   process.on('SIGTERM', abort);
   try {
     const options = runtimeOptions(cwd, o, controller);
+    if (command === 'compact') {
+      const sub = o._[0] || 'status';
+      if (sub === 'status') return json(compactStatus(cwd));
+      if (sub === 'setup' || sub === 'start') {
+        const settings = o.input ? inputJson(o.input) : {};
+        if (sub === 'setup') return json(prepareCompact(cwd, { config: o.config, settings }));
+        const result = await startCompactSession(cwd, {
+          config: o.config,
+          settings,
+          args: o.args ? JSON.parse(o.args) : [],
+          signal: controller.signal,
+        });
+        process.exitCode = result.exitCode;
+        return;
+      }
+      if (sub === 'rpc')
+        return json({ version: 1, ok: true, result: compactRpc(cwd, inputJson(o.input)) });
+      if (sub === 'bridge') {
+        const raw = inputFile('-');
+        const original = compactBridgeCommand(cwd, o.id);
+        try {
+          observeCompactBridge(cwd, o.id, JSON.parse(raw));
+        } catch {
+          /* Partial cache data never changes the user's status line. */
+        }
+        if (original) {
+          const result = await run(process.env.SHELL || '/bin/sh', ['-c', original], {
+            cwd,
+            env: process.env,
+            input: raw,
+            timeoutMs: 5000,
+            maxOutputBytes: 262144,
+            onOutput: (kind, chunk) => process[kind].write(chunk),
+          });
+          process.exitCode = result.code ?? 1;
+        }
+        return;
+      }
+      throw new OmhaError('configuration', 'Unknown compact command');
+    }
     if (command === 'status') {
       if (!o.watch) return json(projectStatus(cwd));
       for await (const snapshot of watchStatus(cwd, {

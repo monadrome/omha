@@ -1,5 +1,11 @@
 # Omha Contracts
 
+Opt-in native Claude auto compact uses the existing terminal ownership/storage
+boundary with a durable session/profile budget and a structured Mod-to-CLI RPC.
+Configuration is root-level `maintenance.autoCompact`; defaults are 57 minutes
+and a 20% context floor. See [the implemented contract](auto-compact.md) and
+[ADRs](adr/README.md) for activation, cache evidence, input invalidation and recovery.
+
 Open Arena knowledge import and the separately authorized multi-implementation
 batch have an additive version 1 contract described in
 [Open Arena Content and Independent Implementations](open-arena.md).

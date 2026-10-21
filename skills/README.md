@@ -16,7 +16,12 @@ finish, then invokes the CLI's owned completion hook to close the current cmux
 surface. It needs the CLI and a native session binding; see the
 [auto-close guide](../docs/auto-close.md). Ordinary replies do not trigger cleanup.
 
-The plugin has no automatic hooks and does not install the CLI. Run
+The opt-in [auto compact Mod](../docs/auto-compact.md) maintains an explicitly
+activated native Claude session; no prompt skill or install starts it. It needs
+the CLI and supported Claude version. Its configuration and execution are CLI-only
+because prompts cannot provide timer, budget or ownership guarantees.
+
+The plugin does not install the CLI. Run
 `omha doctor --json` before using runtime commands; see the
 [plugin guide](../docs/plugin.md) for installation, prerequisites and examples.
 The retained `butterfly-effect` and `hide` skills keep their upstream contracts,

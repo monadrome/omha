@@ -1,5 +1,11 @@
 # Claude Code Plugin
 
+Auto compact is an opt-in native Mod in this same plugin. It defaults to a
+57-minute cache timer and 20% context floor, with host budget/ownership checks;
+see [activation and limits](auto-compact.md). It is inert without an explicit
+`omha compact start` activation and requires Claude Code 2.1.290+. Missing CLI or
+older Claude leaves prompt skills usable. The Mod never silently installs tools.
+
 Omha has two install surfaces from one repository. The Claude Code plugin loads
 prompt skills; the Node CLI owns deterministic execution and durable state. You
 can use the prompt skills without installing the CLI. Runtime operations require
@@ -48,7 +54,8 @@ Type a skill command in Claude Code, followed by your task:
 The retained `/omha:butterfly-effect` and `/omha:hide` skills also remain available
 with their upstream references and licenses. Claude can select relevant skills
 from their descriptions. Skills receive the task as prompt context; no plugin
-hook or startup script dispatches a provider automatically.
+hook dispatches a provider by default. Explicit auto-compact activation allows
+only the bounded native maintenance operation described above.
 With an authorized cmux continuation, `auto-butterfly-effect` can gather history
 evidence, bind a real checkpoint and drive the CLI fork/message/accept workflow.
 The successor confirms takeover before optional source retirement; see
