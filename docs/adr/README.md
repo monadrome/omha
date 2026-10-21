@@ -1,0 +1,11 @@
+# Architecture Decisions
+
+ADRs record only consequential accepted or rejected decisions and one or two
+reasons. Keep implementation details in the linked feature documents. Add a new
+record when changing a decision; mark the old record superseded rather than
+silently rewriting its history.
+
+| Record                                        | Decision                                                                      | Context                                      |
+| --------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------- |
+| [0001](0001-native-auto-compact.md)           | Use a native Claude Mod with host admission for auto compact                  | [Runtime contract](../auto-compact.md)       |
+| [0002](0002-compact-evidence-and-recovery.md) | Re-arm from cache evidence; persist intent and budget before native execution | [Reviewed design](../auto-compact-review.md) |

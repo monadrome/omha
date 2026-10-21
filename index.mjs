@@ -35,6 +35,12 @@ export {
   messageHandoff,
   acceptHandoff,
   autoCloseHandoff,
+  prepareCompact,
+  startCompactSession,
+  compactRpc,
+  compactStatus,
+  compactCapabilities,
+  observeCompactBridge,
 } from './lib/terminal.mjs';
 export {
   initMemory,

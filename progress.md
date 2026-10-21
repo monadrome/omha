@@ -1,5 +1,42 @@
 # Progress
 
+## Auto compact and ADR context (2026-10-18)
+
+- Read implementation/review documents and existing profile, terminal, runtime,
+  storage, CLI, packaging and project instruction paths. Applying planning-with-files
+  and agent-md-advisor for persistent progress and short decision records.
+- Reusing official Mod contracts already researched; no model invocation or
+  automatic Claude upgrade is authorized or needed for offline implementation.
+- Implemented explicit activation, closed policy validation, hash-chained durable
+  session/profile accounts, correlated cache bridge, one-use claim/consume/finish,
+  native Mod timers and input invalidation. Added concise ADRs and context pointers.
+- Parallel user auto-close work appeared in shared CLI/terminal/docs; preserving
+  it and integrating shared imports without including its feature in our scope.
+- First focused run passed 44/45; the complete fake Mod path exposed refresh being
+  skipped before queued idle processing completed. Move its busy check inside the
+  serialized callback so it observes the actual latest state.
+- Focused compact suite passed 17/17; added independent-process one-use consumption
+  and fixture native startup/version-refusal tests. Static checks and both plugin
+  manifests passed. A concurrent full suite/package run suffered large wall-clock
+  interruptions and native process timeouts; rerunning without package contention.
+- The other shared task temporarily removed compact wiring from terminal/CLI/API
+  and packaging while preparing its own changes. Stopped the invalid run, restored
+  only compact integration, and restarted full verification. No unrelated changes
+  have been reverted or included in delivery.
+- Combined worktree full suite now passes 190/190, including 19 compact tests.
+  The clean-HOME 94-file package check passes CLI/setup, both manifests, actual
+  plugin installation, eight-skill discovery and uninstall. Preparing a compact-only
+  staged tree for isolated verification so unrelated auto-close work stays out.
+- Compact-only verification preserves the seven-skill baseline and excludes all
+  auto-close code. Formatting/static checks and 19 compact tests pass; overall
+  isolated suite is 177/178 due to an existing Arena 10-second deadline case,
+  also timing out alone. Isolated npm pack emitted its 91-file manifest then hit
+  its timeout. No timeout or acceptance boundary was weakened. Main worktree's
+  full 190/190 and 94-file installed package remain successful verification.
+- Short ADRs, context pointers, CLI/plugin docs, bilingual changelogs and runtime
+  limits are complete. Preparing a path-limited commit from the isolated tree;
+  parallel auto-close staged content will be preserved, not included in this commit.
+
 ## cmux butterfly continuation (2026-10-17)
 
 - Restored tracked planning context; main started clean and synchronized.

@@ -1,5 +1,29 @@
 # Omha release candidate implementation
 
+## Auto compact and ADR context (2026-10-18)
+
+- [complete] 1. Verify Mod contracts and existing storage/configuration paths;
+  freeze the host RPC, stable session budget and native execution boundary.
+- [complete] 2. Implement policy, durable maintenance lifecycle, Mod controller,
+  cache bridge and explicit activation through existing terminal/runtime modules.
+- [complete] 3. Add offline timing, input invalidation, recovery, budget, plugin
+  and installed-package tests; add concise ADRs and AGENTS.md context pointers.
+- [complete] 4. Run full checks and packaging/plugin validation, review the diff,
+  commit task files and push main without a version bump or publishing.
+
+Acceptance: default 57 minutes and 20% floor; new accepted input invalidates old
+timers immediately; only actual cache evidence re-arms; no repeated compaction
+without business work, no cold replay or budget bypass, native idle coordination,
+plain skills remain usable, and incomplete real-provider verification is explicit.
+
+Verification: combined main worktree 190/190, including 19 compact tests; full
+94-file clean-HOME pack/install/plugin/uninstall and both strict manifest checks
+pass. Compact-only tree static checks pass; its 19 compact tests pass, while one
+existing Arena short-deadline case timed out (177/178 overall). An additional
+compact-only packaging attempt timed out in npm pack after emitting its manifest.
+No real supported-Claude Mod/compact call was made; local Claude is 2.1.220.
+Delivery uses only the compact/ADR task paths, preserving parallel auto-close work.
+
 ## cmux butterfly continuation (2026-10-17)
 
 Objective: support owned cmux session forks at an explicit historical checkpoint

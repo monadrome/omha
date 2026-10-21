@@ -1,5 +1,30 @@
 # Research findings
 
+## Auto compact implementation (2026-10-18)
+
+- Main starts clean at 171fa91. The reviewed design and synthesis are authorized
+  for implementation; user also requests concise ADRs and AGENTS.md pointers.
+- Existing config validators reject unknown fields; maintenance must be admitted
+  at the root and synchronized with the providers schema.
+- Storage provides no-follow atomic records, token locks and append-only logs.
+  Runtime reserve/settle accounts are per-instance; native session maintenance
+  needs durable accounting rather than reconstructing an empty runtime each RPC.
+- Cached official Mod types provide clock.after/every, session.compact and
+  process.run(argv, {stdin,timeoutMs}). session.usage does not expose prompt_cache;
+  an explicit statusline bridge is required when no native cache field exists.
+- Local Claude 2.1.220 cannot execute the supported Mod baseline. Prior offline
+  probe showed hooks:{},modules:[...] passes its parser, modules alone fails.
+  Implement compatibility and fake-host tests without claiming a live compact.
+- Stable native session IDs key durable maintenance counts; conversation epochs
+  and Mod owner tokens cannot clear spend. Shared profile admission uses the same
+  reserve/settle helpers as ProviderRuntime. Unknown native execution blocks replay;
+  known completion with unknown usage keeps the reservation without a stuck gate.
+- Explicit startup overlays preserve existing user/project/local statusLine,
+  disable idle compaction only and keep native argv/model/auth/billing. The Mod
+  verifies effective idleCompaction:false and native version before registration.
+- Canonical runtime details are in docs/auto-compact.md; ADR 0001 and 0002 contain
+  only decisions, short reasons and rejected alternatives, indexed by AGENTS.md.
+
 ## cmux butterfly continuation (2026-10-17)
 
 - Installed cmux advertises `fork`/`restore`, `vault fork --checkpoint|--turn`,

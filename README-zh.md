@@ -1,5 +1,9 @@
 # Omha
 
+可选的 [auto compact](docs/auto-compact.md) 支持缓存过期前压缩原生 Claude 会话：
+默认 57 分钟、20% 上下文门槛，新输入立即撤销旧排期，并保留宿主预算与所有权校验。
+关键决策见 [ADR 索引](docs/adr/README.md)。
+
 [English](README.md) | [输入协议与 API](docs/contracts.md) | [安全边界](docs/security.md)
 
 Omha 由本地、跨 provider 的 CLI 和 Claude Code plugin 组成。七个提示词 skills

@@ -1,5 +1,10 @@
 # Omha
 
+Opt-in [auto compact](docs/auto-compact.md) keeps native Claude sessions compact
+before cache expiry, with configurable 57-minute timing, a 20% context floor,
+input-driven rescheduling and host budget/ownership gates. Architecture decisions
+are indexed in [ADRs](docs/adr/README.md).
+
 [中文](README-zh.md) | [Contracts](docs/contracts.md) | [Security](docs/security.md)
 
 Omha combines a local, provider-neutral CLI with a Claude Code plugin for agent

@@ -64,6 +64,15 @@ threshold.
 
 ## Working On This
 
+- Context pointers: read [ADR index](docs/adr/README.md) before changing an
+  architectural boundary. ADRs record only key accepted/rejected decisions and
+  one or two rationale bullets; keep detailed contracts in feature docs.
+- For auto compact, read [runtime contract](docs/auto-compact.md) and the linked
+  ADRs; use [review](docs/auto-compact-review.md) for historical tradeoffs.
+- For execution, terminal and memory boundaries, read
+  [architecture](docs/architecture.md), [contracts](docs/contracts.md) and
+  [security](docs/security.md) when touching those modules.
+
 - Extend the existing modules (`lib/runner.mjs`, `lib/orchestrator.mjs`,
   `lib/terminal.mjs`, `lib/memory.mjs`, `lib/backends.mjs`). Do not build a second
   parallel implementation of something already here.

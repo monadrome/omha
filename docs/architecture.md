@@ -6,8 +6,9 @@ The Claude Code plugin loads prompt skills from this same repository. Skills own
 open-ended reasoning: decomposition, alternatives, evidence interpretation and
 knowledge selection. The CLI owns fixed execution protocols once their inputs,
 side effects and acceptance rules are known. Neither a skill nor model output can
-replace host validation. The plugin adds no automatic execution hooks and does
-not install the CLI; see the [plugin guide](plugin.md).
+replace host validation. The plugin's opt-in auto-compact Mod only runs for an
+explicitly activated native session and uses CLI-owned admission. It does not
+install the CLI; see the [plugin guide](plugin.md) and [ADRs](adr/README.md).
 
 ```text
 skills/*/SKILL.md       -> portable trigger/evidence contracts
@@ -28,13 +29,16 @@ lib/arena-isolation.mjs -> external write policies and local negative probes
 lib/roundtable.mjs      -> blind proposals, evidence validation, chair record
 lib/backends.mjs        -> owned cmux/tmux/file operations
 lib/terminal.mjs        -> handoff state machine and lifecycle API
+lib/compact.mjs         -> native maintenance claims, cache evidence and durable budgets
+hooks/*.mjs            -> opt-in native Mod events and host-checked timers
 lib/butterfly.mjs       -> lifecycle observation, chronological drift gate, bounded handoff
 lib/frontmatter.mjs     -> YAML parser for Markdown memory records
 lib/memory.mjs          -> scope boundaries, indexes, locks and freshness
 lib/storage.mjs         -> no-follow atomic state and lock primitives
 ```
 
-The provider runtime is the only module that launches model CLIs. A profile is
+The provider runtime owns metered headless model launches. Native terminal
+activation remains in the terminal lifecycle and keeps its billing channel. A profile is
 validated before an executable starts. Adapter parsers require a completed
 provider event and nonempty output. The runtime records every attempt and uses
 failure kinds to decide whether retry or fallback is allowed.

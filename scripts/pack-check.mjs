@@ -65,6 +65,12 @@ try {
     'examples/history.json',
     'docs/contracts.md',
     'docs/plugin.md',
+    'hooks/hooks.json',
+    'hooks/register.mjs',
+    'hooks/controller.mjs',
+    'lib/compact.mjs',
+    'docs/auto-compact.md',
+    'docs/adr/README.md',
     'docs/auto-close.md',
     'skills/auto-close/SKILL.md',
   ])
@@ -168,6 +174,25 @@ try {
       }),
     );
   assert.equal(run(['doctor', '--json']).ok, true);
+  assert.deepEqual(run(['compact', 'status']), []);
+  const compactConfig = join(temporary, 'compact-providers.json');
+  writeFileSync(
+    compactConfig,
+    JSON.stringify({
+      version: 1,
+      profiles: { claude: { adapter: 'claude', command: 'claude', model: 'sonnet' } },
+      maintenance: { autoCompact: { enabled: true, bridgeStatusLine: true } },
+    }),
+  );
+  const compactSetup = run(['compact', 'setup', '--config', compactConfig]);
+  assert.equal(compactSetup.policy.afterMinutes, 57);
+  assert.equal(compactSetup.policy.minContextPercent, 20);
+  const compactSettings = JSON.parse(readFileSync(compactSetup.settingsFile, 'utf8'));
+  assert.equal(compactSettings.idleCompaction, false);
+  assert.ok(compactSettings.statusLine.command.includes(cli));
+  const compactHook = JSON.parse(readFileSync(join(installed, 'hooks/hooks.json'), 'utf8'));
+  assert.deepEqual(compactHook.hooks, {});
+  assert.deepEqual(compactHook.modules, ['./register.mjs']);
   assert.equal(run(['run', '--profile', 'fake', '--prompt', 'Packed offline check']).ok, true);
   assert.equal(
     run(['memory', 'put', '--name', 'packed', '--content', 'Installed package works']).scope,

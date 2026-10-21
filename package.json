@@ -9,6 +9,7 @@
   "files": [
     "bin",
     "lib",
+    "hooks",
     "index.mjs",
     "skills",
     "docs",
