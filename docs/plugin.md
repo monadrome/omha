@@ -24,7 +24,7 @@ does not run npm, modify your provider configuration or install a global command
 Restart Claude Code after installing or updating to load the new skills.
 
 Check the installed plugin with `claude plugin list --json`. On Claude versions
-that support it, `claude plugin details omha@omha` lists the seven skills and
+that support it, `claude plugin details omha@omha` lists the eight skills and
 their token costs without a model call. Both manifests can be checked offline:
 
 ```bash
@@ -42,6 +42,7 @@ Type a skill command in Claude Code, followed by your task:
 /omha:agent-handoff Prepare a continuation for another session.
 /omha:project-memory Record the verified API decision for the next session.
 /omha:auto-butterfly-effect Check whether this rework has a supported restart point.
+/omha:auto-close Close this cmux task tab after the goal and its checks finish.
 ```
 
 The retained `/omha:butterfly-effect` and `/omha:hide` skills also remain available
@@ -52,6 +53,10 @@ With an authorized cmux continuation, `auto-butterfly-effect` can gather history
 evidence, bind a real checkpoint and drive the CLI fork/message/accept workflow.
 The successor confirms takeover before optional source retirement; see
 [cmux historical continuation](cmux-fork.md).
+For completion cleanup, `auto-close` invokes the explicit CLI hook only after the
+task is finished. The host verifies the calling owned surface and any supplied
+run gates; a detached worker records the outcome and closes that surface. It
+installs no unconditional Stop hook. See [auto-close](auto-close.md).
 
 | Work      | Prompt skill owns                               | CLI owns when needed                                  |
 | --------- | ----------------------------------------------- | ----------------------------------------------------- |

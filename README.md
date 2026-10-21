@@ -61,7 +61,7 @@ claude plugin install omha@omha
 Use `claude plugin marketplace add /absolute/path/to/omha` instead for a local
 checkout. Restart Claude Code, then invoke `/omha:leader-agent TASK`,
 `/omha:roundtable QUESTION`, `/omha:agent-handoff TASK` or another of the
-[seven skills](skills/README.md). The plugin installs prompts; CLI operations
+[eight skills](skills/README.md). The plugin installs prompts; CLI operations
 also require the separate CLI installation above. Prompt-only work needs no CLI.
 
 Update with `claude plugin marketplace update omha` and
@@ -209,6 +209,10 @@ separate outcomes, including when older runs have no acceptance evidence.
   or `auto-butterfly --fork` with an explicit history binding and write authorization.
   Native permissions/billing are preserved; files are not restored. See
   [cmux historical continuation](docs/cmux-fork.md).
+  To close the task tab after a goal and its checks finish, invoke
+  `omha auto-close --completed --reason 'Goal completed; checks passed'` as its
+  final completion hook, or use `/omha:auto-close` in the plugin. Only the calling
+  surface closes; other splits remain. See [auto-close](docs/auto-close.md).
 - **Butterfly:** Leader automatically observes write tasks with frozen host
   acceptance checks. A failed check followed by changed rework of the same
   candidate triggers the existing drift detector and a bounded file handoff;

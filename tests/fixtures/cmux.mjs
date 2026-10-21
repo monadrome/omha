@@ -70,6 +70,7 @@ if (args[0] === 'identify') {
   if (state.fail === 'close') fail();
   state.closed.push(option('--surface'));
   delete state.surfaces[option('--surface')];
+  if (state.fail === 'close-response') fail('response lost after close');
   output('OK');
 } else if (args[0] === 'rpc') {
   const params = JSON.parse(args[2]);

@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { check, OmhaError } from '../lib/validation.mjs';
+import { check, keys, OmhaError } from '../lib/validation.mjs';
 import { commandExists, hash, projectIdentity, stateHome } from '../lib/core.mjs';
 import { redactData, environmentSecrets } from '../lib/security.mjs';
 import { createRuntime } from '../lib/runner.mjs';
@@ -45,6 +45,7 @@ import {
   forkHandoff,
   messageHandoff,
   acceptHandoff,
+  autoCloseHandoff,
 } from '../lib/terminal.mjs';
 import { autoButterfly } from '../lib/butterfly.mjs';
 import { importOpenArena, readOpenArena } from '../lib/open-arena.mjs';
@@ -74,6 +75,7 @@ const BOOLEAN = new Set([
   'help',
   'watch',
   'close_source',
+  'completed',
 ]);
 const ALLOWED = new Set([
   ...BOOLEAN,
@@ -135,6 +137,8 @@ const ALLOWED = new Set([
   'fork',
   'checkpoint',
   'turn',
+  'run_id',
+  'delay_ms',
 ]);
 
 function parse(args) {
@@ -226,6 +230,7 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha handoff checkpoints|accept --id ID
   omha handoff fork --id SOURCE_ID (--checkpoint ID | --turn N) --prompt TEXT --allow-write [--close-source]
   omha handoff message --id ID --prompt TEXT
+  omha auto-close --completed --reason TEXT [--id HANDOFF_ID] [--run-id RUN_ID] [--delay-ms 1500]
   omha auto-butterfly --input history.json [--analyze --profile analyst]
   omha auto-butterfly --input history.json --fork fork.json --allow-write
   omha arena import --source DIRECTORY --input knowledge-metadata.json
@@ -435,6 +440,24 @@ async function main() {
       const sub = o._[0] || 'status';
       if (sub === 'status') return json(decisionStatus(cwd, o.id));
       return json(resolveDecision(cwd, o.id, sub, o.reason));
+    }
+    if (command === 'auto-close') {
+      keys(
+        o,
+        ['_', 'cwd', 'json', 'completed', 'reason', 'id', 'run_id', 'delay_ms'],
+        'auto-close',
+      );
+      check(o._.length === 0, 'Auto-close accepts no positional hook payload');
+      return json(
+        await autoCloseHandoff(cwd, {
+          id: o.id,
+          completed: o.completed === true,
+          reason: o.reason,
+          runId: o.run_id,
+          delayMs: o.delay_ms === undefined ? undefined : Number(o.delay_ms),
+          signal: controller.signal,
+        }),
+      );
     }
     if (command === 'handoff') {
       const sub = o._[0] || 'start';

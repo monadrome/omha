@@ -54,7 +54,7 @@ claude plugin install omha@omha
 
 本地源码安装时，将第一行替换为 `claude plugin marketplace add /源码绝对路径/omha`。
 重启 Claude Code 后，可调用 `/omha:leader-agent 任务`、`/omha:roundtable 问题`、
-`/omha:agent-handoff 任务` 等[七个 skills](skills/README.md)。插件只安装提示词；
+`/omha:agent-handoff 任务` 等[八个 skills](skills/README.md)。插件只安装提示词；
 调用运行时功能还需要单独安装上面的 CLI。纯提示词任务可以直接完成。
 
 更新使用 `claude plugin marketplace update omha` 和 `claude plugin update omha@omha`，
@@ -164,6 +164,10 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
   `handoff adopt|checkpoints|fork|message|accept` 或 `auto-butterfly --fork`；
   需要明确的历史位置绑定与写入授权，保留原终端权限和计费通道。只复制新会话的
   历史，不恢复文件；详见 [cmux 历史接续](docs/cmux-fork.md)。
+- 任务目标和验收完成后，以 `omha auto-close --completed --reason 'Goal completed'`
+  作为最后的完成钩子，或在插件中使用 `/omha:auto-close`。独立进程先记录再关闭当前
+  cmux 标签页，保留其他标签与分屏；可用 `--run-id` 绑定宿主验收与评审，不把普通回复
+  结束视为目标完成。详见 [自动关闭](docs/auto-close.md)。
 
 ## 记忆与安全边界
 

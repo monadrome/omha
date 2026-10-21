@@ -23,6 +23,11 @@
 
 ### Features
 
+- Add an explicit `auto-close` completion hook and plugin skill for native cmux
+  task tabs. Persist completion before detaching an owned surface-only closer;
+  recheck host run gates, ownership and session identity without replaying
+  uncertain closes or treating ordinary turn completion as goal achievement.
+
 - Default Session Fork `warmFirst` on for three or more branches and record the
   effective scheduling mode on the tree creation event. Upgrade root cache
   evidence to `write-reported` with a persisted epoch only when the warm branch

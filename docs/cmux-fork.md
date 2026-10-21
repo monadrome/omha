@@ -58,8 +58,10 @@ matching prompt hash and unchanged source ownership/session. Only then does
 untouched. Without that option, the source remains open. Queued messages alone
 never authorize source closure. The source can request its own retirement by
 forking with `--close-source`; the successor performs the final close.
-Directly closing the calling native surface is refused; use that takeover path
-so closure cannot terminate the host before it records the outcome.
+Cancelling an active calling native surface is refused; use that takeover path
+so closure cannot terminate the host before it records the outcome. After a task
+has finished, the explicit [auto-close completion hook](auto-close.md) instead
+persists completion and delegates self-close to an independent recorder.
 
 Send follow-up context through the same structured channel:
 
