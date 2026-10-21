@@ -24,3 +24,9 @@
   Root plans, compact implementation/hooks/configuration and docs remain unstaged.
 - Remote main previously matched the base. A later SSH fetch was reset; retry
   the ordinary push after creating the task commit.
+- Feature commit abfd6e4 is delivered to origin/main. Terminated only the owned
+  hung SSH connection and retried with bounded connection/keepalive settings;
+  the ordinary push succeeded. No force, version bump or publication occurred.
+- Final task result: explicit completion command and discoverable plugin skill,
+  detached surface-only cleanup, host gate binding, durable outcomes and offline
+  failure coverage. Concurrent compact work remains outside this delivery.
