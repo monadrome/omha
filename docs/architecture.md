@@ -1,5 +1,7 @@
 # Architecture
 
+> 可视化总览：[打开 HTML 架构图](architecture.html)。该页面用功能剖面、生命周期和信任边界解释下面的模块关系。
+
 Omha keeps host-readable instructions separate from side effects:
 
 The Claude Code plugin loads prompt skills from this same repository. Skills own

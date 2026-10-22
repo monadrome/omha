@@ -1,0 +1,1039 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Omha 全局架构、功能模块和底层实现说明" />
+    <title>Omha / 全局架构</title>
+    <style>
+      :root {
+        --ink: #17252a;
+        --muted: #5b6c70;
+        --paper: #f3f5f1;
+        --panel: #ffffff;
+        --line: #cfd9d5;
+        --deep: #173740;
+        --teal: #2c7a78;
+        --mint: #d9ebe2;
+        --lime: #c8d26b;
+        --coral: #e7795f;
+        --gold: #e6b75d;
+        --shadow: 0 16px 40px rgba(23, 55, 64, 0.1);
+        --display: Georgia, 'Noto Serif SC', 'Songti SC', serif;
+        --body:
+          Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC',
+          sans-serif;
+        --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font-family: var(--body);
+        line-height: 1.65;
+      }
+      a {
+        color: var(--teal);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+      }
+      a:hover {
+        color: var(--coral);
+      }
+      code,
+      .path {
+        font-family: var(--mono);
+        font-size: 0.88em;
+      }
+      code {
+        background: #edf1ed;
+        padding: 0.12rem 0.35rem;
+        border-radius: 3px;
+      }
+
+      .site-header {
+        background: var(--deep);
+        color: #f5f7f1;
+        padding: 18px max(24px, calc((100vw - 1240px) / 2));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 3px solid var(--lime);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+      }
+      .brand-mark {
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        background: var(--lime);
+        color: var(--deep);
+        font: 800 13px var(--mono);
+        border-radius: 50%;
+      }
+      .site-nav {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .site-nav a {
+        color: #dce8df;
+        font-size: 0.86rem;
+        text-decoration: none;
+      }
+      .site-nav a:hover {
+        color: var(--lime);
+      }
+
+      main {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 24px 80px;
+      }
+      .hero {
+        padding: 82px 0 56px;
+        display: grid;
+        grid-template-columns: 1.25fr 0.75fr;
+        gap: 60px;
+        align-items: end;
+      }
+      .eyebrow,
+      .section-kicker {
+        color: var(--teal);
+        font: 700 0.73rem var(--mono);
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      h1 {
+        max-width: 760px;
+        font-size: clamp(2.5rem, 6vw, 5.5rem);
+        letter-spacing: -0.03em;
+        margin-top: 18px;
+      }
+      .hero-lede {
+        max-width: 650px;
+        margin: 24px 0 0;
+        font-size: 1.13rem;
+        color: var(--muted);
+      }
+      .hero-note {
+        border-left: 4px solid var(--coral);
+        padding: 18px 0 18px 22px;
+        color: var(--muted);
+      }
+      .hero-note strong {
+        display: block;
+        color: var(--ink);
+        font-size: 1.05rem;
+        margin-bottom: 7px;
+      }
+      .status-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 28px;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 11px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: 999px;
+        color: var(--muted);
+        font-size: 0.83rem;
+      }
+      .status::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--teal);
+      }
+      .status.release::before {
+        background: var(--gold);
+      }
+
+      .section {
+        margin-top: 72px;
+        scroll-margin-top: 90px;
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: end;
+        margin-bottom: 20px;
+      }
+      h2 {
+        font-size: clamp(1.8rem, 3vw, 3rem);
+      }
+      .section-intro {
+        max-width: 560px;
+        color: var(--muted);
+        margin: 8px 0 0;
+      }
+
+      .map-shell {
+        background: var(--deep);
+        color: #edf5ef;
+        padding: 24px;
+        box-shadow: var(--shadow);
+        border-top: 5px solid var(--lime);
+      }
+      .map-caption {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        align-items: baseline;
+        margin-bottom: 20px;
+      }
+      .map-caption strong {
+        font-family: var(--display);
+        font-size: 1.45rem;
+      }
+      .map-caption span {
+        color: #b9ccbf;
+        font-size: 0.86rem;
+      }
+      .map-grid {
+        display: grid;
+        grid-template-columns:
+          minmax(140px, 0.75fr) 34px minmax(205px, 1.15fr) 34px minmax(250px, 1.45fr)
+          34px minmax(170px, 1fr);
+        gap: 10px;
+        align-items: stretch;
+      }
+      .map-lane {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .lane-title {
+        color: var(--lime);
+        font: 700 0.69rem var(--mono);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding-bottom: 7px;
+        border-bottom: 1px solid #476168;
+      }
+      .map-card {
+        border: 1px solid #48646a;
+        padding: 14px;
+        min-height: 90px;
+        background: #203f47;
+      }
+      .map-card h3 {
+        font: 700 1.02rem var(--body);
+        color: #f4f8f2;
+        margin-bottom: 5px;
+      }
+      .map-card p {
+        color: #bfd0c7;
+        font-size: 0.8rem;
+        line-height: 1.45;
+        margin: 0;
+      }
+      .map-card.plugin {
+        border-left: 4px solid var(--gold);
+      }
+      .map-card.host {
+        border-left: 4px solid var(--lime);
+      }
+      .map-card.runtime {
+        border-left: 4px solid #6eb9ad;
+      }
+      .map-card.external {
+        border-left: 4px solid var(--coral);
+      }
+      .map-arrow {
+        display: grid;
+        place-items: center;
+        color: var(--lime);
+        font-size: 1.5rem;
+        font-family: var(--mono);
+      }
+      .map-foot {
+        margin: 22px 0 0;
+        padding-top: 16px;
+        border-top: 1px solid #476168;
+        color: #bfd0c7;
+        font-size: 0.82rem;
+      }
+      .map-foot b {
+        color: #f4f8f2;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .feature {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 22px;
+        min-height: 245px;
+        display: flex;
+        flex-direction: column;
+      }
+      .feature:nth-child(3n + 1) {
+        border-top: 4px solid var(--teal);
+      }
+      .feature:nth-child(3n + 2) {
+        border-top: 4px solid var(--coral);
+      }
+      .feature:nth-child(3n) {
+        border-top: 4px solid var(--gold);
+      }
+      .feature h3 {
+        font-size: 1.35rem;
+        margin: 8px 0 9px;
+      }
+      .feature p {
+        color: var(--muted);
+        margin: 0 0 14px;
+        font-size: 0.94rem;
+      }
+      .feature .path {
+        color: var(--teal);
+        margin-top: auto;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+        word-break: break-word;
+      }
+      .feature .tag {
+        color: var(--muted);
+        font: 700 0.68rem var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        border: 1px solid var(--line);
+        background: var(--panel);
+      }
+      .flow-step {
+        padding: 25px 22px;
+        min-height: 190px;
+        position: relative;
+      }
+      .flow-step + .flow-step {
+        border-left: 1px solid var(--line);
+      }
+      .flow-step + .flow-step::before {
+        content: '→';
+        position: absolute;
+        left: -12px;
+        top: 24px;
+        background: var(--paper);
+        color: var(--coral);
+        padding: 0 3px;
+        font: 700 1rem var(--mono);
+      }
+      .flow-num {
+        color: var(--coral);
+        font: 700 0.78rem var(--mono);
+        letter-spacing: 0.08em;
+      }
+      .flow-step h3 {
+        margin: 10px 0 8px;
+        font-size: 1.3rem;
+      }
+      .flow-step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .boundary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .boundary-panel {
+        padding: 25px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+      }
+      .boundary-panel h3 {
+        font-size: 1.45rem;
+        margin-bottom: 14px;
+      }
+      .boundary-panel.host-side {
+        border-top: 4px solid var(--lime);
+      }
+      .boundary-panel.unknown-side {
+        border-top: 4px solid var(--coral);
+      }
+      .boundary-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .boundary-list li {
+        padding: 10px 0 10px 24px;
+        border-top: 1px solid var(--line);
+        position: relative;
+        color: var(--muted);
+        font-size: 0.91rem;
+      }
+      .boundary-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--teal);
+        font-weight: 700;
+      }
+      .unknown-side .boundary-list li::before {
+        content: '?';
+        color: var(--coral);
+      }
+
+      .file-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border: 1px solid var(--line);
+      }
+      .file-table th,
+      .file-table td {
+        text-align: left;
+        padding: 13px 15px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      .file-table th {
+        color: var(--deep);
+        font: 700 0.76rem var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: #e7eee9;
+      }
+      .file-table td {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .file-table tr:last-child td {
+        border-bottom: 0;
+      }
+      .file-table td:first-child {
+        color: var(--teal);
+        white-space: nowrap;
+      }
+
+      details {
+        border-top: 1px solid var(--line);
+        padding: 13px 0;
+      }
+      details:last-child {
+        border-bottom: 1px solid var(--line);
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      summary::marker {
+        color: var(--coral);
+      }
+      details p {
+        color: var(--muted);
+        max-width: 800px;
+        margin: 10px 0 2px;
+      }
+      .footer {
+        margin-top: 78px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 0.86rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 920px) {
+        .hero {
+          grid-template-columns: 1fr;
+          gap: 26px;
+          padding-top: 58px;
+        }
+        .map-grid {
+          grid-template-columns: 1fr;
+        }
+        .map-arrow {
+          transform: rotate(90deg);
+          min-height: 24px;
+        }
+        .feature-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .flow {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .flow-step:nth-child(3) {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+        .flow-step:nth-child(4) {
+          border-top: 1px solid var(--line);
+        }
+        .flow-step:nth-child(3)::before,
+        .flow-step:nth-child(4)::before {
+          display: none;
+        }
+      }
+      @media (max-width: 620px) {
+        .site-header {
+          align-items: flex-start;
+          flex-direction: column;
+          padding: 14px 18px;
+        }
+        .site-nav {
+          gap: 10px 14px;
+        }
+        main {
+          padding: 0 17px 52px;
+        }
+        .hero {
+          padding-top: 45px;
+        }
+        h1 {
+          font-size: 2.8rem;
+        }
+        .map-shell {
+          padding: 17px;
+        }
+        .map-caption {
+          display: block;
+        }
+        .map-caption span {
+          display: block;
+          margin-top: 5px;
+        }
+        .feature-grid,
+        .boundary,
+        .flow {
+          grid-template-columns: 1fr;
+        }
+        .flow-step + .flow-step,
+        .flow-step:nth-child(3) {
+          border-left: 0;
+          border-top: 1px solid var(--line);
+        }
+        .flow-step + .flow-step::before {
+          display: none;
+        }
+        .file-table {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+        .file-table td:nth-child(2) {
+          white-space: normal;
+          min-width: 260px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      @media print {
+        .site-header {
+          position: static;
+          background: white;
+          color: black;
+          border-bottom: 1px solid #999;
+        }
+        .site-nav {
+          display: none;
+        }
+        .map-shell {
+          color: black;
+          background: white;
+          box-shadow: none;
+          border: 1px solid #888;
+        }
+        .map-card {
+          color: black;
+          background: #f4f4f4;
+          border-color: #999;
+        }
+        .map-card h3,
+        .map-card p,
+        .map-caption span,
+        .map-foot {
+          color: black;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="brand"><span class="brand-mark">O</span><span>OMHA / SYSTEM MAP</span></div>
+      <nav class="site-nav" aria-label="页面导航">
+        <a href="#map">架构图</a>
+        <a href="#features">功能</a>
+        <a href="#lifecycle">生命周期</a>
+        <a href="#boundaries">边界</a>
+        <a href="#files">代码地图</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Local runtime / provider-neutral / auditable</div>
+          <h1>从用户意图，走到可审计结果。</h1>
+          <p class="hero-lede">
+            Omha 把 Claude Code
+            的提示技能、主机侧验证、模型执行、终端交接和持久化证据串成一条受约束的自动化链路。模型可以提出方案，只有主机可以批准副作用。
+          </p>
+          <div class="status-row">
+            <span class="status release">0.2.0-rc.2</span>
+            <span class="status">Node.js 20+</span>
+            <span class="status">offline tests 190/190</span>
+          </div>
+        </div>
+        <div class="hero-note">
+          <strong>阅读这张图的关键</strong>
+          左侧是意图和提示，中央是 Omha
+          的主机边界，右侧是可能产生副作用的执行通道。所有跨边界的动作都要经过
+          profile、预算、所有权和验收校验。
+        </div>
+      </section>
+
+      <section class="section" id="map">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">01 / global architecture</div>
+            <h2>全局架构图</h2>
+          </div>
+          <p class="section-intro">
+            四列代表四个信任层。箭头表示请求流向；回到主机层的事件流负责记录状态、证据和失败。
+          </p>
+        </div>
+        <div class="map-shell">
+          <div class="map-caption">
+            <strong>Intent → Host Boundary → Durable Lifecycle → Side Effects</strong
+            ><span>HTML/CSS diagram · no external runtime dependency</span>
+          </div>
+          <div class="map-grid">
+            <div class="map-lane">
+              <div class="lane-title">01 / intent</div>
+              <div class="map-card plugin">
+                <h3>User / Claude Code</h3>
+                <p>任务、问题、证据和自然语言约束。</p>
+              </div>
+              <div class="map-card plugin">
+                <h3>Prompt skills</h3>
+                <p>拆解、解释、记忆选择和续接提示。</p>
+              </div>
+            </div>
+            <div class="map-arrow" aria-hidden="true">→</div>
+            <div class="map-lane">
+              <div class="lane-title">02 / host boundary</div>
+              <div class="map-card host">
+                <h3>bin/omha.mjs</h3>
+                <p>命令解析、输入契约、信号和 CLI 边界。</p>
+              </div>
+              <div class="map-card host">
+                <h3>Validation + policy</h3>
+                <p>profile、DAG、权限、预算、并发、验收和 review。</p>
+              </div>
+              <div class="map-card host">
+                <h3>Storage + locks</h3>
+                <p>原子写入、所有权 token、hash 和 append-only 事件。</p>
+              </div>
+            </div>
+            <div class="map-arrow" aria-hidden="true">→</div>
+            <div class="map-lane">
+              <div class="lane-title">03 / lifecycle</div>
+              <div class="map-card runtime">
+                <h3>Runner / Orchestrator</h3>
+                <p>路由、重试、fallback、DAG 调度、恢复和监督。</p>
+              </div>
+              <div class="map-card runtime">
+                <h3>Lifecycle services</h3>
+                <p>Roundtable、Handoff、Arena/Fork、Butterfly、Memory、Compact。</p>
+              </div>
+              <div class="map-card runtime">
+                <h3>Evidence ledger</h3>
+                <p>尝试、usage、artifact、验收、review 和结果状态。</p>
+              </div>
+            </div>
+            <div class="map-arrow" aria-hidden="true">→</div>
+            <div class="map-lane">
+              <div class="lane-title">04 / side effects</div>
+              <div class="map-card external">
+                <h3>Provider adapters</h3>
+                <p>Claude、Codex、Kimi、command、fake。</p>
+              </div>
+              <div class="map-card external">
+                <h3>Owned terminals</h3>
+                <p>cmux、私有 tmux、file handoff。</p>
+              </div>
+              <div class="map-card external">
+                <h3>Worktree / filesystem</h3>
+                <p>受授权的读写、验收 harness 和 artifact。</p>
+              </div>
+            </div>
+          </div>
+          <p class="map-foot">
+            <b>核心不变量：</b>提示词不能授予权限；provider
+            的退出码不能证明正确性；不确定的写入不会自动重放；普通 push 授权不等于 release 授权。
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">02 / capabilities</div>
+            <h2>功能与底层实现</h2>
+          </div>
+          <p class="section-intro">每张卡片先说明用户能做什么，再标出真正承担这项能力的模块。</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature">
+            <div class="tag">Execution</div>
+            <h3>Provider 路由</h3>
+            <p>
+              根据 profile 选择 Claude、Codex、Kimi、command 或
+              fake。执行前校验能力、sandbox、超时、环境变量和预算；运行时记录每次 attempt。
+            </p>
+            <div class="path">
+              lib/profiles.mjs · lib/adapters.mjs · lib/runner.mjs · lib/process.mjs
+            </div>
+          </article>
+          <article class="feature">
+            <div class="tag">Planning</div>
+            <h3>Leader DAG</h3>
+            <p>
+              Planner 可以生成任务图，但不能替主机授权。主机验证依赖关系、写入顺序和策略，再由
+              orchestrator 持久化调度、取消与恢复。
+            </p>
+            <div class="path">lib/plans.mjs · lib/orchestrator.mjs</div>
+          </article>
+          <article class="feature">
+            <div class="tag">Decision</div>
+            <h3>Roundtable 决策</h3>
+            <p>
+              2-3 个独立 voter 只看到公共证据，主机在收齐结果后计算多数或加权票；chair 不能覆盖 host
+              tally，人类门槛需要显式 approve。
+            </p>
+            <div class="path">lib/roundtable.mjs · schemas/proposal.schema.json</div>
+          </article>
+          <article class="feature">
+            <div class="tag">Handoff</div>
+            <h3>终端交接</h3>
+            <p>
+              自动按 cmux → tmux → file 降级。prompt 先写入，资源带 owner token，worker
+              必须提交认证的完成标记，关闭动作只能作用于自有资源。
+            </p>
+            <div class="path">lib/backends.mjs · lib/terminal.mjs · lib/handoff-protocol.mjs</div>
+          </article>
+          <article class="feature">
+            <div class="tag">Continuation</div>
+            <h3>Native cmux Fork</h3>
+            <p>
+              从已验证的 checkpoint 或 turn 创建 successor，发送结构化续接消息，只有 successor 确认
+              takeover 后才允许关闭源 surface；不伪造文件恢复。
+            </p>
+            <div class="path">lib/fork.mjs · lib/session-fork.mjs · lib/terminal.mjs</div>
+          </article>
+          <article class="feature">
+            <div class="tag">Parallel work</div>
+            <h3>Open Arena / Session Fork</h3>
+            <p>
+              冻结公共前缀和知识包，运行 2-8 个隔离 lane。所有分支共享预算和 artifact
+              审计，但不声称复制 provider session 或缓存。
+            </p>
+            <div class="path">lib/open-arena.mjs · lib/arena.mjs · lib/fork.mjs</div>
+          </article>
+          <article class="feature">
+            <div class="tag">Recovery</div>
+            <h3>Automatic Butterfly</h3>
+            <p>
+              监听 host acceptance 失败后的真实重工，要求时间顺序、原始反馈和变更 artifact
+              同时成立，再触发现有 handoff；hash 变化本身不会触发。
+            </p>
+            <div class="path">lib/butterfly.mjs · lib/orchestrator.mjs</div>
+          </article>
+          <article class="feature">
+            <div class="tag">Maintenance</div>
+            <h3>Native Auto Compact</h3>
+            <p>
+              显式激活后，通过 Claude Mod 事件、cache evidence、context floor 和 durable claim
+              调度原生 compact。新输入会使旧 timer 失效，未知状态不会冷 replay。
+            </p>
+            <div class="path">lib/compact.mjs · hooks/controller.mjs · hooks/register.mjs</div>
+          </article>
+          <article class="feature">
+            <div class="tag">Knowledge</div>
+            <h3>Scoped Memory</h3>
+            <p>
+              Markdown/frontmatter 是事实源，索引和注入都有行数、字节、freshness 和 scope
+              上限。hash、锁和 no-follow 写入防止过期或越界覆盖。
+            </p>
+            <div class="path">lib/frontmatter.mjs · lib/memory.mjs · lib/storage.mjs</div>
+          </article>
+          <article class="feature">
+            <div class="tag">Verification</div>
+            <h3>Acceptance / Review</h3>
+            <p>
+              provider 完成、主机验收和独立 review 是三种不同结果。验收冻结 harness 与 artifact
+              hash，review 排除实际作者，失败不会被执行结果覆盖。
+            </p>
+            <div class="path">lib/orchestrator.mjs · lib/runner.mjs · docs/contracts.md</div>
+          </article>
+          <article class="feature">
+            <div class="tag">Observability</div>
+            <h3>Status / Supervision</h3>
+            <p>
+              从 durable events 重放状态，支持 JSONL watch、stall/input-wait 监督和有限只读
+              takeover。写任务卡住时保持 interrupted，要求显式 replay。
+            </p>
+            <div class="path">lib/orchestrator.mjs · lib/runner.mjs · bin/omha.mjs</div>
+          </article>
+          <article class="feature">
+            <div class="tag">Distribution</div>
+            <h3>Claude Code Plugin</h3>
+            <p>
+              插件只安装 prompt skills 和 opt-in Mod，不自动安装 CLI。技能可在没有 CLI
+              时继续提供推理，确定性动作仍回到 host validation。
+            </p>
+            <div class="path">.claude-plugin/ · skills/*/SKILL.md · docs/plugin.md</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="lifecycle">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">03 / one request</div>
+            <h2>一次任务如何穿过系统</h2>
+          </div>
+          <p class="section-intro">
+            下面的顺序适用于 Leader、provider 调用和需要验收的写任务；不同生命周期会复用同一套 host
+            boundary。
+          </p>
+        </div>
+        <div class="flow">
+          <article class="flow-step">
+            <div class="flow-num">STEP 01</div>
+            <h3>提出意图</h3>
+            <p>
+              用户或技能提供任务、证据、候选方案和期望结果。这里允许开放式推理，但不产生主机权限。
+            </p>
+          </article>
+          <article class="flow-step">
+            <div class="flow-num">STEP 02</div>
+            <h3>冻结并验证</h3>
+            <p>
+              CLI 解析 version 1 输入，校验 profile、DAG、policy、预算、所有权、写入模式和证据
+              hash。
+            </p>
+          </article>
+          <article class="flow-step">
+            <div class="flow-num">STEP 03</div>
+            <h3>执行并记录</h3>
+            <p>
+              runner 启动被允许的 adapter；orchestrator 写 append-only events，保存
+              attempt、usage、结果和失败阶段。
+            </p>
+          </article>
+          <article class="flow-step">
+            <div class="flow-num">STEP 04</div>
+            <h3>验收与恢复</h3>
+            <p>
+              主机运行 acceptance 和独立
+              review，决定依赖是否释放。崩溃或不确定写入进入可见状态，不会静默重放。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="boundaries">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">04 / trust model</div>
+            <h2>什么由 Omha 保证</h2>
+          </div>
+          <p class="section-intro">
+            这不是 provider 的安全沙箱。Omha 保证的是本地生命周期的边界、证据和失败处理。
+          </p>
+        </div>
+        <div class="boundary">
+          <div class="boundary-panel host-side">
+            <h3>主机可以验证的事</h3>
+            <ul class="boundary-list">
+              <li>输入契约、未知字段、路径、profile capability 和 fallback 资格。</li>
+              <li>预算 reservation、provider concurrency、worktree lease 和 owned terminal。</li>
+              <li>
+                事件日志、attempt provenance、response hash、artifact snapshot 和 policy hash。
+              </li>
+              <li>验收 harness 是否改变、每条 review criterion 是否通过、依赖是否可以释放。</li>
+              <li>取消、超时、进程组清理和恢复是否留下不确定状态。</li>
+            </ul>
+          </div>
+          <div class="boundary-panel unknown-side">
+            <h3>仍然需要外部确认的事</h3>
+            <ul class="boundary-list">
+              <li>provider 实际模型、账单和 CLI 内部权限配置。</li>
+              <li>native provider 隐藏的 prompt/tool 字节和完整缓存生命周期。</li>
+              <li>同一 OS 用户下恶意进程对本地状态目录的攻击。</li>
+              <li>项目 acceptance 是否真的代表业务正确性。</li>
+              <li>Windows 上原生进程组监督，以及不支持版本的 Claude Mod 行为。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="files">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">05 / source map</div>
+            <h2>从哪里继续读代码</h2>
+          </div>
+          <p class="section-intro">
+            按边界而不是按文件数量阅读：先看入口和契约，再进入具体生命周期。
+          </p>
+        </div>
+        <table class="file-table">
+          <thead>
+            <tr>
+              <th>区域</th>
+              <th>关键文件</th>
+              <th>阅读重点</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>入口与 API</td>
+              <td><code>bin/omha.mjs</code> <code>index.mjs</code></td>
+              <td>命令分发、JSON 输入输出、信号处理、公共导出。</td>
+            </tr>
+            <tr>
+              <td>契约与验证</td>
+              <td>
+                <code>lib/profiles.mjs</code> <code>lib/validation.mjs</code> <code>schemas/</code>
+              </td>
+              <td>version 1 schema、能力推断、fail-closed 校验。</td>
+            </tr>
+            <tr>
+              <td>执行运行时</td>
+              <td>
+                <code>lib/adapters.mjs</code> <code>lib/process.mjs</code>
+                <code>lib/runner.mjs</code>
+              </td>
+              <td>provider argv、输出解析、进程组、重试、fallback 和预算。</td>
+            </tr>
+            <tr>
+              <td>任务编排</td>
+              <td><code>lib/plans.mjs</code> <code>lib/orchestrator.mjs</code></td>
+              <td>DAG、依赖引用、durable events、resume、acceptance、review、supervision。</td>
+            </tr>
+            <tr>
+              <td>终端与续接</td>
+              <td>
+                <code>lib/backends.mjs</code> <code>lib/terminal.mjs</code>
+                <code>lib/fork.mjs</code>
+              </td>
+              <td>cmux/tmux/file ownership、handoff 状态机、checkpoint fork。</td>
+            </tr>
+            <tr>
+              <td>状态与记忆</td>
+              <td>
+                <code>lib/storage.mjs</code> <code>lib/memory.mjs</code>
+                <code>lib/compact.mjs</code>
+              </td>
+              <td>原子存储、锁、scope、索引、maintenance ledger。</td>
+            </tr>
+            <tr>
+              <td>插件与操作文档</td>
+              <td>
+                <code>skills/</code> <code>docs/contracts.md</code> <code>docs/security.md</code>
+              </td>
+              <td>提示技能边界、输入契约、安全模型和发布/安装流程。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">06 / quick questions</div>
+            <h2>几个容易混淆的点</h2>
+          </div>
+        </div>
+        <div>
+          <details>
+            <summary>为什么不让 prompt 直接执行 shell 或 provider？</summary>
+            <p>
+              因为 prompt 是不可信的提议来源。CLI 需要在副作用发生前统一检查
+              profile、预算、并发、所有权和写入授权，才能让手动调用和自动调用拥有同一条证据链。
+            </p>
+          </details>
+          <details>
+            <summary>为什么 provider 成功退出还不能算任务成功？</summary>
+            <p>
+              退出码只能说明进程结束。Omha 还要验证 provider 输出是否完整、主机 acceptance
+              是否通过、artifact 是否没有被验收 harness 改写，以及需要时独立 review 是否批准。
+            </p>
+          </details>
+          <details>
+            <summary>为什么 Session Fork 不声称复制上下文缓存？</summary>
+            <p>
+              它只冻结可观察的公共前缀和 usage
+              evidence，并通过同一路由和预算门槛启动隔离分支。provider 内部 KV 或隐藏 prompt
+              字节不可见，所以缓存命中只能按明确 evidence 记录。
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Omha · local, provider-neutral, auditable runtime</span>
+        <span
+          ><a href="architecture.md">架构文字版</a> · <a href="contracts.md">契约</a> ·
+          <a href="security.md">安全边界</a> · <a href="plugin.md">插件指南</a></span
+        >
+      </footer>
+    </main>
+  </body>
+</html>

@@ -153,5 +153,7 @@ The project is **Omha** (`omha`). Use it consistently across every surface:
   work in progress alone.
 - Use ordinary pushes without force. If `main` has moved, reconcile before
   pushing.
-- Version bumps, release tags and package publishing still require their own
-  task authorization. Read `docs/releasing.md` when performing a release.
+- Version bumps, release tags, package publishing and any other release-version
+  delivery require explicit human confirmation for that specific release action;
+  never infer approval from ordinary task authorization or a push to `main`.
+  Read `docs/releasing.md` when performing a release.
