@@ -1,0 +1,37 @@
+schemas/fork.schema.json
+  s_2d80ef1adc7836::t_307a92e0363a90 32
+  s_2d80ef1adc7836::t_da1c1843520e8d 12-31,33
+bin/omha.mjs
+  ai_agent 138-141,232,459,481-483
+lib/terminal.mjs
+  s_2d80ef1adc7836::t_ec7c653d0f5e11 730-732,737-740,753,755-760
+  s_2d80ef1adc7836::t_0b175c58a391da 444,453-484
+  s_2d80ef1adc7836::t_4d2929961eb465 517-538,540-555,564-578
+  s_2d80ef1adc7836::t_a9d147c390cb03 590-598,609,627-653
+  s_2d80ef1adc7836::t_f3b9c640705ad2 147-181,183-196,209-212,218-356,358-389
+  s_2d80ef1adc7836::t_0c8f661d95a651 718-725
+lib/backends.mjs
+  s_2d80ef1adc7836::t_d677bb3c61d675 344-436
+tests/fixtures/cmux.mjs
+  s_2d80ef1adc7836::t_deae7c905c33a2 22-70,72-85
+  s_2d80ef1adc7836::t_d7d1b9079260f4 131-134
+tests/cmux-fork.test.mjs
+  s_2d80ef1adc7836::t_e14fe1c0d0f3b0 476-642,644-651,653-676,678-731,736-814,816-827,829-835,837-904,906-931
+  ai_agent 643,815
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.43-trip",
+  "base_commit_sha": "26b2451c2908893802c153a036c9ceaf79379ee3",
+  "prompts": {},
+  "sessions": {
+    "s_2d80ef1adc7836": {
+      "agent_id": {
+        "tool": "kiro-desktop",
+        "id": "sess_8945fe00-8eb3-4399-8027-1d0f116c44ab",
+        "model": "claude-opus-5.5"
+      },
+      "human_author": "linqh <linqh@trip.com>"
+    }
+  }
+}
