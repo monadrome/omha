@@ -5,7 +5,7 @@ This repository retains the following MIT-licensed skill content:
 
 - `skills/butterfly-effect/`: retained from monadrome/butterfly-effect-skill,
   version 0.7.1, Copyright (c) 2026 monadrome.
-- `skills/hide/`: retained from monadrome/hiding-skill, version 0.10.0,
+- `skills/hide/`: retained from monadrome/hiding-skill, version 1.0.0,
   Copyright (c) 2026 monadrome.
 
 Full upstream MIT license texts ship in each retained skill directory. Their

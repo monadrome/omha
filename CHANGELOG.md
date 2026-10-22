@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Skills
+
+- Sync the retained `hide` skill and references to hiding-skill 1.0.0, including
+  preview-only session findings, credential rotation warnings before cleanup
+  selection, and streamlined option and reference routing. Update source notices
+  while preserving the upstream MIT license and `/omha:hide` entry point.
+
 ### Documentation
 
 - Keep the architecture overview focused on runtime contracts and module

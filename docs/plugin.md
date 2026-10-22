@@ -49,10 +49,14 @@ Type a skill command in Claude Code, followed by your task:
 /omha:project-memory Record the verified API decision for the next session.
 /omha:auto-butterfly-effect Check whether this rework has a supported restart point.
 /omha:auto-close Close this cmux surface or owned tmux worker pane after the goal and its checks finish.
+/omha:hide Preview the files created or modified in this session.
 ```
 
 The retained `/omha:butterfly-effect` and `/omha:hide` skills also remain available
-with their upstream references and licenses. Claude can select relevant skills
+with their upstream references and licenses. `hide` tracks hiding-skill 1.0.0:
+session previews show findings without execution choices, and credential findings
+include a rotation warning before cleanup selection. It works without the CLI.
+Claude can select relevant skills
 from their descriptions. Skills receive the task as prompt context; no plugin
 hook dispatches a provider by default. Explicit auto-compact activation allows
 only the bounded native maintenance operation described above.
