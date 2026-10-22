@@ -13,7 +13,8 @@ Prompt instructions cannot replace host permission or acceptance checks.
 
 `/omha:auto-close` retains the user's cleanup intent until a goal and its checks
 finish, then invokes the CLI's owned completion hook to close the current cmux
-surface. It needs the CLI and a native session binding; see the
+surface or Omha-owned tmux worker pane. It needs the CLI and a verified calling
+terminal binding; see the
 [auto-close guide](../docs/auto-close.md). Ordinary replies do not trigger cleanup.
 
 The opt-in [auto compact Mod](../docs/auto-compact.md) maintains an explicitly

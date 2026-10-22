@@ -46,6 +46,7 @@ import {
   messageHandoff,
   acceptHandoff,
   autoCloseHandoff,
+  reportHandoffActivity,
   compactRpc,
   compactStatus,
   observeCompactBridge,
@@ -256,8 +257,9 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha handoff checkpoints|accept --id ID
   omha handoff fork --id SOURCE_ID (--checkpoint ID | --turn N) --prompt TEXT --allow-write [--close-source]
   omha handoff message --id ID --prompt TEXT
+  omha handoff activity --id ID --input activity.json
   omha auto-close --completed --reason TEXT [--id HANDOFF_ID] [--run-id RUN_ID] [--delay-ms 1500]
-  omha auto-recover [--allow-send] [--watch --interval-ms 1500000] [--message 'go on']
+  omha auto-recover [--backend auto|cmux|tmux] [--allow-send] [--watch --interval-ms 1500000] [--message 'go on']
   omha auto-recover status|list
   omha auto-butterfly --input history.json [--analyze --profile analyst]
   omha auto-butterfly --input history.json --fork fork.json --allow-write
@@ -516,9 +518,10 @@ async function main() {
     if (command === 'auto-recover') {
       const sub = o._[0] || 'run';
       if (sub === 'status') return json(tabRecoveryStatus());
-      if (sub === 'list') return json({ tabs: await discoverTabs(cwd) });
+      if (sub === 'list') return json({ tabs: await discoverTabs(cwd, { backend: o.backend }) });
       check(['run', 'check'].includes(sub), `Unknown auto-recover command: ${sub}`);
       const options = {
+        backend: o.backend,
         allowSend: o.allow_send === true && sub !== 'check',
         message: o.message,
         intervalMs: o.interval_ms === undefined ? undefined : Number(o.interval_ms),
@@ -580,6 +583,14 @@ async function main() {
         allowWrite: options.allowWrite,
       };
       if (sub === 'adopt') return json(await adoptHandoff(cwd, terminal));
+      if (sub === 'activity')
+        return json(
+          await reportHandoffActivity(
+            o.id || process.env.OMHA_HANDOFF_ID,
+            inputJson(o.input),
+            terminal,
+          ),
+        );
       if (sub === 'checkpoints') return json(await handoffCheckpoints(o.id, terminal));
       if (sub === 'accept') return json(await acceptHandoff(o.id, terminal));
       if (sub === 'message')

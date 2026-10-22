@@ -4,6 +4,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync }
 import { join } from 'node:path';
 import { temp } from './helpers.mjs';
 import { tmuxBackend } from '../lib/backends.mjs';
+import { handoff } from '../lib/terminal.mjs';
 
 test(
   'tmux ownership option round-trips and private socket cleanup uses its creation prefix',
@@ -57,5 +58,45 @@ fs.writeFileSync(file, JSON.stringify(saved));
     const saved = JSON.parse(readFileSync(state, 'utf8'));
     assert.equal(saved.calls.at(-1)[2], 'kill-session');
     assert.equal(saved.calls.at(-1)[4], `=${record.session}`);
+  },
+);
+
+test(
+  'real tmux prelaunch failure safely continues auto selection to file',
+  {
+    skip: process.platform === 'win32',
+  },
+  async (t) => {
+    const root = temp('omha-tmux-prelaunch-');
+    const bin = join(root, 'bin');
+    mkdirSync(bin);
+    writeFileSync(join(bin, 'tmux'), '#!/bin/sh\nexit 1\n');
+    chmodSync(join(bin, 'tmux'), 0o700);
+    const previousPath = process.env.PATH;
+    const previousHome = process.env.OMHA_HOME;
+    process.env.PATH = `${bin}:${previousPath}`;
+    process.env.OMHA_HOME = join(root, 'state');
+    t.after(() => {
+      process.env.PATH = previousPath;
+      if (previousHome === undefined) delete process.env.OMHA_HOME;
+      else process.env.OMHA_HOME = previousHome;
+      rmSync(root, { recursive: true, force: true });
+    });
+    const record = await handoff(root, 'Offline safe fallback', {
+      backend: 'auto',
+      backends: {
+        cmux: {
+          async prepare() {
+            throw new Error('cmux unavailable');
+          },
+        },
+      },
+    });
+    assert.equal(record.backend, 'file');
+    assert.equal(record.state, 'awaiting');
+    const attempt = record.launchAttempts.find((item) => item.backend === 'tmux');
+    assert.equal(attempt.launchNotStarted, true);
+    assert.equal(attempt.cleanedUp, true);
+    assert.equal(attempt.uncertain, undefined);
   },
 );

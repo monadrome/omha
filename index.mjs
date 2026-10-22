@@ -35,6 +35,7 @@ export {
   messageHandoff,
   acceptHandoff,
   autoCloseHandoff,
+  reportHandoffActivity,
   prepareCompact,
   startCompactSession,
   compactRpc,

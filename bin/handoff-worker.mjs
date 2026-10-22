@@ -12,6 +12,12 @@ if (!record) process.exit(2);
 const paths = handoffPaths(record.id);
 const env = environment(record.envAllowlist);
 env.OMHA_PROMPT_FILE = record.promptFile;
+env.OMHA_HANDOFF_ID = record.id;
+env.OMHA_HOME = stateHome();
+if (record.backend === 'tmux') {
+  env.TMUX = process.env.TMUX;
+  env.TMUX_PANE = process.env.TMUX_PANE;
+}
 const secrets = environmentSecrets(env);
 const controller = new AbortController();
 process.on('SIGTERM', () => controller.abort());
@@ -61,6 +67,7 @@ try {
           pid: process.pid,
           childPid,
           fingerprint: processFingerprint(childPid),
+          workerFingerprint: processFingerprint(process.pid),
           startedAt: now(),
         }),
         stateHome(),

@@ -9,13 +9,15 @@ import { fileURLToPath } from 'node:url';
 import { temp } from './helpers.mjs';
 import { readEvents } from '../lib/storage.mjs';
 import { recoverTabs, tabRecoveryStatus } from '../lib/tab-recovery.mjs';
+import { OmhaError } from '../lib/validation.mjs';
 
 const ERROR =
   '■ stream disconnected before completion: Our servers are currently overloaded. Please try again later.';
 const bin = temp('omha-auto-recover-bin-');
 copyFileSync(new URL('./fixtures/cmux.mjs', import.meta.url), join(bin, 'cmux'));
 chmodSync(join(bin, 'cmux'), 0o700);
-process.env.PATH = `${bin}:${process.env.PATH}`;
+const fixturePath = `${bin}:${process.env.PATH}`;
+process.env.PATH = fixturePath;
 const cli = fileURLToPath(new URL('../bin/omha.mjs', import.meta.url));
 
 function tab(overrides = {}) {
@@ -273,7 +275,7 @@ test('CLI discovers every local tab and recovers through the cmux fixture', () =
   const result = JSON.parse(
     execFileSync(process.execPath, [cli, 'auto-recover', '--allow-send', '--verify-ms', '0'], {
       cwd,
-      env: process.env,
+      env: { ...process.env, PATH: fixturePath, OMHA_HOME: home },
       encoding: 'utf8',
       timeout: 15000,
     }),
@@ -284,4 +286,94 @@ test('CLI discovers every local tab and recovers through the cmux fixture', () =
   const fixture = JSON.parse(readFileSync(join(home, 'cmux-fixture.json'), 'utf8'));
   assert.deepEqual(fixture.sent, [{ surface: entry.surfaceId, text: 'go on' }]);
   assert.deepEqual(fixture.keys, [{ surface: entry.surfaceId, key: 'Enter' }]);
+});
+
+test('auto selects cmux first and falls back to tmux only after discovery fails', async () => {
+  const f = harness([tab()]);
+  let discovered = 0;
+  const tmux = {
+    discover: async () => {
+      discovered += 1;
+      return [];
+    },
+  };
+  const preferred = await recoverTabs('/tmp/project', { cmux: f.cmux, tmux, ...fast });
+  assert.equal(preferred.backend, 'cmux');
+  assert.equal(discovered, 0);
+  f.cmux.current = async () => ({ items: [] });
+  f.cmux.surfaces = async () => ({ projections: [] });
+  assert.equal(
+    (await recoverTabs('/tmp/project', { cmux: f.cmux, tmux, ...fast })).backend,
+    'cmux',
+  );
+  assert.equal(discovered, 0);
+  f.cmux.current = async () => {
+    throw new OmhaError('backend', 'cmux socket unavailable');
+  };
+  const fallback = await recoverTabs('/tmp/project', { cmux: f.cmux, tmux, ...fast });
+  assert.equal(fallback.backend, 'tmux');
+  assert.deepEqual(
+    fallback.backendAttempts.map((item) => item.backend),
+    ['cmux', 'tmux'],
+  );
+  assert.equal(discovered, 1);
+  await assert.rejects(
+    recoverTabs('/tmp/project', { backend: 'cmux', cmux: f.cmux, tmux }),
+    /unavailable/,
+  );
+  f.cmux.current = async () => {
+    throw new OmhaError('ownership', 'owner changed');
+  };
+  await assert.rejects(recoverTabs('/tmp/project', { cmux: f.cmux, tmux }), { code: 'ownership' });
+  assert.equal(discovered, 1);
+  await assert.rejects(recoverTabs('/tmp/project', { backend: 'file' }), /recovery backend/);
+});
+
+test('unknown and approval-waiting states never receive recovery input', async () => {
+  const f = harness(
+    ['unknown', 'waiting', 'awaiting_approval'].map((state) =>
+      tab({
+        agents: [{ kind: 'codex', state }],
+        screen: `${ERROR}\n`,
+      }),
+    ),
+  );
+  const report = await recoverTabs('/tmp/project', { cmux: f.cmux, allowSend: true, ...fast });
+  assert.equal(report.summary.skipped, 3);
+  assert.equal(f.calls.length, 0);
+});
+
+test('a lost send response leaves a durable claim and is never retyped', async () => {
+  const f = harness([tab({ screen: `${ERROR}\n` })]);
+  let sends = 0;
+  f.cmux.send = async () => {
+    sends += 1;
+    const state = tabRecoveryStatus().state;
+    assert.ok(Object.values(state.surfaces)[0].pendingSubmission);
+    throw new Error('response lost');
+  };
+  const options = { cmux: f.cmux, allowSend: true, cooldownMs: 0, ...fast };
+  assert.equal((await recoverTabs('/tmp/project', options)).summary.send_failed, 1);
+  assert.equal((await recoverTabs('/tmp/project', options)).summary.stalled, 1);
+  assert.equal(sends, 1);
+});
+
+test('a pass on another backend does not discard pending recovery claims', async () => {
+  const f = harness([tab({ screen: `${ERROR}\n` })]);
+  let sends = 0;
+  f.cmux.send = async () => {
+    sends += 1;
+    throw new Error('lost response');
+  };
+  const options = { cmux: f.cmux, allowSend: true, cooldownMs: 0, ...fast };
+  await recoverTabs('/tmp/project', options);
+  const pending = tabRecoveryStatus().state.surfaces;
+  await recoverTabs('/tmp/project', {
+    backend: 'tmux',
+    tmux: { discover: async () => [] },
+    ...fast,
+  });
+  assert.deepEqual(tabRecoveryStatus().state.surfaces, pending);
+  assert.equal((await recoverTabs('/tmp/project', options)).summary.stalled, 1);
+  assert.equal(sends, 1);
 });

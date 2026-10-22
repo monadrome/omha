@@ -1,7 +1,7 @@
 # Completed Session Auto-Close
 
 Use `omha auto-close` as the final completion hook of a native cmux Claude/Codex
-task, for example after a goal and its checks finish:
+task or a live Omha-owned tmux worker, after a goal and its checks finish:
 
 ```bash
 omha auto-close --completed --reason 'Goal completed; acceptance checks passed'
@@ -57,8 +57,20 @@ after the task terminal disappears. Repeated identical requests reuse one claim;
 failed, crashed or ambiguous close attempts never replay automatically. A crash
 can leave `scheduled` or `closing`; inspect the native resource before manually
 closing it. A worker more than ten seconds past its deadline cannot close a tab.
-This iteration supports native cmux sessions only and has no tmux,
-file or headless-provider fallback.
+For tmux, after inspecting an `uncertain` claim, `omha handoff close --id ID`
+explicitly resolves cleanup: a confirmed absent session can be archived, while
+a reachable pane still requires unchanged ownership and process binding. This
+never replays the close automatically and cannot close a replacement process.
+Inside an Omha-owned tmux worker, the same command selects the calling handoff
+from `OMHA_HANDOFF_ID`. It verifies the private socket and fixed pane ID. The
+detached worker rechecks those bindings and host evidence before terminating a
+still-live child process group and closing only that pane. If the owned pane is
+already dead after the worker completed, the pane identity and owner token still
+authorize removing that dead pane. Other panes stay open. A live changed worker
+makes closure uncertain; it does not authorize closing a replacement process.
+Unregistered user tmux sessions, file handoffs and headless providers cannot use
+this hook. No cmux native binding is fabricated for a tmux worker. See
+[terminal backends](terminal-backends.md) for capabilities and activity signals.
 
 Offline verification: `tests/auto-close.test.mjs` exercises the real command and
 detached worker against a local cmux fixture. `npm run pack:check` verifies the
