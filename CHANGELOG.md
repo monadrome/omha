@@ -6,6 +6,8 @@
 
 - Keep the architecture overview focused on runtime contracts and module
   responsibilities.
+- Remove redundant diagram guidance and the repeated footer slogan while
+  preserving technical content and documentation navigation.
 
 ### Terminal Backends
 
