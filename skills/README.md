@@ -27,3 +27,7 @@ The plugin does not install the CLI. Run
 [plugin guide](../docs/plugin.md) for installation, prerequisites and examples.
 The retained `butterfly-effect` and `hide` skills keep their upstream contracts,
 references and MIT licenses.
+
+`/omha:hide` retains hiding-skill 1.0.0 and cleans selected files without the CLI.
+Session previews stop at findings; credential findings include a rotation warning
+before cleanup selection.
