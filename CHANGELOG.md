@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Documentation
+
+- Keep the architecture overview focused on runtime contracts and module
+  responsibilities.
+
 ### Auto Recover
 
 - Add `auto-recover` for local cmux terminal tabs. Discover every tab through the
