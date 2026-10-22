@@ -196,6 +196,63 @@ test('Kimi print invocation relies on native auto mode and preserves model and p
   assert.throws(() => invocation(profile, 'task', { mode: 'write', toolFree: true }), /tool-free/);
 });
 
+test('Kimi personal streams require final run and Goal evidence and use run-wide accounting', () => {
+  const events = [
+    {
+      type: 'run.started',
+      protocol: 'kimi-personal/1',
+      request_id: 'run-1',
+      session_id: 'session-1',
+      requested_model: 'provider/model',
+    },
+    { role: 'assistant', content: 'initial progress' },
+    { type: 'model.configured', configured_model: 'configured-model', model_verified: false },
+    { type: 'usage.record', usage: { input_tokens: 10, output_tokens: 2 } },
+    { role: 'assistant', content: 'finished task' },
+    { role: 'assistant', tool_calls: [{ function: { name: 'UpdateGoal' } }] },
+    { type: 'tool.result', tool_error: true },
+    {
+      type: 'run.completed',
+      status: 'finished',
+      usage: { input_tokens: 30, output_tokens: 5, total_tokens: 35 },
+    },
+    { type: 'goal.summary', status: 'complete' },
+    { type: 'session.resume_hint', session_id: 'session-1' },
+  ];
+  const encode = (items) => items.map((event) => JSON.stringify(event)).join('\n');
+  const result = parseOutput('kimi', encode(events));
+  assert.equal(result.output, 'finished task');
+  assert.equal(result.requestId, 'run-1');
+  assert.equal(result.servedModel, null);
+  assert.equal(result.usage.normalized.totalTokens, 35);
+  assert.equal(result.usage.normalized.cacheStatus, 'unknown');
+  assert.throws(
+    () => parseOutput('kimi', encode(events.filter((event) => event.type !== 'goal.summary'))),
+    /final Kimi/,
+  );
+  assert.throws(
+    () => parseOutput('kimi', encode(events.filter((event) => event.type !== 'run.completed'))),
+    /final Kimi/,
+  );
+  for (const status of ['active', 'blocked', 'paused', null]) {
+    assert.throws(
+      () =>
+        parseOutput(
+          'kimi',
+          encode([
+            ...events.filter((event) => event.type !== 'goal.summary'),
+            { type: 'goal.summary', status },
+          ]),
+        ),
+      /Kimi goal is/,
+    );
+  }
+  assert.throws(
+    () => parseOutput('kimi', encode([{ type: 'run.started', protocol: 'kimi-personal/99' }])),
+    /Unsupported Kimi/,
+  );
+});
+
 test('provider usage normalization preserves raw evidence and distinguishes cache hit, miss and unknown', () => {
   const anthropic = normalizeUsage('claude', {
     input_tokens: 12,
