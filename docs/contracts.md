@@ -271,7 +271,7 @@ connection or rate-limit failure; working, ended, unregistered, auth and quota
 surfaces are report-only. Per-surface cooldown and attempt caps bound repeated
 input, uncertain `Enter` submissions are never retyped, and the state directory
 retains status and transition events without raw screens. `--watch` repeats on a
-bounded interval (20 minutes by default) under a single-writer lock. See the
+bounded interval (25 minutes by default) under a single-writer lock. See the
 [auto-recover contract](auto-recover.md).
 
 Memory topic frontmatter is parsed as YAML and validated by `lib/memory.mjs`.

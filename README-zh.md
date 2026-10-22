@@ -176,7 +176,7 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
   所有本地终端标签，只分类当前屏幕尾部。加 `--allow-send` 后，对因可恢复连接错误
   停在空闲状态的 agent 标签发送一次有上限的 `go on`，并按 surface 应用冷却和尝试
   次数上限；认证/额度错误、正在工作的 agent 和未注册 agent 的标签只报告、不注入。
-  `--watch --interval-ms 1200000` 每 20 分钟执行一次。详见
+  `--watch --interval-ms 1500000` 每 25 分钟执行一次。详见
   [自动恢复](docs/auto-recover.md)。
 
 ## 记忆与安全边界
