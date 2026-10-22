@@ -54,6 +54,9 @@
 
 ### Fixes
 
+- Remove the conflicting `--auto` flag from Kimi print invocations; `-p`
+  already selects native automatic approval. Preserve explicit models and Goal
+  prompts, and continue requiring an external sandbox for read-only work.
 - Wait for durable worker ownership before SIGKILL recovery assertions, avoiding
   a readiness race when the child starts before the host finishes recording it.
 

@@ -19,6 +19,11 @@ On Windows, npm places the global launcher directly under the configured prefix
 instead of `<prefix>/bin`; native process groups, tmux and cmux probes are
 skipped and file handoff remains available.
 
+Kimi print mode uses `--output-format stream-json -m MODEL -p PROMPT`.
+Kimi Code 2.3 rejects `--auto` together with `-p`; print mode already selects
+automatic approval. Explicit `/goal` prompts pass through unchanged. Read-only
+execution still requires the host's external sandbox wrapper.
+
 The terminal probe treats cmux RPC/schema differences as a capability downgrade:
 it records bounded command diagnostics, verifies a file handoff fallback, and
 continues with exit status 0 when tmux and offline checks pass. A real cmux probe
