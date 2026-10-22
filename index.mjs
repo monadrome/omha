@@ -54,6 +54,12 @@ export {
   memoryStatus,
   doctorMemory,
 } from './lib/memory.mjs';
+export {
+  discoverTabs,
+  recoverTabs,
+  watchTabRecovery,
+  tabRecoveryStatus,
+} from './lib/tab-recovery.mjs';
 export { detectDrift, autoButterfly, validateHistory } from './lib/butterfly.mjs';
 export { OmhaError } from './lib/validation.mjs';
 export { importOpenArena, readOpenArena, ARENA_LABELS, ARENA_CONTRACT } from './lib/open-arena.mjs';

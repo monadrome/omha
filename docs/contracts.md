@@ -263,6 +263,17 @@ The worker rechecks the same session, ownership and run evidence before closing
 only that surface. Duplicate requests reuse their claim; uncertain requests are
 never replayed. See the [auto-close contract](auto-close.md).
 
+`auto-recover check|run|status|list` discovers local cmux terminal tabs from the
+`current` agent projection plus the `surface ls` catalog. Each pass classifies
+only the visible screen tail, never scrollback. `--allow-send` permits one
+bounded `go on` submission to an idle agent surface with a recoverable
+connection or rate-limit failure; working, ended, unregistered, auth and quota
+surfaces are report-only. Per-surface cooldown and attempt caps bound repeated
+input, uncertain `Enter` submissions are never retyped, and the state directory
+retains status and transition events without raw screens. `--watch` repeats on a
+bounded interval (20 minutes by default) under a single-writer lock. See the
+[auto-recover contract](auto-recover.md).
+
 Memory topic frontmatter is parsed as YAML and validated by `lib/memory.mjs`.
 Leader automatically selects relevant active, fresh `worktree`/`project` topics
 for its immutable context. `plan.memory` controls `read`, `write`, `scopes`,

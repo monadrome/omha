@@ -218,6 +218,13 @@ separate outcomes, including when older runs have no acceptance evidence.
   `omha auto-close --completed --reason 'Goal completed; checks passed'` as its
   final completion hook, or use `/omha:auto-close` in the plugin. Only the calling
   surface closes; other splits remain. See [auto-close](docs/auto-close.md).
+- **Tab recovery:** `omha auto-recover check` inspects every local cmux terminal
+  through the structured agent/surface projections and classifies the current
+  screen tail. With `--allow-send`, an idle agent tab stopped by a recoverable
+  connection failure receives one bounded `go on`; per-surface cooldown and
+  attempt limits apply. Auth/quota failures, working agents and unregistered
+  tabs are reported but never injected into. `--watch --interval-ms 1200000`
+  repeats every 20 minutes. See [auto-recover](docs/auto-recover.md).
 - **Butterfly:** Leader automatically observes write tasks with frozen host
   acceptance checks. A failed check followed by changed rework of the same
   candidate triggers the existing drift detector and a bounded file handoff;

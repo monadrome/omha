@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Auto Recover
+
+- Add `auto-recover` for local cmux terminal tabs. Discover every tab through the
+  structured agent/surface projections, classify only the current screen tail,
+  and with explicit `--allow-send` submit one bounded `go on` to idle agent
+  surfaces with recoverable connection or rate-limit failures. Auth/quota,
+  working, ended and unregistered tabs stay report-only; cooldown, attempt caps
+  and a single-writer lock bound repeated or concurrent input. Persist status and
+  transition events without raw screens, and cover the failure paths offline.
+
 ### Auto Compact
 
 - Add opt-in native Claude auto compact with configurable 57-minute cache timing,

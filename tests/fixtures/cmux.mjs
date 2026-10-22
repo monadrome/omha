@@ -19,7 +19,39 @@ const output = (value) => {
   process.stdout.write(typeof value === 'string' ? value : JSON.stringify(value));
 };
 state.calls.push(args);
-if (args[0] === 'identify') {
+if (args[0] === 'current') {
+  output({
+    items: (state.tabs || []).map((tab) => ({
+      durable_surface_id: tab.stable,
+      label: tab.label,
+      cwd: state.cwd,
+      lifecycle: 'running',
+      agents: tab.agents || [],
+    })),
+  });
+} else if (args[0] === 'surface' && args[1] === 'ls') {
+  output({
+    projections: (state.tabs || []).map((tab) => ({
+      resource: `local/terminal/${tab.surface}`,
+      surface_id: tab.surface,
+      workspace_id: tab.workspace,
+      stable_surface_id: tab.stable,
+    })),
+  });
+} else if (args[0] === 'read-screen') {
+  output(state.screens?.[option('--surface')] || '');
+} else if (args[0] === 'send') {
+  (state.sent ||= []).push({ surface: option('--surface'), text: args.at(-1) });
+  output('OK');
+} else if (args[0] === 'send-key') {
+  (state.keys ||= []).push({ surface: option('--surface'), key: args.at(-1) });
+  const surface = option('--surface');
+  const message = (state.sent || []).findLast((entry) => entry.surface === surface)?.text || '';
+  state.screens ||= {};
+  state.screens[surface] =
+    `${state.screens[surface] || ''}\n❯ ${message}\nWorking (1s • esc to interrupt)\n`;
+  output('OK');
+} else if (args[0] === 'identify') {
   output({
     caller: {
       workspace_id: process.env.CMUX_WORKSPACE_ID,
