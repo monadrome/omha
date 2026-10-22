@@ -166,6 +166,36 @@ test('adapters require completed, valid JSON/JSONL and extract provenance', () =
   assert.throws(() => parseOutput('command', '{"output":"unverified"}', 'json'));
 });
 
+test('Kimi print invocation relies on native auto mode and preserves model and prompt', () => {
+  const profile = validateProfiles(
+    config({
+      worker: {
+        adapter: 'kimi',
+        command: 'kimi',
+        model: 'kimi-code/k3',
+        sandbox: 'workspace-write',
+      },
+    }),
+  ).profiles.worker;
+  const request = invocation(profile, '/goal finish the task', {
+    mode: 'write',
+    model: 'deepseek/deepseek-v4-pro',
+  });
+  assert.deepEqual(request, {
+    command: 'kimi',
+    args: [
+      '--output-format',
+      'stream-json',
+      '-m',
+      'deepseek/deepseek-v4-pro',
+      '-p',
+      '/goal finish the task',
+    ],
+    input: '',
+  });
+  assert.throws(() => invocation(profile, 'task', { mode: 'write', toolFree: true }), /tool-free/);
+});
+
 test('provider usage normalization preserves raw evidence and distinguishes cache hit, miss and unknown', () => {
   const anthropic = normalizeUsage('claude', {
     input_tokens: 12,
