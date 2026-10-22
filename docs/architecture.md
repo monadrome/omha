@@ -31,6 +31,7 @@ lib/arena-isolation.mjs -> external write policies and local negative probes
 lib/roundtable.mjs      -> blind proposals, evidence validation, chair record
 lib/backends.mjs        -> owned cmux/tmux/file operations
 lib/terminal.mjs        -> handoff state machine and lifecycle API
+lib/tab-recovery.mjs    -> cmux tab discovery, bounded failure classification and recovery state
 lib/compact.mjs         -> native maintenance claims, cache evidence and durable budgets
 hooks/*.mjs            -> opt-in native Mod events and host-checked timers
 lib/butterfly.mjs       -> lifecycle observation, chronological drift gate, bounded handoff

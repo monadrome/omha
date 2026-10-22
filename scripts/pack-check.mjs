@@ -73,6 +73,8 @@ try {
     'docs/adr/README.md',
     'docs/auto-close.md',
     'skills/auto-close/SKILL.md',
+    'lib/tab-recovery.mjs',
+    'docs/auto-recover.md',
   ])
     assert.ok(names.includes(required), `tarball missing ${required}`);
   assert.equal(
@@ -326,7 +328,7 @@ try {
     [
       '--input-type=module',
       '-e',
-      `import {createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff,autoCloseHandoff} from ${JSON.stringify(pathToFileURL(join(installed, 'index.mjs')).href)};console.log([createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff,autoCloseHandoff].map(value=>typeof value).join(','))`,
+      `import {createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff,autoCloseHandoff,discoverTabs,recoverTabs,watchTabRecovery,tabRecoveryStatus} from ${JSON.stringify(pathToFileURL(join(installed, 'index.mjs')).href)};console.log([createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff,autoCloseHandoff,discoverTabs,recoverTabs,watchTabRecovery,tabRecoveryStatus].map(value=>typeof value).join(','))`,
     ],
     { cwd, env, encoding: 'utf8' },
   );

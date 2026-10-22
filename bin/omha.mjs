@@ -54,6 +54,12 @@ import {
   startCompactSession,
 } from '../lib/terminal.mjs';
 import { run } from '../lib/process.mjs';
+import {
+  discoverTabs,
+  recoverTabs,
+  watchTabRecovery,
+  tabRecoveryStatus,
+} from '../lib/tab-recovery.mjs';
 import { autoButterfly } from '../lib/butterfly.mjs';
 import { importOpenArena, readOpenArena } from '../lib/open-arena.mjs';
 import {
@@ -83,6 +89,7 @@ const BOOLEAN = new Set([
   'watch',
   'close_source',
   'completed',
+  'allow_send',
 ]);
 const ALLOWED = new Set([
   ...BOOLEAN,
@@ -146,6 +153,12 @@ const ALLOWED = new Set([
   'turn',
   'run_id',
   'delay_ms',
+  'message',
+  'cooldown_ms',
+  'max_attempts',
+  'screen_lines',
+  'error_window',
+  'verify_ms',
 ]);
 
 function parse(args) {
@@ -198,6 +211,12 @@ function json(value) {
 function prompt(o) {
   return o.prompt_file ? inputFile(o.prompt_file) : o.prompt || o.task || o._.join(' ');
 }
+function recoveryLine(report) {
+  if (report.error)
+    return `[${report.checkedAt}] auto-recover error (${report.error.code}): ${report.error.message}`;
+  const s = report.summary;
+  return `[${report.checkedAt}] checked ${s.checked} tabs (${s.agents} agents): ${s.recovered} recovered, ${s.recoverable || 0} recoverable, ${s.cooldown || 0} cooldown, ${s.stalled || 0} stalled, ${s.blocked || 0} blocked, ${s.busy || 0} busy, ${s.detected || 0} unregistered, ${s.ok} ok`;
+}
 function memoryOptions(o) {
   const options = {
     scope: o.scope,
@@ -238,6 +257,8 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha handoff fork --id SOURCE_ID (--checkpoint ID | --turn N) --prompt TEXT --allow-write [--close-source]
   omha handoff message --id ID --prompt TEXT
   omha auto-close --completed --reason TEXT [--id HANDOFF_ID] [--run-id RUN_ID] [--delay-ms 1500]
+  omha auto-recover [--allow-send] [--watch --interval-ms 1200000] [--message 'go on']
+  omha auto-recover status|list
   omha auto-butterfly --input history.json [--analyze --profile analyst]
   omha auto-butterfly --input history.json --fork fork.json --allow-write
   omha arena import --source DIRECTORY --input knowledge-metadata.json
@@ -491,6 +512,38 @@ async function main() {
       const sub = o._[0] || 'status';
       if (sub === 'status') return json(decisionStatus(cwd, o.id));
       return json(resolveDecision(cwd, o.id, sub, o.reason));
+    }
+    if (command === 'auto-recover') {
+      const sub = o._[0] || 'run';
+      if (sub === 'status') return json(tabRecoveryStatus());
+      if (sub === 'list') return json({ tabs: await discoverTabs(cwd) });
+      check(['run', 'check'].includes(sub), `Unknown auto-recover command: ${sub}`);
+      const options = {
+        allowSend: o.allow_send === true && sub !== 'check',
+        message: o.message,
+        intervalMs: o.interval_ms === undefined ? undefined : Number(o.interval_ms),
+        cooldownMs: o.cooldown_ms === undefined ? undefined : Number(o.cooldown_ms),
+        maxAttempts: o.max_attempts === undefined ? undefined : Number(o.max_attempts),
+        screenLines: o.screen_lines === undefined ? undefined : Number(o.screen_lines),
+        errorWindow: o.error_window === undefined ? undefined : Number(o.error_window),
+        verifyMs: o.verify_ms === undefined ? undefined : Number(o.verify_ms),
+        signal: controller.signal,
+      };
+      if (o.watch) {
+        await watchTabRecovery(cwd, {
+          ...options,
+          lockTimeoutMs: 0,
+          onReport: (report) => {
+            if (o.json)
+              process.stdout.write(
+                `${JSON.stringify(redactData(report, environmentSecrets(process.env)))}\n`,
+              );
+            else process.stdout.write(`${recoveryLine(report)}\n`);
+          },
+        });
+        return;
+      }
+      return json(await recoverTabs(cwd, options));
     }
     if (command === 'auto-close') {
       keys(

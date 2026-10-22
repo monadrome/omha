@@ -65,6 +65,13 @@ task is finished. The host verifies the calling owned surface and any supplied
 run gates; a detached worker records the outcome and closes that surface. It
 installs no unconditional Stop hook. See [auto-close](auto-close.md).
 
+`auto-recover` is deliberately CLI-only. It needs a durable timer, per-surface
+deduplication across passes and cmux agent-state proof before typing into a
+surface; a prompt skill cannot supply those guarantees. Run
+`omha auto-recover --watch --allow-send --interval-ms 1200000` from a dedicated
+terminal and inspect `omha auto-recover status`. See
+[auto-recover](auto-recover.md) for classification and bounds.
+
 | Work      | Prompt skill owns                               | CLI owns when needed                                  |
 | --------- | ----------------------------------------------- | ----------------------------------------------------- |
 | Planning  | Scope, decomposition, implementation choices    | Validated DAG, write gate, budgets, resume            |
