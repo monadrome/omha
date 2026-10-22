@@ -479,7 +479,7 @@
         color: var(--muted);
         font-size: 0.86rem;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         gap: 20px;
         flex-wrap: wrap;
       }
@@ -642,9 +642,6 @@
             <div class="section-kicker">01 / global architecture</div>
             <h2>全局架构图</h2>
           </div>
-          <p class="section-intro">
-            四列代表四个信任层。箭头表示请求流向；回到主机层的事件流负责记录状态、证据和失败。
-          </p>
         </div>
         <div class="map-shell">
           <div class="map-caption">
@@ -1026,7 +1023,6 @@
       </section>
 
       <footer class="footer">
-        <span>Omha · local, provider-neutral, auditable runtime</span>
         <span
           ><a href="architecture.md">架构文字版</a> · <a href="contracts.md">契约</a> ·
           <a href="security.md">安全边界</a> · <a href="plugin.md">插件指南</a></span
