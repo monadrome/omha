@@ -1,0 +1,34 @@
+CHANGELOG.md
+  s_2d80ef1adc7836::t_4268d4ccdae5c9 12-20
+README.md
+  s_2d80ef1adc7836::t_9a626a186db908 210-213
+docs/cmux-fork.md
+  s_2d80ef1adc7836::t_d9a1e26f9435af 159-161
+  s_2d80ef1adc7836::t_e13cb8de50a8a5 75-144
+docs/plugin.md
+  s_2d80ef1adc7836::t_70787d8fe031fb 54-56
+skills/README.md
+  s_2d80ef1adc7836::t_a61cfd9b002dda 13-14
+README-zh.md
+  s_2d80ef1adc7836::t_9140ffd6047be8 166-168
+CHANGELOG.zh.md
+  s_2d80ef1adc7836::t_702fb4bda99c88 12-18
+skills/agent-handoff/SKILL.md
+  s_2d80ef1adc7836::t_7832d95d4f60de 45-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.43-trip",
+  "base_commit_sha": "79cec6f233bfa3c930f675eed2e9420278402579",
+  "prompts": {},
+  "sessions": {
+    "s_2d80ef1adc7836": {
+      "agent_id": {
+        "tool": "kiro-desktop",
+        "id": "sess_8945fe00-8eb3-4399-8027-1d0f116c44ab",
+        "model": "claude-opus-5.5"
+      },
+      "human_author": "linqh <linqh@trip.com>"
+    }
+  }
+}
