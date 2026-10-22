@@ -95,6 +95,12 @@
 - 增加 `auto-close` 完成钩子命令和插件 skill：任务完成后先持久化记录，再由独立
   进程仅关闭当前原生 cmux 标签页；复查宿主运行门槛、所有权与会话身份，不重放
   不确定的关闭，也不将普通单轮回复结束当作目标完成。
+- 新增可选的原生 fork 生命周期：`handoff fork --compact source|target`、
+  `--rename-target`、`--rename-source`（fork binding 同样支持）。compact 只以 cmux
+  结构化 `SessionStart`（`source: compact`）事件确认完成；不支持的 provider、调用方
+  自身 surface、事件通道缺失、超时或时间线变化均 fail closed，不 fork、不改名、不关闭。
+  source compact 后重新校验时间线，仅在唯一新增尾部 fork。顺序固定，关闭来源仍需
+  新会话 accept；无新参数时请求与记录保持不变。
 
 - Session Fork 在三分支及以上默认开启 `warmFirst`，并在树创建事件上记录实际生效的
   调度模式；仅当预热分支的 usage 明确报告 provider cache 写入时，根节点 cache 证据

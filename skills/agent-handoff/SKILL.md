@@ -42,6 +42,10 @@ For an existing native cmux Claude/Codex session, use `handoff adopt`, then
 `handoff checkpoints` and `handoff fork --id SOURCE_ID --turn N --prompt-file
 handoff.md --allow-write`. `--close-source` requests retirement only after the
 successor runs `handoff accept --id FORK_ID`; never close the source early.
+For long sessions, `--compact source|target` and `--rename-target|--rename-source
+TITLE` are explicit opt-ins; the CLI enforces their order and fails closed when
+compaction cannot be confirmed through structured events. Run source compaction
+from a different surface than the source agent.
 Use `handoff message` for structured follow-up delivery. Native sessions use
 cmux's verified session binding and takeover acknowledgement rather than the
 pipe worker's final marker. See the [native fork contract](../../docs/cmux-fork.md).

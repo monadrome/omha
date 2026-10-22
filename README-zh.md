@@ -178,7 +178,9 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
   发送结构化续写消息，并由新会话确认接管后关闭来源 surface。使用
   `handoff adopt|checkpoints|fork|message|accept` 或 `auto-butterfly --fork`；
   需要明确的历史位置绑定与写入授权，保留原终端权限和计费通道。只复制新会话的
-  历史，不恢复文件；详见 [cmux 历史接续](docs/cmux-fork.md)。
+  历史，不恢复文件。可选 `--compact source|target`（仅以结构化事件确认完成，不支持的
+  provider 直接拒绝）与 `--rename-target|--rename-source` 按固定顺序在投递续写前执行，
+  关闭来源仍需新会话 accept 之后；详见 [cmux 历史接续](docs/cmux-fork.md)。
 - 任务目标和验收完成后，以 `omha auto-close --completed --reason 'Goal completed'`
   作为最后的完成钩子，或在插件中使用 `/omha:auto-close`。独立进程先记录再关闭当前
   cmux 标签页，保留其他标签与分屏；可用 `--run-id` 绑定宿主验收与评审，不把普通回复

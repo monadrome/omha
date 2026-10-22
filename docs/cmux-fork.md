@@ -74,6 +74,76 @@ Native `handoff send` also uses agent messages. Omha never types continuation
 text into an arbitrary TUI. Messages must fit 32 KiB; longer context stays in
 the hashed prompt file. Agent hooks/message delivery must be available in cmux.
 
+## Compact, Rename And Close Lifecycle
+
+Long-session continuation can additionally compact context and retitle both
+sides. All options default off; without them requests, handoff IDs, records,
+events and cmux calls are unchanged.
+
+```bash
+omha handoff fork --id SOURCE_HANDOFF_ID --turn 2 \
+  --prompt-file continuation.md --allow-write --close-source \
+  --compact source --rename-target 'Task (continued)' --rename-source 'Task (retired)'
+```
+
+The order is fixed by the host:
+
+```text
+compact source -> revalidate checkpoint -> fork -> [compact target] ->
+rename target -> rename source -> continuation -> successor accept -> close source
+```
+
+- `--compact source` submits the provider's native compaction command
+  (`/compact` for Claude Code) to the registered source surface and waits for a
+  structured cmux event: `agent.hook.SessionStart` with `source: "compact"` for
+  the exact source session and surface. `agent.hook.PreCompact` is recorded when
+  seen. The selected checkpoint must be the timeline tail. Afterwards the host
+  re-reads the timeline, requires every earlier entry to be unchanged and exactly
+  one new tail, and forks at that tail; it never reuses the pre-compaction turn.
+  The source session/ownership is re-verified first. Compacting the calling
+  surface is refused because its agent cannot finish compaction while it waits
+  for this command; run the fork from another surface.
+- `--compact target` forks first, launches the successor without the positional
+  startup prompt, waits for its structured `SessionStart` readiness event,
+  compacts only the successor, then submits the fixed host takeover line. The
+  continuation itself remains in the hashed prompt file and agent message. The
+  source history is not compacted.
+- `--compact-wait-ms` bounds the completion wait (default 120000, at most 600000).
+- `--rename-target` renames the successor's Omha-owned workspace
+  (`rename-workspace`). `--rename-source` renames the source tab
+  (`rename-tab`), or its workspace when Omha created that workspace. Both verify
+  ownership and the native session first.
+- Closure still happens only inside `handoff accept`, after its successor,
+  prompt-hash, ownership and lifecycle checks; compaction and renaming never
+  close anything.
+
+Compaction and the typed protocol line are the only terminal input Omha submits
+to a native agent, always to a verified owned surface. Completion is accepted
+only from the structured event stream. Screen scraping is not used as a
+fallback: no verified screen marker exists for compaction completion, so a
+missing event channel is reported as `signal_unavailable` instead of guessed.
+
+Fail-closed outcomes, each recorded and returned under the same deterministic
+handoff ID without replaying side effects:
+
+| Condition                                       | Outcome                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------- |
+| Provider without verified compaction (Codex)    | Refused before any record or input; `fork.compact_refused` |
+| Calling surface or non-tail checkpoint (source) | Refused before any record or input; `fork.compact_refused` |
+| Event channel unavailable                       | No compaction, fork, rename or close; `signal_unavailable` |
+| No completion event before the deadline         | No fork, rename or close; `compact.timed_out`              |
+| Timeline prefix changed or ambiguous tail       | No fork; `checkpointResolution.state: mismatch`            |
+| Rename failure                                  | No continuation or close; successor kept; `rename.failed`  |
+
+The record's `fork.lifecycle` holds the applicable `order`, `compact` (mode,
+state, signal, cursor, start/completion sequence, `waitedMs`),
+`checkpointResolution` (requested, resolved, added entries, prefix check),
+`renameTarget`/`renameSource` (title, scope, state), `bootstrap` delivery for
+target compaction and `close` timing (`afterAcceptance`, `requestedAt`,
+`closedAt`). Events add `compact.requested|completed|timed_out|failed|signal_unavailable`,
+`fork.checkpoint_resolved`, `fork.successor_ready`, `rename.requested|completed|failed`,
+`fork.bootstrap_submitted` and acceptance/closure timestamps.
+
 ## Butterfly Integration
 
 For an evidence-supported rewind action, supply a host-authored
@@ -88,7 +158,9 @@ For an evidence-supported rewind action, supply a host-authored
 }
 ```
 
-The action must match the detector's causal boundary. The checkpoint must be
+The action must match the detector's causal boundary. The binding may also carry
+`compact` (`none|source|target`), `renameTarget` and `renameSource`, with the
+same lifecycle and fail-closed rules as the CLI flags. The checkpoint must be
 selected from the source's actual timeline at the intended continuation boundary;
 the host validates the declared mapping and refuses missing or conflicting
 selectors. It never interprets a task attempt number as a cmux turn.

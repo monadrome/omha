@@ -145,6 +145,14 @@
   task tabs. Persist completion before detaching an owned surface-only closer;
   recheck host run gates, ownership and session identity without replaying
   uncertain closes or treating ordinary turn completion as goal achievement.
+- Add an opt-in native fork lifecycle: `handoff fork --compact source|target`,
+  `--rename-target` and `--rename-source` (also in fork bindings). Compaction is
+  confirmed only by a structured cmux `SessionStart` (`source: compact`) event;
+  unsupported providers, the calling surface, missing event channels, timeouts
+  and changed timelines fail closed without forking, renaming or closing. Source
+  compaction re-validates the timeline and forks at the single new tail. The order
+  is fixed and source closure still waits for successor acceptance; default
+  requests are unchanged.
 
 - Default Session Fork `warmFirst` on for three or more branches and record the
   effective scheduling mode on the tree creation event. Upgrade root cache

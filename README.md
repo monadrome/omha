@@ -219,7 +219,10 @@ separate outcomes, including when older runs have no acceptance evidence.
   checkpoint/turn forks, structured continuation messages and source-surface
   retirement after successor acceptance. Use `handoff adopt|checkpoints|fork|message|accept`
   or `auto-butterfly --fork` with an explicit history binding and write authorization.
-  Native permissions/billing are preserved; files are not restored. See
+  Native permissions/billing are preserved; files are not restored. Optional
+  `--compact source|target` (structured completion only; unsupported providers
+  fail closed) and `--rename-target|--rename-source` run in a fixed order before
+  the continuation; source closure still waits for successor acceptance. See
   [cmux historical continuation](docs/cmux-fork.md).
   To close the task tab after a goal and its checks finish, invoke
   `omha auto-close --completed --reason 'Goal completed; checks passed'` as its
