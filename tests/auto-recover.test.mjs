@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { chmodSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { hostname } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { temp } from './helpers.mjs';
@@ -207,6 +208,18 @@ test('an uncertain Enter is never retyped on later passes', async () => {
   const second = await recoverTabs('/tmp/project', options);
   assert.equal(second.summary.stalled, 1);
   assert.equal(f.calls.filter((call) => call.kind === 'send').length, 1);
+});
+
+test('a dead watcher lock is reclaimed immediately', async () => {
+  const f = harness([tab()]);
+  const lock = join(f.home, 'auto-recover', 'auto-recover.lock');
+  mkdirSync(lock, { recursive: true });
+  writeFileSync(
+    join(lock, 'owner.json'),
+    JSON.stringify({ pid: 2147483647, host: hostname(), token: 'dead', at: Date.now() }),
+  );
+  const report = await recoverTabs('/tmp/project', { cmux: f.cmux, ...fast });
+  assert.equal(report.summary.checked, 1);
 });
 
 test('check mode reports the failure without sending', async () => {
