@@ -47,6 +47,17 @@ completed result with nonempty text. Claude JSON, Codex JSONL and Kimi JSONL are
 accepted according to their observed CLI event shapes; unrecognized or partial
 events fail with `malformed_output`.
 
+The personal Kimi stream declares `run.started.protocol: "kimi-personal/1"`.
+It must finish with both `run.completed.status: "finished"` and a
+`goal.summary.status: "complete"`; an intermediate assistant message cannot
+complete that protocol. Active, paused, blocked and missing goals are not
+successful responses, including when a process incorrectly exits zero.
+Run-wide usage comes from the final run summary rather than a single turn or
+step. Missing provider usage and cache fields remain unknown. Configured model
+metadata does not prove the served model. A trailing session resume hint cannot
+replace the run's request id, and tool-only assistant messages cannot erase the
+last textual answer. Existing upstream Kimi message streams remain accepted.
+
 Structured results also expose bounded event summaries through the runtime result
 and `onProviderEvent`. Each summary preserves the adapter event type, request/model
 provenance, tool name, changed file paths, numeric usage and an `inputWait` flag;

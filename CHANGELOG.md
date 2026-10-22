@@ -54,6 +54,8 @@
 
 ### Fixes
 
+- Validate personal Kimi run and Goal completion, retain run-wide provider usage
+  and request identity, and preserve the final answer across tool-only messages.
 - Remove the conflicting `--auto` flag from Kimi print invocations; `-p`
   already selects native automatic approval. Preserve explicit models and Goal
   prompts, and continue requiring an external sandbox for read-only work.
