@@ -1,6 +1,6 @@
 # Agent Tab Connection Recovery
 
-`omha auto-recover` detects local cmux agent tabs that stopped after a provider
+`omha auto-recover` detects local cmux agent tabs or registered owned tmux workers that stopped after a provider
 connection failure and submits one bounded `go on` message to the affected
 surface. It is a terminal observer, not a provider retry layer: it does not
 change profiles, models, billing channels or provider configuration.
@@ -22,6 +22,21 @@ what it found, which makes `check` safe on a live workspace. `--message` changes
 the submitted text (one line, at most 1 KiB); the default is `go on`.
 
 ## Discovery
+
+The default `--backend auto` prefers cmux. If cmux discovery is unavailable,
+it falls back to Omha-owned tmux workers in the current worktree. Explicit
+`--backend cmux` or `--backend tmux` disables fallback. A healthy empty cmux
+catalog does not imply failure. Ownership errors never trigger fallback, and
+input failure never moves the action to another backend. Reports retain
+`requestedBackend`, `backend` and `backendAttempts`.
+
+tmux discovery uses existing handoff records, a private socket, fixed pane ID
+and owner token. Recovery input requires a worker-bound idle activity signal
+from `handoff activity`, at most one minute older than the larger of the watch
+interval and 25 minutes; a signal authorizes at most one submission.
+Unknown, stale or consumed signals remain report-only. A busy process cannot
+be inferred to be idle from a quiet pane or an error string. No arbitrary user
+session is adopted. See [terminal backends](terminal-backends.md) for integration.
 
 Every pass merges two structured cmux projections: `current` for registered
 agent sessions and `surface ls` for the surface/workspace catalog. Only local
@@ -65,8 +80,8 @@ error wins.
 - **Attempts:** at most 6 consecutive submissions per surface and failure reason.
   After that the surface reports `stalled` until the error clears or a different
   failure category appears. Reaching `idle`/`ok` resets the counter.
-- **Submission:** `send` writes the message, waits 250 ms, then `send-key Enter`.
-  If `send` fails, nothing is retried automatically. If `Enter` fails, the text
+- **Submission:** persist a pending claim before `send`, wait 250 ms, then `send-key Enter`.
+  A crash or uncertain send leaves the claim stalled rather than retyping. If `Enter` fails, the text
   may remain in the input box; the surface is reported as `enter_failed` and is
   never retyped.
 - **Verification:** after 1.5 seconds the screen is read again. Recovery is

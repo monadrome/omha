@@ -7,6 +7,14 @@
 - Keep the architecture overview focused on runtime contracts and module
   responsibilities.
 
+### Terminal Backends
+
+- Keep cmux first and extend the existing private-socket tmux fallback with
+  worker-bound activity reports, bounded recovery and caller-verified completion
+  cleanup. Discovery records backend selection; unknown activity stays
+  report-only, and uncertain launch/send outcomes never trigger replay. Native
+  provider history forks and structured messages remain cmux-only.
+
 ### Auto Recover
 
 - Add `auto-recover` for local cmux terminal tabs. Discover every tab through the

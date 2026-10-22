@@ -200,3 +200,83 @@ test('auto degradation tries both native backends and reaches file mode after la
   assert.equal(created.backendClosed, undefined);
   assert.equal(handoffStatus(created.id).launchAttempts.at(-1).backend, 'file');
 });
+
+test('auto prefers cmux and never starts tmux after an uncertain launch or cleanup', async () => {
+  for (const failure of ['none', 'start', 'cleanup', 'ownership']) {
+    const calls = [];
+    const cmux = {
+      async prepare() {
+        calls.push('prepare');
+        if (failure === 'ownership')
+          throw Object.assign(new Error('owner changed'), { code: 'ownership' });
+        return { ref: 'owned-target' };
+      },
+      async start() {
+        calls.push('start');
+        if (failure !== 'none') throw new Error('response lost after launch');
+      },
+      async close() {
+        calls.push('close');
+        if (failure === 'cleanup') throw new Error('cleanup uncertain');
+      },
+    };
+    const tmux = {
+      async start() {
+        assert.fail('must not replay on tmux');
+      },
+    };
+    const created = await handoff(cwd, 'Continue task', { backends: { cmux, tmux } });
+    assert.equal(created.backend, 'cmux');
+    assert.equal(created.launchAttempts.length, 1);
+    assert.equal(
+      created.state,
+      failure === 'none' ? 'running' : failure === 'ownership' ? 'failed' : 'interrupted',
+    );
+    if (failure === 'start' || failure === 'cleanup')
+      assert.equal(created.launchAttempts[0].uncertain, true);
+    if (failure === 'start') {
+      assert.equal((await readHandoff(created.id, { backends: { cmux } })).state, 'interrupted');
+      assert.equal(
+        (await pollHandoff(created.id, { backends: { cmux }, waitMs: 0 })).state,
+        'interrupted',
+      );
+    }
+  }
+});
+
+test('explicit close retries cleanup of an interrupted owned launch without replaying it', async () => {
+  let closes = 0;
+  let starts = 0;
+  const cmux = {
+    async prepare() {
+      return { ref: 'owned-target' };
+    },
+    async start() {
+      starts += 1;
+      throw new Error('launch outcome uncertain');
+    },
+    async verify() {},
+    async close() {
+      closes += 1;
+      if (closes === 1) throw new Error('first cleanup uncertain');
+    },
+  };
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'auto',
+    backends: {
+      cmux,
+      tmux: {
+        async start() {
+          assert.fail('must not replay');
+        },
+      },
+    },
+  });
+  assert.equal(created.state, 'interrupted');
+  assert.equal(created.backendClosed, undefined);
+  const closed = await closeHandoff(created.id, { backends: { cmux } });
+  assert.equal(closed.state, 'closed');
+  assert.equal(closed.backendClosed, true);
+  assert.equal(starts, 1);
+  assert.equal(closes, 2);
+});

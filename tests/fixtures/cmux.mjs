@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
@@ -10,14 +10,19 @@ if (args[0] === '--id-format') args.splice(0, 2);
 if (args[0] === '--json') args.shift();
 const option = (key) => args[args.indexOf(key) + 1];
 const fail = (message = 'fixture operation rejected') => {
-  writeFileSync(file, JSON.stringify(state));
+  save();
   process.stderr.write(message);
   process.exit(1);
 };
 const output = (value) => {
-  writeFileSync(file, JSON.stringify(state));
+  save();
   process.stdout.write(typeof value === 'string' ? value : JSON.stringify(value));
 };
+function save() {
+  const pending = `${file}.${process.pid}`;
+  writeFileSync(pending, JSON.stringify(state));
+  renameSync(pending, file);
+}
 state.calls.push(args);
 if (args[0] === 'current') {
   output({

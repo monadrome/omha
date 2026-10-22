@@ -31,7 +31,7 @@ lib/arena-isolation.mjs -> external write policies and local negative probes
 lib/roundtable.mjs      -> blind proposals, evidence validation, chair record
 lib/backends.mjs        -> owned cmux/tmux/file operations
 lib/terminal.mjs        -> handoff state machine and lifecycle API
-lib/tab-recovery.mjs    -> cmux tab discovery, bounded failure classification and recovery state
+lib/tab-recovery.mjs    -> cmux-first / owned tmux discovery, bounded recovery state
 lib/compact.mjs         -> native maintenance claims, cache evidence and durable budgets
 hooks/*.mjs            -> opt-in native Mod events and host-checked timers
 lib/butterfly.mjs       -> lifecycle observation, chronological drift gate, bounded handoff
@@ -70,6 +70,11 @@ and surface UUID; tmux gets a private socket and unique session. Both carry an
 owner token and verify it before input, capture or close. A worker writes a final
 token-bound JSON marker. File mode uses the same record and can be completed by a
 host command.
+
+Recovery discovery prefers cmux and falls back to registered owned tmux workers.
+Worker-bound activity enables bounded input without equating terminal output
+with provider lifecycle state. Native historical session capabilities remain
+separate from terminal control. See [terminal backends](terminal-backends.md).
 
 Memory uses Markdown topics with YAML frontmatter as the source of truth.
 `MEMORY.md` is a bounded deterministic index. Git projects use the canonical

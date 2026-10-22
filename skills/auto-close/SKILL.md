@@ -1,6 +1,6 @@
 ---
 name: auto-close
-description: Close the current cmux task tab after the user's goal and acceptance checks are complete. Use when the user requests automatic session cleanup or self-close on completion.
+description: Close the current cmux surface or Omha-owned tmux worker pane after the user's goal and acceptance checks are complete. Use when the user requests automatic session cleanup or self-close on completion.
 ---
 
 # Auto-close
@@ -12,11 +12,12 @@ interrupted goal as completion. Keep execution and acceptance under the existing
 host gates; this skill grants no additional task permissions.
 
 Before closing, persist the result, test evidence and any handoff the user needs.
-Check `omha doctor --json`. If the CLI or native cmux session binding is absent,
+Check `omha doctor --json`. If the CLI or owned calling-terminal binding is absent,
 keep the tab open and report the unavailable cleanup. Do not install tools,
 change provider settings or replace validation with a direct terminal command.
 
-As the final task operation, from the original cmux session and worktree, run:
+As the final task operation, from the original cmux surface or Omha-owned tmux
+worker and worktree, run:
 
 ```bash
 omha auto-close --completed --reason 'Goal completed; acceptance checks passed'
@@ -27,7 +28,7 @@ verifies its configured acceptance, review and decision gates. Without a run ID,
 completion is explicitly caller-reported and does not certify correctness.
 Omit `--id` to register or reuse the calling native surface; never supply another
 session's ID. The command schedules a detached close after 1.5 seconds and only
-targets that surface. It preserves other tabs and splits. A repeated request
+targets that surface or pane. It preserves other tabs, splits and tmux panes. A repeated request
 does not start another closer; uncertainty requires inspection and manual cleanup.
 
 The command is the explicit completion hook. Do not attach it unconditionally to

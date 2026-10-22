@@ -48,7 +48,7 @@ Type a skill command in Claude Code, followed by your task:
 /omha:agent-handoff Prepare a continuation for another session.
 /omha:project-memory Record the verified API decision for the next session.
 /omha:auto-butterfly-effect Check whether this rework has a supported restart point.
-/omha:auto-close Close this cmux task tab after the goal and its checks finish.
+/omha:auto-close Close this cmux surface or owned tmux worker pane after the goal and its checks finish.
 ```
 
 The retained `/omha:butterfly-effect` and `/omha:hide` skills also remain available
@@ -62,12 +62,12 @@ The successor confirms takeover before optional source retirement; see
 [cmux historical continuation](cmux-fork.md).
 For completion cleanup, `auto-close` invokes the explicit CLI hook only after the
 task is finished. The host verifies the calling owned surface and any supplied
-run gates; a detached worker records the outcome and closes that surface. It
+run gates; a detached worker records the outcome and closes that surface or owned pane. It
 installs no unconditional Stop hook. See [auto-close](auto-close.md).
 
 `auto-recover` is deliberately CLI-only. It needs a durable timer, per-surface
-deduplication across passes and cmux agent-state proof before typing into a
-surface; a prompt skill cannot supply those guarantees. Run
+deduplication across passes and cmux agent-state proof or a fresh worker-bound
+tmux activity report before typing; a prompt skill cannot supply those guarantees. Run
 `omha auto-recover --watch --allow-send --interval-ms 1500000` from a dedicated
 terminal and inspect `omha auto-recover status`. See
 [auto-recover](auto-recover.md) for classification and bounds.

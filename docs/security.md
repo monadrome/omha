@@ -40,7 +40,9 @@ UUIDs and uses a private tmux socket. It verifies ownership before capture/send/
 close and never discovers or reuses an existing user session. The local probe
 script compares cmux workspace IDs before and after. Interactive handoff uses a
 raw pipe for line-oriented programs; full-screen terminal protocols can require a
-host-native integration.
+host-native integration. tmux activity reports bind to a live worker and child,
+but the reported provider state remains caller-reported and stale/unknown states
+are not eligible for recovery input.
 
 Prompt injection is not solved by stable prefixes. Stable public context prevents
 accidental cache churn and private worker suffixes isolate roles, but users must
