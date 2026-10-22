@@ -13,8 +13,8 @@ omha auto-recover check
 omha auto-recover --allow-send
 omha auto-recover status
 
-# Run in its own cmux workspace, every 20 minutes
-omha auto-recover --watch --allow-send --interval-ms 1200000
+# Run in its own cmux workspace, every 25 minutes
+omha auto-recover --watch --allow-send --interval-ms 1500000
 ```
 
 `--allow-send` is required for any input. Without it the command only reports
@@ -94,9 +94,11 @@ State lives under `$OMHA_HOME` (or the platform XDG state path) in
 ## Watch Mode
 
 `--watch` runs the first pass immediately, then waits `--interval-ms` (minimum
-one minute, default 20 minutes). Backend and timeout failures are reported and
-retried on the next interval; invalid options, corrupt state and unsafe paths stop
-the watcher. JSONL output is available with `--json`.
+one minute, default 25 minutes). The default stays inside the common 30-minute
+provider KV-cache lifetime, so a recovered turn can still reuse the cached prompt.
+Backend and timeout failures are reported and retried on the next interval; invalid
+options, corrupt state and unsafe paths stop the watcher. JSONL output is available
+with `--json`.
 
 The watcher is CLI-only. A prompt skill cannot hold a durable timer, deduplicate
 sends across passes or prove that a surface is an idle agent tab, so

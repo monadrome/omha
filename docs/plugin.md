@@ -68,7 +68,7 @@ installs no unconditional Stop hook. See [auto-close](auto-close.md).
 `auto-recover` is deliberately CLI-only. It needs a durable timer, per-surface
 deduplication across passes and cmux agent-state proof before typing into a
 surface; a prompt skill cannot supply those guarantees. Run
-`omha auto-recover --watch --allow-send --interval-ms 1200000` from a dedicated
+`omha auto-recover --watch --allow-send --interval-ms 1500000` from a dedicated
 terminal and inspect `omha auto-recover status`. See
 [auto-recover](auto-recover.md) for classification and bounds.
 

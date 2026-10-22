@@ -10,7 +10,9 @@
   surfaces with recoverable connection or rate-limit failures. Auth/quota,
   working, ended and unregistered tabs stay report-only; cooldown, attempt caps
   and a single-writer lock bound repeated or concurrent input. Persist status and
-  transition events without raw screens, and cover the failure paths offline.
+  transition events without raw screens, and cover the failure paths offline. The
+  watch interval defaults to 25 minutes so recovery stays inside the common
+  30-minute provider KV-cache lifetime.
 
 ### Auto Compact
 

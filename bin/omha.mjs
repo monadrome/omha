@@ -257,7 +257,7 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha handoff fork --id SOURCE_ID (--checkpoint ID | --turn N) --prompt TEXT --allow-write [--close-source]
   omha handoff message --id ID --prompt TEXT
   omha auto-close --completed --reason TEXT [--id HANDOFF_ID] [--run-id RUN_ID] [--delay-ms 1500]
-  omha auto-recover [--allow-send] [--watch --interval-ms 1200000] [--message 'go on']
+  omha auto-recover [--allow-send] [--watch --interval-ms 1500000] [--message 'go on']
   omha auto-recover status|list
   omha auto-butterfly --input history.json [--analyze --profile analyst]
   omha auto-butterfly --input history.json --fork fork.json --allow-write
