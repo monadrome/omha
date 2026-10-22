@@ -181,6 +181,10 @@ const ALLOWED = new Set([
   'reviewers',
   'kind',
   'max_ms',
+  'compact',
+  'compact_wait_ms',
+  'rename_source',
+  'rename_target',
 ]);
 
 function parse(args) {
@@ -284,6 +288,7 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha handoff adopt
   omha handoff checkpoints|accept --id ID
   omha handoff fork --id SOURCE_ID (--checkpoint ID | --turn N) --prompt TEXT --allow-write [--close-source]
+      [--compact source|target|none] [--rename-target TITLE] [--rename-source TITLE]
   omha handoff message --id ID --prompt TEXT
   omha handoff activity --id ID --input activity.json
   omha auto-close --completed --reason TEXT [--id HANDOFF_ID] [--run-id RUN_ID] [--delay-ms 1500]
@@ -651,6 +656,7 @@ async function main() {
         waitMs: o.wait_ms === undefined ? undefined : Number(o.wait_ms),
         intervalMs: o.interval_ms ? Number(o.interval_ms) : undefined,
         allowWrite: options.allowWrite,
+        compactWaitMs: o.compact_wait_ms === undefined ? undefined : Number(o.compact_wait_ms),
       };
       if (sub === 'adopt') return json(await adoptHandoff(cwd, terminal));
       if (sub === 'activity')
@@ -680,6 +686,9 @@ async function main() {
             ...(o.checkpoint !== undefined ? { checkpoint: o.checkpoint } : {}),
             ...(o.turn !== undefined ? { turn: Number(o.turn) } : {}),
             closeSource: Boolean(o.close_source),
+            ...(o.compact !== undefined ? { compact: o.compact } : {}),
+            ...(o.rename_target !== undefined ? { renameTarget: o.rename_target } : {}),
+            ...(o.rename_source !== undefined ? { renameSource: o.rename_source } : {}),
           },
           terminal,
         );

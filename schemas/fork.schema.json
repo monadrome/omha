@@ -9,6 +9,27 @@
     "actionId": { "$ref": "providers.schema.json#/$defs/id" },
     "checkpoint": { "type": "string", "minLength": 1, "maxLength": 256 },
     "turn": { "type": "integer", "minimum": 1, "maximum": 1000000 },
-    "closeSource": { "type": "boolean", "default": false }
+    "closeSource": { "type": "boolean", "default": false },
+    "compact": {
+      "description": "Provider-native compaction confirmed by a structured cmux hook event. source compacts before the fork and requires the selected checkpoint to be the timeline tail; target compacts only the successor. Unsupported providers fail closed.",
+      "enum": ["none", "source", "target"],
+      "default": "none"
+    },
+    "renameTarget": {
+      "description": "Title applied to the successor's Omha-owned cmux workspace after the fork.",
+      "$ref": "#/$defs/title"
+    },
+    "renameSource": {
+      "description": "Title applied to the source surface (tab; workspace when Omha owns it) after the successor rename.",
+      "$ref": "#/$defs/title"
+    }
+  },
+  "$defs": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[^-\\s\\u0000-\\u001f\\u007f]([^\\u0000-\\u001f\\u007f]*[^\\s\\u0000-\\u001f\\u007f])?$"
+    }
   }
 }
