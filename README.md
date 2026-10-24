@@ -123,8 +123,11 @@ concurrency, budget reservations, environment variable **names**, retry policy,
 circuit cooldown and fallback profiles. They also expose host-checked
 `interactive`, `headless`, `tool-free` and `read-only` capabilities; dispatch
 requests can require a subset before any provider is spawned. `sandboxCommand`/`sandboxArgs` can wrap
-an adapter in an external read-only sandbox; Kimi read-only profiles require
-that wrapper. Never put API keys in JSON, argv, prompts
+an adapter in an external read-only sandbox; upstream Kimi read-only profiles
+require that wrapper. A personal Kimi build with `kimi capabilities` can declare
+`kimiProtocol: "kimi-personal/1"` and `sandbox: "read-only"` to qualify for native
+read-only and tool-free routing. Omha verifies the requested mode in its run
+events. Never put API keys in JSON, argv, prompts
 or memory. Authenticate through the CLI's credential store or explicitly allow
 the required environment variable. Configure models available to your account.
 
@@ -276,8 +279,9 @@ State defaults to `$XDG_STATE_HOME/omha` or `$HOME/.local/state/omha`;
 isolation boundary against hostile processes running as that same OS user.
 Review commands and provider tool permissions. POSIX process groups supervise
 native workers; Windows degrades to fake providers, memory, skills and file
-handoffs. Kimi needs an external sandbox for read-only use and is excluded from
-tool-free planning/voting until a verified CLI mode exists.
+handoffs. Upstream Kimi needs an external sandbox for read-only use and cannot
+run tool-free planning/voting. The opt-in personal protocol supplies model-tool
+restrictions, while still writing its own session/config files; it is not an OS sandbox.
 
 See [security](docs/security.md), [contracts/API](docs/contracts.md),
 [compatibility](docs/compatibility.md), [contributing](CONTRIBUTING.md), and

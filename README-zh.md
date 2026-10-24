@@ -98,7 +98,9 @@ probe 会保留有限诊断并验证 file fallback；tmux 与离线检查仍是�
 Profile 明确配置 executable/argv、adapter、model、effort、sandbox、timeout、concurrency、
 预算预留、环境变量白名单、retry、circuit cooldown、fallback 顺序及由宿主校验的
 `interactive`、`headless`、`tool-free`、`read-only` 能力；路由可在启动 provider 前声明必需能力。
-`sandboxCommand`/`sandboxArgs` 可包装外部只读沙箱，Kimi 只读 profile 必须配置它。白名单只记录
+`sandboxCommand`/`sandboxArgs` 可包装外部只读沙箱，上游 Kimi 的只读 profile 必须配置它。
+支持 `kimi capabilities` 的个人 Kimi 可声明 `kimiProtocol: "kimi-personal/1"` 与
+`sandbox: "read-only"`，启用原生只读和 tool-free 路由；Omha 会校验运行事件中的请求模式。白名单只记录
 变量名。密钥应放在 CLI 凭据存储或明确允许的环境变量中，不能放进 JSON、参数、提示词
 或记忆。模型名称需按当前账户和 CLI 调整。
 
@@ -206,7 +208,8 @@ status。`--expected-hash` 检查并发冲突，`--create-only` 禁止覆盖，
 状态目录为 `$XDG_STATE_HOME/omha` 或 `$HOME/.local/state/omha`，可通过
 `OMHA_HOME` 调整。本工具信任当前 OS 用户与配置的 executable，不是对同 UID 恶意
 进程的隔离沙箱。POSIX 使用进程组监督；Windows 降级到 fake provider、记忆、技能和
-file 交接。Kimi 只读调用需外部沙箱；未验证 tool-free CLI 前不能用于盲投或规划。
+file 交接。上游 Kimi 只读调用需外部沙箱，不能用于 tool-free 盲投或规划。显式启用的个人协议
+提供模型工具限制，仍会写入自身 session/config 文件，不是 OS 沙箱。
 
 详见 [安全与限制](docs/security.md)、[API/协议](docs/contracts.md)、
 [兼容矩阵](docs/compatibility.md)、[贡献指南](CONTRIBUTING.md) 与

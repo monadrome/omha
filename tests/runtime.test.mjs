@@ -253,6 +253,115 @@ test('Kimi personal streams require final run and Goal evidence and use run-wide
   );
 });
 
+test('personal Kimi profiles expose enforced read-only and tool-free modes explicitly', () => {
+  const profile = validateProfiles(
+    config({
+      reviewer: {
+        adapter: 'kimi',
+        command: '/example/personal-kimi',
+        model: 'fixture/model',
+        sandbox: 'read-only',
+        kimiProtocol: 'kimi-personal/1',
+      },
+    }),
+  ).profiles.reviewer;
+  assert.deepEqual(profile.capabilities, ['headless', 'tool-free', 'read-only']);
+  assert.deepEqual(invocation(profile, 'review', { mode: 'readonly' }).args.slice(-2), [
+    '--execution-mode',
+    'read-only',
+  ]);
+  assert.deepEqual(
+    invocation(profile, 'review', { mode: 'readonly', toolFree: true }).args.slice(-2),
+    ['--execution-mode', 'tool-free'],
+  );
+  assert.throws(() => invocation(profile, 'edit', { mode: 'write' }), /write task/);
+  assert.throws(
+    () =>
+      validateProfiles(
+        config({
+          p: {
+            adapter: 'command',
+            command: 'node',
+            model: 'local',
+            args: [],
+            kimiProtocol: 'kimi-personal/1',
+          },
+        }),
+      ),
+    /requires the Kimi adapter/,
+  );
+});
+
+test('personal Kimi completion verifies the requested tool policy and tool-free final evidence', () => {
+  const events = [
+    {
+      type: 'run.started',
+      protocol: 'kimi-personal/1',
+      execution_mode: 'tool-free',
+      goal_required: false,
+      request_id: 'run-review',
+    },
+    { role: 'assistant', content: 'review complete' },
+    {
+      type: 'run.completed',
+      status: 'finished',
+      execution_mode: 'tool-free',
+      request_id: 'run-review',
+      usage: { input_tokens: 10, output_tokens: 2, total_tokens: 12 },
+    },
+  ];
+  const encode = (items) => items.map((event) => JSON.stringify(event)).join('\n');
+  const expected = { kimiProtocol: 'kimi-personal/1', executionMode: 'tool-free' };
+  const parsed = parseOutput('kimi', encode(events), 'text', expected);
+  assert.equal(parsed.output, 'review complete');
+  assert.equal(summarizeEvent('kimi', events[0]).executionMode, 'tool-free');
+  assert.equal(summarizeEvent('kimi', events[0]).goalRequired, false);
+  assert.equal(parsed.usage.normalized.totalTokens, 12);
+  assert.throws(() => parseOutput('kimi', encode(events)), /explicit personal/);
+  assert.throws(
+    () => parseOutput('kimi', encode(events), 'text', { ...expected, executionMode: 'read-only' }),
+    /execution mode/,
+  );
+  assert.throws(
+    () => parseOutput('kimi', encode(events.slice(0, -1)), 'text', expected),
+    /final Kimi/,
+  );
+  assert.throws(
+    () =>
+      parseOutput(
+        'kimi',
+        encode([...events, { type: 'goal.summary', status: 'complete' }]),
+        'text',
+        expected,
+      ),
+    /must not claim/,
+  );
+  assert.throws(
+    () => parseOutput('kimi', encode(events.slice(1)), 'text', expected),
+    /Missing declared/,
+  );
+  assert.throws(
+    () =>
+      parseOutput(
+        'kimi',
+        encode([...events, { type: 'tool.call.started', tool: 'Bash' }]),
+        'text',
+        expected,
+      ),
+    /model tool call/,
+  );
+  assert.throws(
+    () =>
+      parseOutput(
+        'kimi',
+        encode([...events.slice(0, -1), { ...events.at(-1), request_id: 'different-run' }]),
+        'text',
+        expected,
+      ),
+    /run identity/,
+  );
+});
+
 test('provider usage normalization preserves raw evidence and distinguishes cache hit, miss and unknown', () => {
   const anthropic = normalizeUsage('claude', {
     input_tokens: 12,

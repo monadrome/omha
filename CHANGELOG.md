@@ -61,6 +61,9 @@
 
 ### Fixes
 
+- Qualify opt-in personal Kimi profiles for native read-only and tool-free
+  routing, pass the execution mode explicitly and reject missing or mismatched
+  completion evidence. Preserve upstream Kimi sandbox requirements.
 - Validate personal Kimi run and Goal completion, retain run-wide provider usage
   and request identity, and preserve the final answer across tool-only messages.
 - Remove the conflicting `--auto` flag from Kimi print invocations; `-p`
