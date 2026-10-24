@@ -40,8 +40,14 @@ are `interactive`, `headless`, `tool-free` and `read-only`; known adapters and
 sandbox settings infer the enforceable subset, while unsupported declarations
 fail validation. A dispatch request can set `requires` to route only to profiles
 that satisfy those host-checked capabilities. `sandboxCommand` and
-`sandboxArgs` can wrap an adapter in an external read-only sandbox; Kimi
-read-only profiles require them. `fake.responses` is for tests only. A provider
+`sandboxArgs` can wrap an adapter in an external read-only sandbox; upstream Kimi
+read-only profiles require them. A personal Kimi profile can declare
+`kimiProtocol: "kimi-personal/1"` and `sandbox: "read-only"` to use its native
+tool restriction and qualify for `headless`, `tool-free` and `read-only` routing.
+The executable must implement `kimi capabilities` and `--execution-mode`.
+Omha passes `read-only` for ordinary read requests, `tool-free` for context-only
+reasoning and `full` for write requests admitted by a write-capable profile.
+This opt-in never changes upstream Kimi defaults. `fake.responses` is for tests only. A provider
 response is successful only when the adapter parser sees a
 completed result with nonempty text. Claude JSON, Codex JSONL and Kimi JSONL are
 accepted according to their observed CLI event shapes; unrecognized or partial
@@ -57,6 +63,18 @@ step. Missing provider usage and cache fields remain unknown. Configured model
 metadata does not prove the served model. A trailing session resume hint cannot
 replace the run's request id, and tool-only assistant messages cannot erase the
 last textual answer. Existing upstream Kimi message streams remain accepted.
+
+Declared personal profiles additionally require a matching run request id and `execution_mode` in
+both run events and matching `goal_required` in the opening event. Full and
+read-only execution require a complete native Goal. Explicit tool-free
+execution has no model tools, no autonomous continuation and no Goal summary;
+its successful run and nonempty answer are the completion evidence. Tool-free
+output cannot opt an ordinary request out of Goal validation. Missing protocol,
+mode mismatch or a tool-free Goal claim fails with `malformed_output` and cannot
+be repaired through fallback. This proves the trusted executable reported the
+requested policy, not OS isolation or task correctness. Kimi may still write
+its config, session journal and logs; read-only prevents model filesystem writes
+by withholding Bash, Write, Edit and all other mutating/external tools.
 
 Structured results also expose bounded event summaries through the runtime result
 and `onProviderEvent`. Each summary preserves the adapter event type, request/model

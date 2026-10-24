@@ -30,10 +30,17 @@ pricing when usage is unavailable.
 POSIX native workers run in a detached process group and cancellation/timeout
 kill the owned group. Windows lacks equivalent process-group guarantees in this
 release; its documented degradation is fake providers, file handoff and memory.
-Kimi's installed CLI has no verified read-only or tool-free flag, so Omha
-requires `sandbox: external` for read-only Kimi use and rejects it for blind
-planning/voting. Claude and Codex flags are passed explicitly, but users must
-review their CLI configuration and permissions.
+Upstream Kimi has no qualified read-only or tool-free flag, so Omha requires
+`sandbox: external` for its read-only use and rejects it for blind planning/voting.
+A trusted personal Kimi executable can opt in with `kimiProtocol: "kimi-personal/1"`.
+Its native read-only tool set omits Bash, Write, Edit and other mutating tools;
+tool-free omits every model tool and autonomous Goal continuation. Omha passes
+the mode explicitly and rejects missing or mismatched protocol evidence. These
+are model-tool restrictions, not an OS sandbox: Kimi still writes its own
+configuration/session logs, and a substituted or malicious executable can lie.
+Use an external sandbox when OS enforcement is required. Claude and Codex flags
+are also passed explicitly; review executable provenance, CLI configuration and
+permissions for every adapter.
 
 cmux and tmux resources carry a unique owner token. Omha stores full cmux
 UUIDs and uses a private tmux socket. It verifies ownership before capture/send/
