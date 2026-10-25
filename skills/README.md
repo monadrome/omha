@@ -11,6 +11,10 @@ the inputs and execution boundary are explicit, use the CLI for durable DAGs,
 provider routing, blind collection, terminal ownership and memory storage.
 Prompt instructions cannot replace host permission or acceptance checks.
 
+Personal Codex selection is a CLI provider contract, configured through
+`codexProtocol: "codex-personal/1"`; it does not change skill discovery or install
+another executable. See [provider contracts](../docs/contracts.md).
+
 `/omha:auto-close` retains the user's cleanup intent until a goal and its checks
 finish, then invokes the CLI's owned completion hook to close the current cmux
 surface or Omha-owned tmux worker pane. It needs the CLI and a verified calling

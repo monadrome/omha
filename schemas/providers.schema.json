@@ -69,6 +69,7 @@
         "name": { "$ref": "#/$defs/id" },
         "adapter": { "enum": ["claude", "codex", "kimi", "command", "fake"] },
         "kimiProtocol": { "const": "kimi-personal/1" },
+        "codexProtocol": { "const": "codex-personal/1" },
         "command": { "type": "string", "minLength": 1, "maxLength": 4096 },
         "args": { "type": "array", "items": { "type": "string" } },
         "sandboxCommand": { "type": "string", "minLength": 1, "maxLength": 4096 },

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Personal Codex
+
+- Qualify `codex-personal/1` profiles with a fork-only CLI flag, durable native
+  Goals, matching startup metadata and host-selected tool-free restrictions.
+  Remove the unverified upstream tool-free claim and `tools.shell=false` override.
+- Preserve final cumulative Codex usage, recognize native cache reads, and expose
+  redacted Goal, model configuration and native tool timing summaries.
+
 ### Skills
 
 - Sync the retained `hide` skill and references to hiding-skill 1.0.0, including
