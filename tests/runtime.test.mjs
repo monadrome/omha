@@ -587,10 +587,161 @@ test('failure taxonomy and Retry-After seconds/HTTP dates', () => {
   assert.equal(classify({ timedOut: true }).kind, 'timeout');
   assert.equal(classify({ cancelled: true }).kind, 'cancellation');
   assert.equal(classify({ spawnError: { code: 'ENOENT' } }).kind, 'spawn');
+  assert.equal(
+    classify({ code: 3, stdout: '503 capacity', parseError: { code: 'task' } }).kind,
+    'task',
+  );
   assert.equal(retryAfter('1.5'), 1500);
   assert.equal(retryAfter('Thu, 01 Jan 1970 00:00:03 GMT', 1000), 2000);
   assert.equal(retryAfter('bad'), null);
   assert.equal(retryAfterFromText('{"error":{"headers":{"Retry-After":"2"}}}'), 2000);
+});
+
+test('personal Kimi stopped goals do not retry or fall back on incidental provider words', async () => {
+  for (const streamEvents of [false, true]) {
+    for (const declared of [false, true]) {
+      for (const [code, status] of [
+        [3, 'blocked'],
+        [6, 'paused'],
+      ]) {
+        const events = [
+          {
+            type: 'run.started',
+            protocol: 'kimi-personal/1',
+            request_id: 'stopped-run',
+            execution_mode: 'full',
+            goal_required: true,
+          },
+          { role: 'assistant', content: 'The artifact documents 503 capacity and ECONNRESET.' },
+          { type: 'turn.step.completed', duration_ms: 503 },
+          {
+            type: 'run.completed',
+            status: 'finished',
+            request_id: 'stopped-run',
+            execution_mode: 'full',
+            usage: { input_tokens: 10, output_tokens: 2 },
+          },
+          { type: 'goal.summary', status },
+        ];
+        const script = `process.stdout.write(${JSON.stringify(events.map(JSON.stringify).join('\n') + '\n')});process.exitCode=${code}`;
+        const runtime = local({
+          p: {
+            adapter: 'kimi',
+            command: 'fixture-kimi',
+            model: 'fixture/model',
+            ...(declared ? { kimiProtocol: 'kimi-personal/1' } : {}),
+            sandbox: 'external',
+            sandboxCommand: process.execPath,
+            sandboxWrite: true,
+            sandboxArgs: ['-e', script, '{command}', '{args}'],
+            retry: { maxRetries: 1, baseMs: 0, maxMs: 1, jitter: 0 },
+            fallback: ['q'],
+          },
+          q: fake('must not run', { sandbox: 'workspace-write' }),
+        });
+        const result = await runtime.dispatch('write task', ['p'], { mode: 'write', streamEvents });
+        assert.equal(result.code, code);
+        assert.equal(result.ok, false);
+        assert.equal(result.failure, 'task');
+        assert.equal(result.failureStage, 'parse');
+        assert.equal(result.attempts.length, 1);
+        assert.equal(runtime.fakeOffsets.has('q'), false);
+        assert.equal(result.budget.account.requests, 1);
+      }
+    }
+  }
+});
+
+test('personal Kimi nonzero exits cannot claim successful completion', async () => {
+  const events = [
+    {
+      type: 'run.started',
+      protocol: 'kimi-personal/1',
+      request_id: 'wrong-exit',
+      execution_mode: 'full',
+      goal_required: true,
+    },
+    { role: 'assistant', content: 'Completed.' },
+    {
+      type: 'run.completed',
+      status: 'finished',
+      request_id: 'wrong-exit',
+      execution_mode: 'full',
+    },
+    { type: 'goal.summary', status: 'complete' },
+  ];
+  const script = `process.stdout.write(${JSON.stringify(events.map(JSON.stringify).join('\n') + '\n')});process.exitCode=3`;
+  const runtime = local({
+    p: {
+      adapter: 'kimi',
+      command: 'fixture-kimi',
+      model: 'fixture/model',
+      kimiProtocol: 'kimi-personal/1',
+      sandbox: 'external',
+      sandboxCommand: process.execPath,
+      sandboxWrite: true,
+      sandboxArgs: ['-e', script, '{command}', '{args}'],
+      fallback: ['q'],
+    },
+    q: fake('must not run', { sandbox: 'workspace-write' }),
+  });
+  const result = await runtime.dispatch('write task', ['p'], { mode: 'write' });
+  assert.equal(result.code, 3);
+  assert.equal(result.ok, false);
+  assert.equal(result.failure, 'malformed_output');
+  assert.equal(result.attempts.length, 1);
+  assert.equal(runtime.fakeOffsets.has('q'), false);
+});
+
+test('upstream Kimi provider diagnostics still allow capacity fallback', async () => {
+  const runtime = local({
+    p: {
+      adapter: 'kimi',
+      command: 'fixture-kimi',
+      model: 'fixture/model',
+      sandbox: 'external',
+      sandboxCommand: process.execPath,
+      sandboxWrite: true,
+      sandboxArgs: [
+        '-e',
+        'console.error("503 capacity");process.exitCode=3',
+        '{command}',
+        '{args}',
+      ],
+      retry: { maxRetries: 0 },
+      fallback: ['q'],
+    },
+    q: fake('fallback', { sandbox: 'workspace-write' }),
+  });
+  const result = await runtime.dispatch('write task', ['p'], { mode: 'write' });
+  assert.equal(result.ok, true);
+  assert.equal(result.attempts.length, 2);
+  assert.equal(result.attempts[0].failure, 'capacity');
+  assert.equal(result.servedProfile, 'q');
+});
+
+test('declared personal Kimi stops reject missing protocol evidence without retry', async () => {
+  const script =
+    'console.log(JSON.stringify({role:"assistant",content:"503 capacity"}));process.exitCode=3';
+  const runtime = local({
+    p: {
+      adapter: 'kimi',
+      command: 'fixture-kimi',
+      model: 'fixture/model',
+      kimiProtocol: 'kimi-personal/1',
+      sandbox: 'external',
+      sandboxCommand: process.execPath,
+      sandboxWrite: true,
+      sandboxArgs: ['-e', script, '{command}', '{args}'],
+      fallback: ['q'],
+    },
+    q: fake('must not run', { sandbox: 'workspace-write' }),
+  });
+  const result = await runtime.dispatch('write task', ['p'], { mode: 'write' });
+  assert.equal(result.ok, false);
+  assert.equal(result.failure, 'malformed_output');
+  assert.equal(result.attempts.length, 1);
+  assert.equal(runtime.fakeOffsets.has('q'), false);
 });
 
 test('bounded retry, fallback and served model accounting are explicit', async () => {

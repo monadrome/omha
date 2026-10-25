@@ -53,6 +53,11 @@ completed result with nonempty text. Claude JSON, Codex JSONL and Kimi JSONL are
 accepted according to their observed CLI event shapes; unrecognized or partial
 events fail with `malformed_output`.
 
+A MyKimi installation can use `adapter: "kimi"` with `command: "mykimi"` (or
+the explicit source-launcher path) and `kimiProtocol: "kimi-personal/1"`.
+Allowlist `MYKIMI_HOME` when selecting a custom MyKimi data root; the upstream
+`kimi` command and `KIMI_CODE_HOME` are not aliases for that installation.
+
 The personal Kimi stream declares `run.started.protocol: "kimi-personal/1"`.
 It must finish with both `run.completed.status: "finished"` and a
 `goal.summary.status: "complete"`; an intermediate assistant message cannot
@@ -63,6 +68,13 @@ step. Missing provider usage and cache fields remain unknown. Configured model
 metadata does not prove the served model. A trailing session resume hint cannot
 replace the run's request id, and tool-only assistant messages cannot erase the
 last textual answer. Existing upstream Kimi message streams remain accepted.
+
+Native personal Kimi stops (`3` for a blocked Goal, `6` for a paused Goal) pass
+through the same structured protocol parser before failure classification. They
+remain task failures and cannot retry or fall back because incidental assistant,
+tool or timing data contains text such as `503 capacity`. A nonzero process exit
+cannot claim successful completion. Unrecognized upstream diagnostics retain
+the ordinary provider failure taxonomy; process and stream failures stay authoritative.
 
 Declared personal profiles additionally require a matching run request id and `execution_mode` in
 both run events and matching `goal_required` in the opening event. Full and
