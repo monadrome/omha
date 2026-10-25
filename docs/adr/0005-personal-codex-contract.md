@@ -8,6 +8,9 @@ Accepted: 2026-10-24.
 - Keep worker Goals and durable history; tool-free reasoning uses one response,
   an empty startup tool ceiling and no autonomous Goal. Validate matching startup
   metadata and completion evidence without treating Goal status as acceptance.
+- Read-only workers must restrict external and mutating model tools as well as
+  terminal filesystem access. A native allowlist and matching startup evidence
+  enforce that boundary while retaining Goal and Code Mode controls.
 
 Contracts: [providers and completion](../contracts.md),
 [security limits](../security.md).

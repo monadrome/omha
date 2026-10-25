@@ -16,6 +16,9 @@ can set `codexProtocol: "codex-personal/1"` for durable native Goals and enforce
 tool-free roles; see [the provider contract](contracts.md). The plugin does not
 install or select that fork automatically.
 
+Personal Codex read-only workers also receive a native tool ceiling that excludes
+external side effects; provider configuration and enforcement remain CLI-owned.
+
 ## Install
 
 From a checkout, install the CLI using [the README](../README.md#install-update-uninstall)

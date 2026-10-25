@@ -43,7 +43,11 @@ profile contract and a fork-only CLI flag. The host passes an empty startup tool
 ceiling plus single-turn mode and verifies matching runtime evidence. Unknown
 upstream config keys such as `tools.shell=false` are not an enforcement boundary.
 The configured executable remains trusted; it can still write its own logs and
-session metadata. Goal completion never replaces host acceptance or review.
+session metadata. Personal Codex read-only workers also receive an allowlist of
+sandboxed local reads and native control tools, excluding MCP, connectors,
+subagents, patching and escalation. Code Mode composes only the same permitted
+tools. Startup evidence is checked against that ceiling; the read-only filesystem
+sandbox still constrains terminal commands. Goal completion never replaces host acceptance or review.
 Use an external sandbox when OS enforcement is required. Claude and Codex flags
 are also passed explicitly; review executable provenance, CLI configuration and
 permissions for every adapter.
