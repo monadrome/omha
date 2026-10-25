@@ -57,10 +57,37 @@ test('only an explicit personal Codex profile qualifies for tool-free routing', 
   assert.equal(worker.args[worker.args.indexOf('--sandbox') + 1], 'read-only');
   assert.equal(worker.args[worker.args.indexOf('--personal-protocol') + 1], protocol);
   assert.ok(worker.args.includes('goals.default_mode=true'));
+  const ceiling = worker.args.find((arg) => arg.startsWith('tools.allowed='));
+  assert.ok(ceiling.includes('update_goal'));
+  assert.ok(ceiling.includes('exec'));
+  assert.equal(ceiling.includes('apply_patch'), false);
+  assert.equal(ceiling.includes('mcp'), false);
+  assert.equal(ceiling.includes('spawn_agent'), false);
   const voter = invocation(profiles.personal, 'vote', { toolFree: true });
   assert.ok(voter.args.includes('goals.default_mode=false'));
   assert.ok(voter.args.includes('tools.allowed=[]'));
   assert.equal(voter.args.includes('tools.shell=false'), false);
+});
+
+test('personal Codex read-only parsing rejects external and mutating tool ceilings', () => {
+  const policy = { ...expected, executionMode: 'read-only' };
+  const valid = events();
+  valid[1].tool_allowlist = [
+    { name: 'exec_command', namespace: 'functions' },
+    { name: 'update_goal', namespace: null },
+  ];
+  assert.equal(parseOutput('codex', jsonl(valid), 'jsonl', policy).output, 'Verified answer.');
+  for (const tool of [
+    null,
+    [{ name: 'apply_patch' }],
+    [{ name: 'spawn_agent' }],
+    [{ name: 'exec_command', namespace: 'external' }],
+    [{ name: 'write', namespace: 'mcp' }],
+  ]) {
+    const invalid = structuredClone(valid);
+    invalid[1].tool_allowlist = tool;
+    assert.throws(() => parseOutput('codex', jsonl(invalid), 'jsonl', policy), /tool ceiling/);
+  }
 });
 
 test('personal Codex requires matching persistent configuration and a complete Goal', () => {

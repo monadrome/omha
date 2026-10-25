@@ -4,6 +4,10 @@
 
 ### Personal Codex
 
+- Bound personal Codex read-only workers with a verified native tool allowlist,
+  excluding external MCP side effects, subagents, patching and escalation while
+  retaining sandboxed local reads and native Goal/Code Mode controls.
+
 - Qualify `codex-personal/1` profiles with a fork-only CLI flag, durable native
   Goals, matching startup metadata and host-selected tool-free restrictions.
   Remove the unverified upstream tool-free claim and `tools.shell=false` override.

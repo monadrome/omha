@@ -80,7 +80,12 @@ Personal Codex profiles opt in with `codexProtocol: "codex-personal/1"` and an
 explicit executable path. Omha passes `--personal-protocol codex-personal/1`,
 which upstream Codex rejects before inference, and always selects a sandbox.
 Ordinary workers omit `--ephemeral`, enable the native default Goal and retain
-rollouts and names. Tool-free roles disable default Goal and pass
+rollouts and names. Read-only workers additionally receive a native tool ceiling:
+sandboxed terminal reads, image viewing, Goal/context controls and Code Mode
+composition. MCP, connectors, subagents, patching and permission escalation are
+excluded because a filesystem sandbox cannot enforce external read-only behavior.
+The parser verifies this startup ceiling before accepting a read-only result.
+Write workers retain their configured tool selection. Tool-free roles disable default Goal and pass
 `tools.allowed=[]`; upstream Codex no longer qualifies for tool-free routing.
 The personal runtime must emit matching persistent `thread.started` and
 `session.configured` identities, the requested configured model and Goal policy.
