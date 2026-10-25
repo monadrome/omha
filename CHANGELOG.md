@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Personal Kimi
+
+- Keep native blocked and paused Goals as task failures without retrying writes
+  when JSONL tool output or timing metadata contains capacity diagnostics.
+
 ### Personal Codex
 
 - Bound personal Codex read-only workers with a verified native tool allowlist,
