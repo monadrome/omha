@@ -11,6 +11,11 @@ prompt skills; the Node CLI owns deterministic execution and durable state. You
 can use the prompt skills without installing the CLI. Runtime operations require
 Node 20+, an installed `omha` executable and any selected provider/terminal tools.
 
+Personal Codex protocol selection is CLI provider configuration only. A profile
+can set `codexProtocol: "codex-personal/1"` for durable native Goals and enforced
+tool-free roles; see [the provider contract](contracts.md). The plugin does not
+install or select that fork automatically.
+
 ## Install
 
 From a checkout, install the CLI using [the README](../README.md#install-update-uninstall)

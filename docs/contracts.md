@@ -76,6 +76,23 @@ requested policy, not OS isolation or task correctness. Kimi may still write
 its config, session journal and logs; read-only prevents model filesystem writes
 by withholding Bash, Write, Edit and all other mutating/external tools.
 
+Personal Codex profiles opt in with `codexProtocol: "codex-personal/1"` and an
+explicit executable path. Omha passes `--personal-protocol codex-personal/1`,
+which upstream Codex rejects before inference, and always selects a sandbox.
+Ordinary workers omit `--ephemeral`, enable the native default Goal and retain
+rollouts and names. Tool-free roles disable default Goal and pass
+`tools.allowed=[]`; upstream Codex no longer qualifies for tool-free routing.
+The personal runtime must emit matching persistent `thread.started` and
+`session.configured` identities, the requested configured model and Goal policy.
+Ordinary runs require a final `goal.updated.status: "complete"`. Tool-free runs
+require an empty startup allowlist and no Goal or tool activity. Missing or
+mismatched metadata fails closed. Goal completion and exit zero remain separate
+from host acceptance and review. The configured model does not prove which model
+the provider served. Codex turn usage is cumulative within a thread, so the last
+usage record is retained without summing earlier turns. Native tool timing and
+configuration-source categories are exposed in redacted summaries without tool
+arguments, outputs, prompts, config paths or credential values.
+
 Structured results also expose bounded event summaries through the runtime result
 and `onProviderEvent`. Each summary preserves the adapter event type, request/model
 provenance, tool name, changed file paths, numeric usage and an `inputWait` flag;

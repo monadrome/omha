@@ -38,6 +38,12 @@ tool-free omits every model tool and autonomous Goal continuation. Omha passes
 the mode explicitly and rejects missing or mismatched protocol evidence. These
 are model-tool restrictions, not an OS sandbox: Kimi still writes its own
 configuration/session logs, and a substituted or malicious executable can lie.
+Personal Codex tool-free routing requires the explicit `codex-personal/1`
+profile contract and a fork-only CLI flag. The host passes an empty startup tool
+ceiling plus single-turn mode and verifies matching runtime evidence. Unknown
+upstream config keys such as `tools.shell=false` are not an enforcement boundary.
+The configured executable remains trusted; it can still write its own logs and
+session metadata. Goal completion never replaces host acceptance or review.
 Use an external sandbox when OS enforcement is required. Claude and Codex flags
 are also passed explicitly; review executable provenance, CLI configuration and
 permissions for every adapter.
