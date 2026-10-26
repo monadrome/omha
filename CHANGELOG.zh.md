@@ -4,6 +4,9 @@
 
 ### 多 agent 审查
 
+- `--working` 快照提交使用固定的 omha 身份，未配置 git 用户身份的机器（如 CI）上
+  `review prepare --working` 不再失败；新增 `.gitattributes`（`eol=lf`），Windows 检出后格式检查不再报错。
+
 - 新增 `omha review prepare --secret-policy reject|redact`。默认仍为 `reject`；显式选择
   `redact` 时，冻结的 diff、commit message 与上下文中的疑似凭据替换为 `[REDACTED]` 并记录
   替换次数，使含疑似密钥测试数据的提交也能审查。agent 填写的上下文在 `start` 时仍按拒绝处理。
