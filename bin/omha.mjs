@@ -273,7 +273,7 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha roundtable --input decision.json --config providers.json
   omha decision status|approve|reject --id ID [--reason TEXT]
   omha review detect [--config review.json]
-  omha review prepare --commit SHA | --base REF [--head REF] | --working
+  omha review prepare --commit SHA | --base REF [--head REF] | --working [--secret-policy reject|redact]
   omha review start --id REVIEW_ID [--reviewers a,b] [--backend auto|cmux|tmux|file] [--wait-ms 3060000]
   omha review status|wait --id REVIEW_ID [--kind review|vote] [--max-ms N]
   omha review merge|tally|list --id REVIEW_ID
@@ -559,6 +559,7 @@ async function main() {
             base: o.base,
             head: o.head,
             working: o.working,
+            secretPolicy: o.secret_policy,
           }),
         );
       if (sub === 'list') return json(listReviews());

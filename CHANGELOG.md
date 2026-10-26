@@ -4,6 +4,11 @@
 
 ### Multi-review
 
+- Add `omha review prepare --secret-policy reject|redact`. `reject` stays the
+  default; the explicit `redact` opt-in lets commits with secret-like fixtures be
+  reviewed by freezing sanitized diff, commit messages and context and recording
+  the redaction count. Agent-written context is still rejected at `start`.
+
 - Harden `omha review` after an independent Kimi Code audit: screen the diff,
   commit messages and context for credentials before any state exists and roll
   back partial preparation; validate `--wait-ms` before launch; keep superseded
@@ -53,6 +58,11 @@
   preserving technical content and documentation navigation.
 
 ### Terminal Backends
+
+- Accept the empty `#{pane_pid}` that tmux 3.8 reports for a dead pane, so
+  auto-close and explicit close no longer fail with `Invalid tmux pane state`
+  after the worker exits; a live pane still requires a numeric pid that matches
+  the recorded worker.
 
 - Keep cmux first and extend the existing private-socket tmux fallback with
   worker-bound activity reports, bounded recovery and caller-verified completion
