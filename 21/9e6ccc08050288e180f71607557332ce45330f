@@ -1,0 +1,27 @@
+schemas/review.schema.json
+  s_d9c260777243e6::t_62a2d79857d9c3 1-49
+examples/review.json
+  s_d9c260777243e6::t_93ccd0fe82d4c3 1-19
+lib/review.mjs
+  s_d9c260777243e6::t_a964600be45e70 1-77,79,81-218,220-263,266-347,349-351,358-360,366-430,433-616,618-621,623-648,650-661,663-689,691-794,796-814,816-907,909-910,912-921,923-925,927-958,960-1006,1008-1017,1019-1024,1026-1044,1046,1048-1142
+skills/multi-review/SKILL.md
+  s_d9c260777243e6::t_600832c3f9ef46 1-100
+tests/review.test.mjs
+  s_d9c260777243e6::t_31959669c8f6a0 1-121,123-143,145-172,174-184,186-213,215-264,266-268,270-277,280-282,284-289,292-347
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.43-trip",
+  "base_commit_sha": "219e6ccc08050288e180f71607557332ce45330f",
+  "prompts": {},
+  "sessions": {
+    "s_d9c260777243e6": {
+      "agent_id": {
+        "tool": "kiro-desktop",
+        "id": "sess_54f2399e-4c4e-4dd1-ac78-d5ca798a0069",
+        "model": "claude-opus-5.5"
+      },
+      "human_author": "linqh <linqh@trip.com>"
+    }
+  }
+}
