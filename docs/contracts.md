@@ -384,7 +384,10 @@ the merged reviewer set without launching anything.
   `env`; credentials must be passed by name in `envAllowlist`.
 - **Execution.** `prepare` builds the diff, commit messages and context and
   rejects them before creating any state when they contain credentials, including
-  removed lines; it then pins the head under `refs/omha-review/<id>`, adds a
+  removed lines; an explicit `--secret-policy redact` instead freezes sanitized
+  copies, replacing each match with `[REDACTED]` and recording `secretPolicy` and
+  the `redactions` count in the record and the `review.prepared` event (the
+  worktree itself keeps the original files); it then pins the head under `refs/omha-review/<id>`, adds a
   detached worktree, and writes `diff.patch` and a context skeleton, rolling all
   of it back on failure. `start` and `vote` re-check the context and diff. `start`
   refuses a context that still contains `TODO(omha-review)`. Each reviewer is an

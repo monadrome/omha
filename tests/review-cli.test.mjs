@@ -81,6 +81,15 @@ test('review CLI covers detect, prepare, start, status, wait, merge, vote, tally
   );
 
   fails(/exactly one target/, 'review', 'prepare');
+  fails(
+    /secret policy must be one of/,
+    'review',
+    'prepare',
+    '--commit',
+    'HEAD',
+    '--secret-policy',
+    'off',
+  );
   const prepared = ok('review', 'prepare', '--commit', 'HEAD');
   const id = prepared.id;
   fails(/Complete every TODO\(omha-review\)/, 'review', 'start', '--id', id);

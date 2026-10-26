@@ -28,7 +28,11 @@ omha review prepare --commit SHA        # or --base REF [--head REF], or --worki
 
 It freezes the diff, creates a disposable read-only worktree and writes a context
 skeleton. It fails closed when the diff, commit messages or context contain
-credentials; report that rather than editing evidence to pass. Without a stated target, review uncommitted changes with `--working`,
+credentials; report that rather than editing evidence to pass. Only when the user
+confirms the matches are fixtures or test data, rerun with
+`--secret-policy redact`: the frozen diff, commit messages and context replace
+them with `[REDACTED]` and the record counts the redactions. Reviewers can still
+read the original files in the worktree, so never use it for real credentials. Without a stated target, review uncommitted changes with `--working`,
 otherwise `HEAD`.
 
 ## 2. Write the shared context

@@ -4,6 +4,10 @@
 
 ### 多 agent 审查
 
+- 新增 `omha review prepare --secret-policy reject|redact`。默认仍为 `reject`；显式选择
+  `redact` 时，冻结的 diff、commit message 与上下文中的疑似凭据替换为 `[REDACTED]` 并记录
+  替换次数，使含疑似密钥测试数据的提交也能审查。agent 填写的上下文在 `start` 时仍按拒绝处理。
+
 - 根据 Kimi Code 独立审计加固 `omha review`：在创建任何状态之前检查 diff、commit message
   与上下文中的凭据，准备失败时完整回滚；启动前校验 `--wait-ms`；重跑 reviewer 时关闭并保留
   旧 handoff 历史；串行化 start/vote/close，status 只把观测字段合并进最新记录；检测
@@ -40,6 +44,9 @@
 - 移除重复的架构图说明和页脚宣传语，保留技术内容与文档导航。
 
 ### 终端后端
+
+- 兼容 tmux 3.8 对已退出 pane 返回空 `#{pane_pid}` 的行为：worker 退出后自动关闭与显式关闭
+  不再报 `Invalid tmux pane state`；存活 pane 仍要求数字 pid 且与记录的 worker 一致。
 
 - 保持 cmux 优先，并扩展私有 tmux socket 后备：加入绑定到 worker 的活动状态上报、
   有界恢复输入及调用者验证的完成清理。记录后端选择；未知活动只报告，不确定的启动

@@ -391,6 +391,49 @@ test('prepare rejects credential-bearing inputs and leaves no ref, worktree or s
   assert.deepEqual(reviewRecord(record.id).jobs.review, {});
 });
 
+test('explicit redact secret policy freezes sanitized inputs and still screens the context', async () => {
+  const token = 'sk-' + 'y'.repeat(24);
+  writeFileSync(join(repo, 'fixture.txt'), `api_key=${token}\n`);
+  gitIn('add', 'fixture.txt');
+  gitIn('commit', '-qm', `fixture with ${token}`);
+  await assert.rejects(prepareReview(repo, { commit: 'HEAD' }), /Credentials/, 'reject by default');
+  await assert.rejects(
+    prepareReview(repo, { commit: 'HEAD', secretPolicy: 'allow' }),
+    /secret policy must be one of reject, redact/,
+  );
+  const record = await prepareReview(repo, { commit: 'HEAD', secretPolicy: 'redact' });
+  assert.equal(record.secretPolicy, 'redact');
+  assert.ok(record.redactions >= 2, 'diff and commit message are both redacted');
+  for (const file of [record.diff, record.context]) {
+    const body = readFileSync(file, 'utf8');
+    assert.equal(body.includes(token), false);
+    assert.match(body, /\[REDACTED\]/);
+  }
+  const events = readFileSync(join(record.dir, 'events.jsonl'), 'utf8');
+  assert.match(events, /"secretPolicy":"redact"/);
+  assert.equal(events.includes(token), false);
+  fillContext(record);
+  const options = {
+    reviewConfig: reviewConfig({ solo: { command: 'rev-solo', args: [] } }),
+    commandExists: always,
+    backend: 'fake',
+    backendAdapter: adapter(),
+  };
+  const clean = readFileSync(record.context, 'utf8');
+  writeFileSync(record.context, `${clean}\npassword=hunter22\n`);
+  await assert.rejects(startReview(record.id, options), /Credentials/, 'context stays fail-closed');
+  writeFileSync(record.context, clean);
+  const started = await startReview(record.id, options);
+  assert.deepEqual(
+    started.launched.map((x) => x.name),
+    ['solo'],
+  );
+  gitIn('rm', '-q', 'fixture.txt');
+  gitIn('commit', '-qm', 'drop fixture');
+  writeFileSync(join(repo, 'a.txt'), 'one\ntwo\nfour\n');
+  gitIn('commit', '-qam', 'clean change after fixture');
+});
+
 test('hardening: wait budget, relaunch history, concurrency, integrity, malformed output and close', async () => {
   const fake = adapter();
   const config = reviewConfig(
