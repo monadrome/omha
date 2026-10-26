@@ -4,6 +4,10 @@
 
 ### Multi-review
 
+- Give the `--working` snapshot commit a fixed omha identity so `review prepare
+--working` no longer fails on machines without a git user identity (CI).
+  Add `.gitattributes` (`eol=lf`) so Windows checkouts pass the format check.
+
 - Add `omha review prepare --secret-policy reject|redact`. `reject` stays the
   default; the explicit `redact` opt-in lets commits with secret-like fixtures be
   reviewed by freezing sanitized diff, commit messages and context and recording
