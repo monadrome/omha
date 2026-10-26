@@ -4,6 +4,13 @@
 
 ### 多 agent 审查
 
+- 根据 Kimi Code 独立审计加固 `omha review`：在创建任何状态之前检查 diff、commit message
+  与上下文中的凭据，准备失败时完整回滚；启动前校验 `--wait-ms`；重跑 reviewer 时关闭并保留
+  旧 handoff 历史；串行化 start/vote/close，status 只把观测字段合并进最新记录；检测
+  worktree HEAD 被移动并在无法检查时报告未知；格式错误的结果不再按零条意见计；拒绝重复
+  投票者；投票按轮次与条目哈希隔离；清理失败记录为 `cleanup_failed`；Kimi 模型目录不可读时
+  退回首选模型；补充离线 CLI 测试。
+
 - 新增 `omha review` 与 `/omha:multi-review` 技能：把 commit、区间或工作区冻结到一次性
   worktree，每个已安装的 reviewer CLI（Claude、Codex、Kimi Code K3.1、Kiro、Open Code
   Review 或 `.omha/review.json` 配置的命令）各自以受所有权保护的 cmux、tmux 或 file

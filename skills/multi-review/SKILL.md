@@ -27,7 +27,8 @@ omha review prepare --commit SHA        # or --base REF [--head REF], or --worki
 ```
 
 It freezes the diff, creates a disposable read-only worktree and writes a context
-skeleton. Without a stated target, review uncommitted changes with `--working`,
+skeleton. It fails closed when the diff, commit messages or context contain
+credentials; report that rather than editing evidence to pass. Without a stated target, review uncommitted changes with `--working`,
 otherwise `HEAD`.
 
 ## 2. Write the shared context
@@ -82,7 +83,7 @@ omha review tally --id REVIEW_ID
 
 The host fixes an item only with at least two valid ballots and a strict `fix`
 majority; ties and missing ballots do not fix. Tally again when late ballots
-arrive.
+arrive. Each `vote` call opens a new round, and only that round's ballots count.
 
 ## 6. Fix, report, close
 
@@ -92,8 +93,9 @@ Revert an item you cannot make pass and report it as unfixed. Report fixed items
 (file:line, issue, source P0 or vote x:y, commit, test result), disputed items
 left unfixed (issue, vote, main reason) and absent reviewers with reasons. Omit
 false positives and noise. Finally run `omha review close --id REVIEW_ID`; it
-refuses while reviewers still run unless the user accepts `--force`, and keeps the
-evidence directory.
+refuses while reviewers still run unless the user accepts `--force`, keeps the
+evidence directory, and reports `cleanup_failed` for a retry when the worktree or
+ref cannot be removed.
 
 If the CLI is unavailable, review in the current session and say no independent
 reviewers ran; never present one agent's opinions as a multi-agent review.

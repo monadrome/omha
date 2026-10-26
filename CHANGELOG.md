@@ -4,6 +4,15 @@
 
 ### Multi-review
 
+- Harden `omha review` after an independent Kimi Code audit: screen the diff,
+  commit messages and context for credentials before any state exists and roll
+  back partial preparation; validate `--wait-ms` before launch; keep superseded
+  reviewer handoffs in history and close them; serialize start/vote/close and
+  merge status updates into the latest record; detect worktree HEAD moves and
+  report unknown integrity; reject malformed results instead of counting zero
+  findings; reject duplicate voters; isolate vote rounds by items hash; report
+  `cleanup_failed`; tolerate an unreadable Kimi catalog; add offline CLI tests.
+
 - Add `omha review` and the `/omha:multi-review` skill: freeze a commit, range or
   working tree into a disposable worktree, launch every available reviewer CLI
   (Claude, Codex, Kimi Code K3.1, Kiro, Open Code Review or `.omha/review.json`

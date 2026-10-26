@@ -382,28 +382,46 @@ the merged reviewer set without launching anything.
   `{range_args}` to the reviewed commit or range. Without `{prompt}` the prompt
   is sent on stdin. `env` holds non-credential values only, applied through
   `env`; credentials must be passed by name in `envAllowlist`.
-- **Execution.** `prepare` pins the head under `refs/omha-review/<id>`, adds a
-  detached worktree, and writes `diff.patch` and a context skeleton. `start`
+- **Execution.** `prepare` builds the diff, commit messages and context and
+  rejects them before creating any state when they contain credentials, including
+  removed lines; it then pins the head under `refs/omha-review/<id>`, adds a
+  detached worktree, and writes `diff.patch` and a context skeleton, rolling all
+  of it back on failure. `start` and `vote` re-check the context and diff. `start`
   refuses a context that still contains `TODO(omha-review)`. Each reviewer is an
   ordinary handoff (`auto`: cmux, tmux, then file) in that worktree, so ownership,
   final markers and launch attempts are recorded as for any handoff. A file
   handoff starts nothing and reports `awaiting_handoff` with a `resumeCommand`.
+- **Relaunch.** A reviewer whose handoff finished may be relaunched; `--force`
+  also replaces a live one. The superseded handoff is closed and kept in
+  `history`, and its results are renamed to `.attempt-N`. `start`, `vote` and
+  `close` are serialized per review; `status` merges only observed fields into the
+  latest record, so it cannot erase a concurrent launch.
 - **Observation.** `status` combines the handoff state, liveness, PID, exit code
   and the time since the captured terminal output last changed (`stalled` after
   `stallMs`, default 10 minutes). Output change is an activity hint, never proof
-  of progress or correctness. `worktreeTampered` reports reviewer edits.
-- **Budgets.** `waitMs` (default 51 minutes) is measured from each launch.
+  of progress or correctness. `worktreeTampered` is `true` when the worktree HEAD differs from the reviewed
+  head or files changed, and `null` with `worktreeError` when it cannot be checked.
+- **Budgets.** `waitMs` (default 51 minutes, at most `hardTimeoutMs`) is measured
+  from each launch and validated before any reviewer starts.
   `wait` returns `finished`, `handoff_pending`, `deadline` or `max_wait` and never
   cancels a reviewer. `hardTimeoutMs` (default 6 hours) is the handoff timeout
   after which the existing handoff cleanup applies.
 - **Results.** Reviewers write JSON to `{out}`; otherwise the host extracts the
   last JSON object with a `findings` (or `votes`) key from `{last}` or the
-  handoff output. `merge` writes `findings.json` and `findings.md`, clustering
+  handoff output. A result is accepted only when `findings` (or `votes`, or a
+  static reviewer's comment list) is an array of objects; otherwise status reports
+  `malformedOutput` and `merge` lists the source as `malformed`, never as zero
+  findings. `merge` writes `findings.json` and `findings.md`, clustering
   findings within six lines of each other in the same file.
-- **Votes.** `vote` validates at most 50 disputed items and requires at least
-  two voters before launching any. `tally` decides `fix` only with at least two
+- **Votes.** `vote` validates at most 50 disputed items, rejects duplicate voter
+  names and requires at least two distinct voters before launching any. Each call
+  opens a new round with its own hashed `disputed.json`; it refuses while voters of
+  the current round still run unless `--force` retires them. `tally` counts only
+  ballots of the current round whose items hash matches. `tally` decides `fix` only with at least two
   valid ballots and more `fix` ballots than half of them, and lists voters that
   are still pending.
-- **Close.** `close` refuses while any reviewer or voter is still running unless
-  `--force` is given, closes the owned handoffs, removes the worktree and ref,
-  and keeps the evidence directory with `events.jsonl`.
+- **Close.** `close` refuses while any reviewer or voter, current or superseded,
+  is still running unless `--force` is given, closes every owned handoff, removes
+  the worktree and ref, and keeps the evidence directory with `events.jsonl`. If
+  the worktree or ref cannot be removed it records `cleanup_failed`, fails, and
+  can be retried.
