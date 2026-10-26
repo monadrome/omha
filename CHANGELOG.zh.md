@@ -2,6 +2,14 @@
 
 ## 未发布
 
+### 多 agent 审查
+
+- 新增 `omha review` 与 `/omha:multi-review` 技能：把 commit、区间或工作区冻结到一次性
+  worktree，每个已安装的 reviewer CLI（Claude、Codex、Kimi Code K3.1、Kiro、Open Code
+  Review 或 `.omha/review.json` 配置的命令）各自以受所有权保护的 cmux、tmux 或 file
+  交接运行；缺少命令或模型时跳过并记录原因；观测存活与空闲时长；默认等待 51 分钟且不终止
+  仍在运行的 reviewer；合并意见；争议项至少两张有效盲投票且 `fix` 严格过半才修。
+
 - 定制 Codex 的只读 worker 现在同时使用文件沙箱和工具白名单，禁用外部 MCP、
   子代理、补丁写入及提权工具，并校验启动时实际工具上限。
 

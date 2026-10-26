@@ -8,6 +8,7 @@ import { validateProfiles } from '../lib/profiles.mjs';
 import { validatePlan } from '../lib/plans.mjs';
 import { validateEvidence } from '../lib/roundtable.mjs';
 import { validateHistory } from '../lib/butterfly.mjs';
+import { validateReviewConfig } from '../lib/review.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const json = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'));
@@ -48,6 +49,7 @@ assert.deepEqual(skills, [
   'butterfly-effect',
   'hide',
   'leader-agent',
+  'multi-review',
   'project-memory',
   'roundtable',
 ]);
@@ -77,6 +79,7 @@ validateProfiles(json('examples/providers.json'));
 validatePlan(json('examples/plan.json'), profiles);
 validateEvidence(json('examples/decision.json').evidence);
 validateHistory(json('examples/history.json'));
+validateReviewConfig(json('examples/review.json'));
 for (const path of files('schemas')) {
   const schema = json(path);
   assert.ok(schema.$schema?.includes('2020-12'));

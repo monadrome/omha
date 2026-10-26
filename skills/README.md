@@ -1,8 +1,9 @@
 # Omha skills
 
-The Claude Code plugin discovers the eight `*/SKILL.md` files in this directory.
+The Claude Code plugin discovers the nine `*/SKILL.md` files in this directory.
 Use `/omha:leader-agent`, `/omha:roundtable`, `/omha:agent-handoff`,
-`/omha:auto-butterfly-effect`, `/omha:auto-close`, `/omha:project-memory`, `/omha:butterfly-effect`
+`/omha:auto-butterfly-effect`, `/omha:auto-close`, `/omha:multi-review`, `/omha:project-memory`,
+`/omha:butterfly-effect`
 or `/omha:hide` in a session with the plugin enabled.
 
 Skills guide reasoning: decomposition, evidence interpretation, decisions and
@@ -38,3 +39,9 @@ references and MIT licenses.
 `/omha:hide` retains hiding-skill 1.0.0 and cleans selected files without the CLI.
 Session previews stop at findings; credential findings include a rotation warning
 before cleanup selection.
+
+`/omha:multi-review` keeps triage, fixes and the final report in the current
+session. `omha review` owns the frozen inputs, reviewer detection, owned
+reviewer handoffs, normalized findings and the strict-majority vote tally; a
+prompt cannot mark a reviewer as having run. See the
+[review contract](../docs/contracts.md#multi-review).

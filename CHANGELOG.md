@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Multi-review
+
+- Add `omha review` and the `/omha:multi-review` skill: freeze a commit, range or
+  working tree into a disposable worktree, launch every available reviewer CLI
+  (Claude, Codex, Kimi Code K3.1, Kiro, Open Code Review or `.omha/review.json`
+  commands) as an owned cmux, tmux or file handoff, skip missing commands or
+  models with a reason, observe liveness and idle time, wait 51 minutes without
+  cancelling running reviewers, merge findings, and fix disputed items only on a
+  strict majority of at least two blind ballots.
+
 ### Personal Kimi
 
 - Keep native blocked and paused Goals as task failures without retrying writes
