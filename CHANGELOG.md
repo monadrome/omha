@@ -56,6 +56,13 @@
 
 ### Documentation
 
+- Make the arena host-crash test kill the host only after the verification
+  process is persisted, removing a CI race on slow runners.
+
+- Declare macOS and Linux as the only supported platforms: drop Windows from the
+  CI matrix, add `"os": ["darwin", "linux"]` to `package.json`, and replace the
+  Windows degradation notes in the README, compatibility and security docs.
+
 - Keep the architecture overview focused on runtime contracts and module
   responsibilities.
 - Remove redundant diagram guidance and the repeated footer slogan while

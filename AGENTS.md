@@ -75,6 +75,10 @@ threshold.
   [architecture](docs/architecture.md), [contracts](docs/contracts.md) and
   [security](docs/security.md) when touching those modules.
 
+- **Platforms: macOS and Linux only. Windows is out of scope.** Do not add
+  Windows CI jobs, `win32` branches, Windows-only tests or degraded-mode docs.
+  Existing `process.platform === 'win32'` branches are legacy: remove them when
+  you touch that code instead of extending them.
 - Extend the existing modules (`lib/runner.mjs`, `lib/orchestrator.mjs`,
   `lib/terminal.mjs`, `lib/memory.mjs`, `lib/backends.mjs`). Do not build a second
   parallel implementation of something already here.
