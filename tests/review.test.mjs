@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { temp } from './helpers.mjs';
 import { atomicWrite } from '../lib/storage.mjs';
@@ -109,7 +109,9 @@ test('review config merges defaults, overrides and rejects unsafe entries', () =
   assert.equal(pinned.reviewers.kimi.models, undefined);
   assert.throws(
     () =>
-      validateReviewConfig({ reviewers: { x: { command: 'x', args: [], env: { API_KEY: 'v' } } } }),
+      validateReviewConfig({
+        reviewers: { x: { command: 'x', args: [], env: { ['API' + '_KEY']: 'v' } } },
+      }),
     /credentials/,
   );
   assert.throws(
@@ -249,7 +251,10 @@ test('review lifecycle: launch, observe, wait without cancelling, merge, vote an
   assert.equal(merged.clusters, 1, 'nearby lines in one file share a cluster');
   assert.match(readFileSync(merged.findings, 'utf8'), /\[P1\] a\.txt:2,3 reviewers=alpha\+beta/);
 
-  await assert.rejects(closeReview(record.id), /still running: review:gamma/);
+  await assert.rejects(
+    closeReview(record.id, { backendAdapter: fake }),
+    /still running: review:gamma/,
+  );
 
   const disputed = [
     { id: 'D1', title: 'one', claim: 'c', counter: 'k', proposed_fix: 'f' },
@@ -344,4 +349,170 @@ test('backend order falls back from cmux to tmux to a file handoff', async () =>
   assert.match(status.reviewers[0].resumeCommand, /'rev-solo' < '.*prompt\.md'/);
   const waited = await waitReview(second.id, { intervalMs: 10 });
   assert.equal(waited.outcome, 'handoff_pending');
+});
+
+const pause = (ms) => new Promise((done) => setTimeout(done, ms));
+
+test('prepare rejects credential-bearing inputs and leaves no ref, worktree or state', async () => {
+  const reviewWorktrees = () =>
+    gitIn('worktree', 'list')
+      .split('\n')
+      .filter((line) => line.includes('/reviews/'));
+  const before = reviewWorktrees();
+  const refsBefore = gitIn('for-each-ref', 'refs/omha-review');
+  writeFileSync(join(repo, 'leak.txt'), `key=${'sk-' + 'x'.repeat(24)}\n`);
+  gitIn('add', 'leak.txt');
+  gitIn('commit', '-qm', 'leak');
+  await assert.rejects(prepareReview(repo, { commit: 'HEAD', id: 'review-leak' }), /Credentials/);
+  assert.deepEqual(reviewWorktrees(), before);
+  assert.equal(gitIn('for-each-ref', 'refs/omha-review'), refsBefore);
+  assert.equal(existsSync(join(stateHome(), 'reviews', 'review-leak')), false);
+  gitIn('rm', '-q', 'leak.txt');
+  gitIn('commit', '-qm', 'remove leak');
+  await assert.rejects(
+    prepareReview(repo, { commit: 'HEAD' }),
+    /Credentials/,
+    'removed lines count',
+  );
+  writeFileSync(join(repo, 'a.txt'), 'one\ntwo\nthree\n');
+  gitIn('commit', '-qam', 'clean change');
+  const record = await prepareReview(repo, { commit: 'HEAD' });
+  fillContext(record);
+  writeFileSync(record.context, `${readFileSync(record.context, 'utf8')}\npassword=hunter22\n`);
+  await assert.rejects(
+    startReview(record.id, {
+      reviewConfig: reviewConfig({ solo: { command: 'rev-solo', args: [] } }),
+      commandExists: always,
+      backend: 'fake',
+      backendAdapter: adapter(),
+    }),
+    /Credentials/,
+  );
+  assert.deepEqual(reviewRecord(record.id).jobs.review, {});
+});
+
+test('hardening: wait budget, relaunch history, concurrency, integrity, malformed output and close', async () => {
+  const fake = adapter();
+  const config = reviewConfig(
+    {
+      alpha: { command: 'rev-alpha', args: [] },
+      beta: { command: 'rev-beta', args: [] },
+    },
+    { waitMs: 60000 },
+  );
+  const options = {
+    reviewConfig: config,
+    commandExists: always,
+    backend: 'fake',
+    backendAdapter: fake,
+  };
+  const record = await prepareReview(repo, { commit: 'HEAD' });
+  fillContext(record);
+  for (const waitMs of [Number.NaN, Infinity, 0, -5])
+    await assert.rejects(startReview(record.id, { ...options, waitMs }), /review waitMs/);
+  assert.deepEqual(reviewRecord(record.id).jobs.review, {}, 'invalid budgets launch nobody');
+
+  await startReview(record.id, { ...options, reviewers: ['alpha'] });
+  const first = reviewRecord(record.id).jobs.review.alpha;
+
+  // A status call observing an old snapshot must not erase a job launched meanwhile.
+  let release;
+  const gate = new Promise((done) => (release = done));
+  const slow = {
+    ...fake,
+    async capture(handoffRecord) {
+      await gate;
+      return fake.capture(handoffRecord);
+    },
+  };
+  const observing = reviewStatus(record.id, { backendAdapter: slow });
+  await pause(50);
+  await startReview(record.id, { ...options, reviewers: ['beta'] });
+  release();
+  await observing;
+  assert.ok(reviewRecord(record.id).jobs.review.beta, 'concurrent launch survives status');
+
+  // Malformed payloads are not clean zero-finding reviews.
+  writeFileSync(first.out, JSON.stringify({ findings: 'none' }));
+  finish(fake, first.handoffId, 'no json here');
+  let status = await reviewStatus(record.id, { backendAdapter: fake });
+  const alpha = status.reviewers.find((x) => x.name === 'alpha');
+  assert.equal(alpha.output, false);
+  assert.equal(alpha.malformedOutput, true);
+  assert.equal(mergeReview(record.id).sources.alpha, 'malformed');
+
+  // Relaunching keeps the superseded handoff in history and closes it.
+  await startReview(record.id, { ...options, reviewers: ['alpha'] });
+  const latest = reviewRecord(record.id);
+  assert.notEqual(latest.jobs.review.alpha.handoffId, first.handoffId);
+  assert.equal(latest.history[0].handoffId, first.handoffId);
+  assert.equal(handoffStatus(first.handoffId).state, 'closed');
+  assert.ok(existsSync(first.out.replace(/\.json$/, '.attempt-1.json')));
+  const live = latest.jobs.review.alpha;
+  await startReview(record.id, { ...options, reviewers: ['alpha'], force: true });
+  assert.equal(handoffStatus(live.handoffId).state, 'closed', '--force retires the live handoff');
+
+  // Integrity covers HEAD moves, not only dirty files.
+  status = await reviewStatus(record.id, { backendAdapter: fake });
+  assert.equal(status.worktreeTampered, false);
+  execFileSync('git', ['checkout', '-q', '--detach', 'HEAD~1'], { cwd: record.worktree });
+  status = await reviewStatus(record.id, { backendAdapter: fake });
+  assert.equal(status.worktreeTampered, true);
+  execFileSync('git', ['checkout', '-q', '--detach', record.head], { cwd: record.worktree });
+
+  // Duplicate voters cannot satisfy the quorum, and rounds do not mix ballots.
+  const items = [{ id: 'D1', title: 't', claim: 'c', counter: 'k', proposed_fix: 'f' }];
+  await assert.rejects(
+    voteReview(record.id, items, { ...options, reviewers: ['alpha', 'alpha'] }),
+    /Duplicate voter name/,
+  );
+  await voteReview(record.id, items, { ...options, reviewers: ['alpha', 'beta'] });
+  const round1 = reviewRecord(record.id).jobs.vote;
+  for (const name of ['alpha', 'beta']) {
+    writeFileSync(round1[name].out, JSON.stringify({ votes: [{ id: 'D1', verdict: 'fix' }] }));
+    finish(fake, round1[name].handoffId, 'voted');
+  }
+  assert.equal(tallyReview(record.id).items[0].decision, 'fix');
+  await assert.rejects(
+    voteReview(record.id, items, { ...options, reviewers: ['alpha'] }),
+    /at least two voters/,
+  );
+  await voteReview(record.id, [{ ...items[0], claim: 'different claim' }], {
+    ...options,
+    reviewers: ['alpha', 'beta'],
+  });
+  const tally = tallyReview(record.id);
+  assert.equal(tally.round, 2);
+  assert.equal(tally.items[0].decision, 'no_fix', 'round-1 ballots do not count in round 2');
+  assert.deepEqual(tally.pendingVoters.sort(), ['alpha', 'beta']);
+  await assert.rejects(
+    voteReview(record.id, items, { ...options, reviewers: ['alpha', 'beta'] }),
+    /still running/,
+  );
+
+  // Cleanup failures are reported and retryable instead of claiming closure.
+  execFileSync('git', ['worktree', 'lock', record.worktree], { cwd: repo });
+  await assert.rejects(
+    closeReview(record.id, { force: true, backendAdapter: fake }),
+    /retry close/,
+  );
+  assert.equal(reviewRecord(record.id).state, 'cleanup_failed');
+  execFileSync('git', ['worktree', 'unlock', record.worktree], { cwd: repo });
+  const closed = await closeReview(record.id, { force: true, backendAdapter: fake });
+  assert.equal(closed.state, 'closed');
+  for (const job of reviewRecord(record.id).history)
+    assert.equal(handoffStatus(job.handoffId).state, 'closed');
+});
+
+test('an unreadable Kimi catalog falls back to the first preference', () => {
+  const config = validateReviewConfig({});
+  const kimi = detectReviewers(config, {
+    commandExists: always,
+    kimiModels: () => {
+      throw new Error('EACCES');
+    },
+  }).find((x) => x.name === 'kimi');
+  assert.equal(kimi.available, true);
+  assert.equal(kimi.model, 'kimi-code/k3.1');
+  assert.match(kimi.note, /unreadable: EACCES/);
 });
