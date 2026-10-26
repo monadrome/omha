@@ -213,13 +213,12 @@ status。`--expected-hash` 检查并发冲突，`--create-only` 禁止覆盖，
 
 状态目录为 `$XDG_STATE_HOME/omha` 或 `$HOME/.local/state/omha`，可通过
 `OMHA_HOME` 调整。本工具信任当前 OS 用户与配置的 executable，不是对同 UID 恶意
-进程的隔离沙箱。POSIX 使用进程组监督；Windows 降级到 fake provider、记忆、技能和
-file 交接。上游 Kimi 只读调用需外部沙箱，不能用于 tool-free 盲投或规划。显式启用的个人协议
+进程的隔离沙箱。POSIX 使用进程组监督；仅支持 macOS 与 Linux，不支持 Windows。上游 Kimi 只读调用需外部沙箱，不能用于 tool-free 盲投或规划。显式启用的个人协议
 提供模型工具限制，仍会写入自身 session/config 文件，不是 OS 沙箱。
 
 详见 [安全与限制](docs/security.md)、[API/协议](docs/contracts.md)、
 [兼容矩阵](docs/compatibility.md)、[贡献指南](CONTRIBUTING.md) 与
-[发布检查](docs/releasing.md)。CI 覆盖 Node 20/22、Linux/macOS/Windows，检查格式、语法、
+[发布检查](docs/releasing.md)。CI 覆盖 Node 20/22、Linux/macOS，检查格式、语法、
 manifest、技能发现、离线测试和安装包。唯一运行依赖是解析 frontmatter 的 `yaml`。
 [优化验收审计](docs/optimization-audit.md) 列出各项生命周期改动、离线证据和仍保留的协议边界。
 

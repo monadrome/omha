@@ -28,8 +28,7 @@ work from exceeding configured local limits, but they cannot predict provider
 pricing when usage is unavailable.
 
 POSIX native workers run in a detached process group and cancellation/timeout
-kill the owned group. Windows lacks equivalent process-group guarantees in this
-release; its documented degradation is fake providers, file handoff and memory.
+kill the owned group. Windows is not supported.
 Upstream Kimi has no qualified read-only or tool-free flag, so Omha requires
 `sandbox: external` for its read-only use and rejects it for blind planning/voting.
 A trusted personal Kimi executable can opt in with `kimiProtocol: "kimi-personal/1"`.

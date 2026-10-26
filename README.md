@@ -286,15 +286,14 @@ State defaults to `$XDG_STATE_HOME/omha` or `$HOME/.local/state/omha`;
 `OMHA_HOME` overrides it. Omha is a local trusted-user tool, not an
 isolation boundary against hostile processes running as that same OS user.
 Review commands and provider tool permissions. POSIX process groups supervise
-native workers; Windows degrades to fake providers, memory, skills and file
-handoffs. Upstream Kimi needs an external sandbox for read-only use and cannot
+native workers; only macOS and Linux are supported (Windows is not). Upstream Kimi needs an external sandbox for read-only use and cannot
 run tool-free planning/voting. The opt-in personal protocol supplies model-tool
 restrictions, while still writing its own session/config files; it is not an OS sandbox.
 
 See [security](docs/security.md), [contracts/API](docs/contracts.md),
 [compatibility](docs/compatibility.md), [contributing](CONTRIBUTING.md), and
 [release checks](docs/releasing.md). Runtime dependencies: `yaml` for frontmatter;
-development dependency: Prettier. CI checks Node 20/22 on Linux/macOS/Windows,
+development dependency: Prettier. CI checks Node 20/22 on Linux/macOS,
 syntax, formatting, manifests/skill discovery, offline tests and tarball installs.
 The [optimization audit](docs/optimization-audit.md) maps the lifecycle changes
 to their implementation, offline evidence and remaining protocol boundaries.

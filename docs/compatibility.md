@@ -8,7 +8,7 @@
 | Provider                | Claude, Codex, or Kimi CLI                                               | Memory and file handoff                                |
 | Visible handoff         | cmux                                                                     | tmux, then Markdown file                               |
 | Git identity            | Git repository                                                           | Canonical real path                                    |
-| Native process groups   | POSIX                                                                    | Windows uses file/fake degradation                     |
+| Operating system        | macOS or Linux                                                           | None; Windows is not supported                         |
 | Upstream Kimi read-only | External sandbox wrapper                                                 | Workspace-write only                                   |
 | Personal Kimi modes     | Explicit `kimiProtocol: "kimi-personal/1"` and native `--execution-mode` | Fail closed on absent or mismatched run evidence       |
 | JSON frontmatter        | Node 20+ with `yaml`                                                     | No provider required                                   |
@@ -16,9 +16,8 @@
 | Host acceptance         | Fixed local executable and bounded regular artifact files                | Fail closed on changed harnesses/unsupported snapshots |
 | Status/watch            | Existing local records                                                   | Read-only snapshots; no provider or terminal probe     |
 
-On Windows, npm places the global launcher directly under the configured prefix
-instead of `<prefix>/bin`; native process groups, tmux and cmux probes are
-skipped and file handoff remains available.
+Omha supports macOS and Linux only. Windows is not supported or tested, and the
+npm package declares `"os": ["darwin", "linux"]`.
 
 Kimi print mode uses `--output-format stream-json -m MODEL -p PROMPT`.
 Kimi Code 2.3 rejects `--auto` together with `-p`; print mode already selects
