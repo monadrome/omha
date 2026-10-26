@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/monadrome/omha/schemas/review.schema.json",
+  "title": "Omha multi-review configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1 },
+    "backend": { "enum": ["auto", "cmux", "tmux", "file"] },
+    "waitMs": { "type": "integer", "minimum": 1000, "maximum": 86400000 },
+    "stallMs": { "type": "integer", "minimum": 1000, "maximum": 86400000 },
+    "hardTimeoutMs": { "type": "integer", "minimum": 1000, "maximum": 86400000 },
+    "reviewers": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$" },
+      "additionalProperties": { "$ref": "#/$defs/reviewer" }
+    },
+    "voters": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "stringArray": { "type": "array", "items": { "type": "string" } },
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "command": { "type": "string", "minLength": 1 },
+        "args": { "$ref": "#/$defs/stringArray" },
+        "model": { "type": "string", "minLength": 1 },
+        "models": { "$ref": "#/$defs/stringArray", "minItems": 1 },
+        "modelArgs": { "$ref": "#/$defs/stringArray" },
+        "modelCatalog": { "enum": ["none", "kimi"] },
+        "role": { "enum": ["reviewer", "static"] },
+        "vote": { "type": "boolean" },
+        "env": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+          "additionalProperties": { "type": "string" }
+        },
+        "envAllowlist": { "$ref": "#/$defs/stringArray" }
+      },
+      "not": { "required": ["model", "models"] }
+    }
+  }
+}

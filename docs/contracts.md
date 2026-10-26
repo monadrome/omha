@@ -359,3 +359,51 @@ injection retains its requested-topic and private-opt-in behavior.
 `MEMORY.md` is an index; topic Markdown is the source of truth. Handoff records
 use an owner token, full backend reference and a final marker with the same token.
 The final state is successful only for exit code `0` and a valid marker.
+
+## Multi-review
+
+`omha review` runs independent reviewer CLIs over a frozen change. Configuration
+is `.omha/review.json` in the project, else `review.json` in the Omha state
+directory, else built-in defaults; it follows
+[`schemas/review.schema.json`](../schemas/review.schema.json) and
+[`examples/review.json`](../examples/review.json). `omha review detect` reports
+the merged reviewer set without launching anything.
+
+- **Reviewers.** Built-ins are `claude`, `codex`, `kimi` (Kimi Code, preferring
+  `kimi-code/k3.1` then `kimi-code/k3.1-pro`), `kiro` (`kiro-cli`) and `ocr` (Open
+  Code Review, `role: "static"`, which never votes). A reviewer is used only when
+  its command exists; Kimi additionally needs a configured model alias when its
+  local catalog is readable. Others are skipped with a reason. Entries may
+  override `command`, `args`, `model` or `models`, `modelArgs`, `env`,
+  `envAllowlist`, `role`, `vote` and `enabled`, or add new reviewers.
+- **Arguments.** `args` may use `{prompt}`, `{context}`, `{diff}`, `{worktree}`,
+  `{run}`, `{out}`, `{last}`, `{items}`, `{base}`, `{head}` and `{model}`;
+  `{model_args}` expands to `modelArgs` only when a model is set, and
+  `{range_args}` to the reviewed commit or range. Without `{prompt}` the prompt
+  is sent on stdin. `env` holds non-credential values only, applied through
+  `env`; credentials must be passed by name in `envAllowlist`.
+- **Execution.** `prepare` pins the head under `refs/omha-review/<id>`, adds a
+  detached worktree, and writes `diff.patch` and a context skeleton. `start`
+  refuses a context that still contains `TODO(omha-review)`. Each reviewer is an
+  ordinary handoff (`auto`: cmux, tmux, then file) in that worktree, so ownership,
+  final markers and launch attempts are recorded as for any handoff. A file
+  handoff starts nothing and reports `awaiting_handoff` with a `resumeCommand`.
+- **Observation.** `status` combines the handoff state, liveness, PID, exit code
+  and the time since the captured terminal output last changed (`stalled` after
+  `stallMs`, default 10 minutes). Output change is an activity hint, never proof
+  of progress or correctness. `worktreeTampered` reports reviewer edits.
+- **Budgets.** `waitMs` (default 51 minutes) is measured from each launch.
+  `wait` returns `finished`, `handoff_pending`, `deadline` or `max_wait` and never
+  cancels a reviewer. `hardTimeoutMs` (default 6 hours) is the handoff timeout
+  after which the existing handoff cleanup applies.
+- **Results.** Reviewers write JSON to `{out}`; otherwise the host extracts the
+  last JSON object with a `findings` (or `votes`) key from `{last}` or the
+  handoff output. `merge` writes `findings.json` and `findings.md`, clustering
+  findings within six lines of each other in the same file.
+- **Votes.** `vote` validates at most 50 disputed items and requires at least
+  two voters before launching any. `tally` decides `fix` only with at least two
+  valid ballots and more `fix` ballots than half of them, and lists voters that
+  are still pending.
+- **Close.** `close` refuses while any reviewer or voter is still running unless
+  `--force` is given, closes the owned handoffs, removes the worktree and ref,
+  and keeps the evidence directory with `events.jsonl`.

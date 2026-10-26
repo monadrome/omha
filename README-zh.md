@@ -6,8 +6,8 @@
 
 [English](README.md) | [输入协议与 API](docs/contracts.md) | [安全边界](docs/security.md)
 
-Omha 由本地、跨 provider 的 CLI 和 Claude Code plugin 组成。七个提示词 skills
-负责规划、决策、交接、漂移分析和记忆整理；CLI 提供 Claude/Codex/Kimi 路由、
+Omha 由本地、跨 provider 的 CLI 和 Claude Code plugin 组成。九个提示词 skills
+负责规划、决策、代码审查、交接、漂移分析和记忆整理；CLI 提供 Claude/Codex/Kimi 路由、
 经过验证的任务 DAG、盲投圆桌、受所有权保护的终端以及分作用域的 Markdown 记忆。
 
 范围尚不明确、方案取舍、证据解释等工作直接由当前 agent 推理。输入、副作用和验收
@@ -58,7 +58,7 @@ claude plugin install omha@omha
 
 本地源码安装时，将第一行替换为 `claude plugin marketplace add /源码绝对路径/omha`。
 重启 Claude Code 后，可调用 `/omha:leader-agent 任务`、`/omha:roundtable 问题`、
-`/omha:agent-handoff 任务` 等[八个 skills](skills/README.md)。插件只安装提示词；
+`/omha:agent-handoff 任务` 等[九个 skills](skills/README.md)。插件只安装提示词；
 调用运行时功能还需要单独安装上面的 CLI。纯提示词任务可以直接完成。
 
 更新使用 `claude plugin marketplace update omha` 和 `claude plugin update omha@omha`，
@@ -157,6 +157,12 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
   只操作自身资源。终端 worker 必须有完成记录或经过 token 验证的最终 JSON marker；
   file 交接可显式 `handoff complete`。结束后 resume 会创建新交接。正常完成的终端保留
   供查看，需 close；超时和取消会清理。交互模式适合行式程序，不支持任意全屏 TUI。
+- 多 agent 审查：`omha review prepare|start|wait|merge|vote|tally|close` 把 diff 冻结到
+  一次性 worktree，每个已安装的 reviewer CLI（Claude、Codex、Kimi Code、Kiro、Open Code
+  Review 或 `.omha/review.json` 里配置的命令）各自作为受所有权保护的交接运行，按 cmux、
+  tmux、file 降级。缺少命令或模型的 reviewer 跳过并记录原因。默认等待 51 分钟，到点不终止
+  仍在运行的 reviewer。争议项交给盲投 voter，至少两张有效票且 `fix` 严格过半才修。见
+  `/omha:multi-review`。
 - Leader 默认自动观察带冻结验收检查的写任务：同一候选产物在验收失败后发生真实返工，
   会自动调用现有蝴蝶效应检测器并生成有上限的 file 交接，不需要手写历史 JSON，
   不额外调用模型。宿主 `plan.butterfly` 控制开关与上限，详见

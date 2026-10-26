@@ -75,6 +75,10 @@ try {
     'skills/auto-close/SKILL.md',
     'lib/tab-recovery.mjs',
     'docs/auto-recover.md',
+    'lib/review.mjs',
+    'skills/multi-review/SKILL.md',
+    'schemas/review.schema.json',
+    'examples/review.json',
   ])
     assert.ok(names.includes(required), `tarball missing ${required}`);
   assert.equal(

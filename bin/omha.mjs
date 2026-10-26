@@ -30,6 +30,19 @@ import {
 } from '../lib/orchestrator.mjs';
 import { roundtable, decisionStatus, resolveDecision } from '../lib/roundtable.mjs';
 import {
+  closeReview,
+  detectReviewers,
+  listReviews,
+  loadReviewConfig,
+  mergeReview,
+  prepareReview,
+  reviewStatus,
+  startReview,
+  tallyReview,
+  voteReview,
+  waitReview,
+} from '../lib/review.mjs';
+import {
   handoff,
   handoffStatus,
   listHandoffs,
@@ -91,6 +104,8 @@ const BOOLEAN = new Set([
   'close_source',
   'completed',
   'allow_send',
+  'working',
+  'force',
 ]);
 const ALLOWED = new Set([
   ...BOOLEAN,
@@ -160,6 +175,12 @@ const ALLOWED = new Set([
   'screen_lines',
   'error_window',
   'verify_ms',
+  'commit',
+  'base',
+  'head',
+  'reviewers',
+  'kind',
+  'max_ms',
 ]);
 
 function parse(args) {
@@ -251,6 +272,13 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha status [--watch --wait-ms 30000 --interval-ms 1000]
   omha roundtable --input decision.json --config providers.json
   omha decision status|approve|reject --id ID [--reason TEXT]
+  omha review detect [--config review.json]
+  omha review prepare --commit SHA | --base REF [--head REF] | --working
+  omha review start --id REVIEW_ID [--reviewers a,b] [--backend auto|cmux|tmux|file] [--wait-ms 3060000]
+  omha review status|wait --id REVIEW_ID [--kind review|vote] [--max-ms N]
+  omha review merge|tally|list --id REVIEW_ID
+  omha review vote --id REVIEW_ID --input disputed.json [--voters a,b]
+  omha review close --id REVIEW_ID [--force]
   omha handoff --prompt TEXT --backend auto|cmux|tmux|file
   omha handoff list|status|read|poll|send|resume|cancel|close|complete --id ID
   omha handoff adopt
@@ -510,6 +538,47 @@ async function main() {
       });
       return json(result);
     }
+    if (command === 'review') {
+      const sub = o._[0] || 'status';
+      const launch = {
+        config: o.config,
+        backend: o.backend,
+        reviewers: csv(sub === 'vote' ? o.voters : o.reviewers),
+        waitMs: o.wait_ms === undefined ? undefined : Number(o.wait_ms),
+        force: Boolean(o.force),
+        signal: controller.signal,
+      };
+      if (sub === 'detect') {
+        const config = loadReviewConfig(cwd, o.config);
+        return json({ configSource: config.source, reviewers: detectReviewers(config) });
+      }
+      if (sub === 'prepare')
+        return json(
+          await prepareReview(cwd, {
+            commit: o.commit,
+            base: o.base,
+            head: o.head,
+            working: o.working,
+          }),
+        );
+      if (sub === 'list') return json(listReviews());
+      if (sub === 'start') return json(await startReview(o.id, launch));
+      if (sub === 'status') return json(await reviewStatus(o.id, { kind: o.kind }));
+      if (sub === 'wait')
+        return json(
+          await waitReview(o.id, {
+            kind: o.kind,
+            maxMs: o.max_ms === undefined ? undefined : Number(o.max_ms),
+            intervalMs: o.interval_ms ? Number(o.interval_ms) : undefined,
+            signal: controller.signal,
+          }),
+        );
+      if (sub === 'merge') return json(mergeReview(o.id));
+      if (sub === 'vote') return json(await voteReview(o.id, inputJson(o.input), launch));
+      if (sub === 'tally') return json(tallyReview(o.id));
+      if (sub === 'close') return json(await closeReview(o.id, { force: Boolean(o.force) }));
+      throw new OmhaError('configuration', 'Unknown review command');
+    }
     if (command === 'decision') {
       const sub = o._[0] || 'status';
       if (sub === 'status') return json(decisionStatus(cwd, o.id));
@@ -688,7 +757,10 @@ async function main() {
         stateHome: stateHome(),
         configuration,
         capabilities: Object.fromEntries(
-          ['claude', 'codex', 'kimi', 'tmux', 'cmux'].map((name) => [name, commandExists(name)]),
+          ['claude', 'codex', 'kimi', 'kiro-cli', 'ocr', 'tmux', 'cmux'].map((name) => [
+            name,
+            commandExists(name),
+          ]),
         ),
         plugin:
           JSON.parse(readFileSync(new URL('../.claude-plugin/plugin.json', import.meta.url)))

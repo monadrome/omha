@@ -8,7 +8,7 @@ are indexed in [ADRs](docs/adr/README.md).
 [中文](README-zh.md) | [Contracts](docs/contracts.md) | [Security](docs/security.md)
 
 Omha combines a local, provider-neutral CLI with a Claude Code plugin for agent
-collaboration. Seven prompt skills guide planning, decisions, handoff, drift
+collaboration. Nine prompt skills guide planning, decisions, review, handoff, drift
 analysis and memory. The CLI routes Claude/Codex/Kimi jobs, executes validated
 task DAGs, collects blind votes and manages owned terminals and scoped memory.
 
@@ -66,7 +66,7 @@ claude plugin install omha@omha
 Use `claude plugin marketplace add /absolute/path/to/omha` instead for a local
 checkout. Restart Claude Code, then invoke `/omha:leader-agent TASK`,
 `/omha:roundtable QUESTION`, `/omha:agent-handoff TASK` or another of the
-[eight skills](skills/README.md). The plugin installs prompts; CLI operations
+[nine skills](skills/README.md). The plugin installs prompts; CLI operations
 also require the separate CLI installation above. Prompt-only work needs no CLI.
 
 Update with `claude plugin marketplace update omha` and
@@ -221,6 +221,14 @@ separate outcomes, including when older runs have no acceptance evidence.
   `omha auto-close --completed --reason 'Goal completed; checks passed'` as its
   final completion hook, or use `/omha:auto-close` in the plugin. Only the calling
   surface closes; other splits remain. See [auto-close](docs/auto-close.md).
+- **Multi-review:** `omha review prepare|start|wait|merge|vote|tally|close` freezes a
+  diff into a disposable worktree and launches every available reviewer CLI
+  (Claude, Codex, Kimi Code, Kiro, Open Code Review or configured commands from
+  `.omha/review.json`) as its own owned handoff, so cmux, tmux and file fallback,
+  ownership and final markers apply. Missing commands or models are skipped with a
+  reason. Waiting defaults to 51 minutes and never cancels running reviewers.
+  Disputed findings go to blind voters; the host fixes only on a strict majority
+  of at least two valid ballots. See `/omha:multi-review`.
 - **Tab recovery:** `omha auto-recover check` inspects every local cmux terminal
   through the structured agent/surface projections and classifies the current
   screen tail. With `--allow-send`, an idle agent tab stopped by a recoverable

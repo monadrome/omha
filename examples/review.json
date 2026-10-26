@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "backend": "auto",
+  "waitMs": 3060000,
+  "stallMs": 600000,
+  "hardTimeoutMs": 21600000,
+  "reviewers": {
+    "claude": { "model": "opus" },
+    "kimi": { "models": ["kimi-code/k3.1", "kimi-code/k3.1-pro"] },
+    "kiro": { "env": { "HTTPS_PROXY": "http://127.0.0.1:8118" } },
+    "ocr": { "enabled": false },
+    "lint-bot": {
+      "command": "lint-bot",
+      "args": ["review", "--context", "{context}", "--diff", "{diff}", "--out", "{out}"],
+      "vote": false
+    }
+  },
+  "voters": ["claude", "codex", "kimi"]
+}
