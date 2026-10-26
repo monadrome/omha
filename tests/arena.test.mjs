@@ -913,16 +913,23 @@ test('arena non-UTF8 patch transport preserves bytes and textual review excludes
 
 test('arena host crash during verification cleans its recorded process and retains sealed unknown results', async () => {
   const f = fixture();
+  const batchId = 'verification-crash';
+  // Crash the host only after it has persisted this verification process, so the
+  // test exercises recovery of a recorded process instead of racing the write.
+  const statePath = JSON.stringify(join(f.batchDir(batchId), 'state.json'));
   writeFileSync(
     f.harness,
-    "process.on('SIGTERM',()=>{});process.kill(process.ppid,'SIGKILL');setInterval(()=>{},1000);\n",
+    `const fs=require('node:fs');process.on('SIGTERM',()=>{});const until=Date.now()+10000;` +
+      `const recorded=()=>{try{return JSON.parse(fs.readFileSync(${statePath},'utf8')).contenders` +
+      `.some((c)=>c.verificationProcess?.active)}catch{return false}};` +
+      `const tick=()=>recorded()||Date.now()>until?process.kill(process.ppid,'SIGKILL'):setTimeout(tick,10);` +
+      `tick();setInterval(()=>{},1000);\n`,
   );
   f.spec.verification.criteria[0].harnessHash = hash(readFileSync(f.harness));
   const specPath = join(f.root, 'execution.json'),
     profilesPath = join(f.root, 'profiles.json');
   writeFileSync(specPath, JSON.stringify(f.spec));
   writeFileSync(profilesPath, JSON.stringify({ version: 1, profiles: f.profiles }));
-  const batchId = 'verification-crash';
   const child = spawn(
     process.execPath,
     [
