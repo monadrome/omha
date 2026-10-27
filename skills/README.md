@@ -55,6 +55,5 @@ prompt cannot mark a reviewer as having run. See the
 without the CLI: a result-first brief report of at most 15 lines by default, or
 a full report with the fixed Overview / Goal / Constraints / User Intent /
 Decisions / Technical / Status / Next / Conversation Outline sections for
-checkpoints and handoffs. A full report can be
-the body of an `/omha:agent-handoff` prompt file. It cannot mark a skipped or blocked
-check as passed.
+checkpoints and handoffs. It cannot mark a skipped or blocked check as passed.
+An `/omha:agent-handoff` requests file and brief keep their own contract.

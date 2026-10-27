@@ -96,7 +96,10 @@ Rules for both layouts:
 - Do not drop bad news to keep the report short: failures, failing tests,
   security warnings and destructive-action confirmations stay in full.
 
-A full report can be the body of the prompt file for
-[agent-handoff](../agent-handoff/SKILL.md). This skill only formats the report.
+For an `omha handoff` with a requests file and a brief, follow the two-file
+contract in [agent-handoff](../agent-handoff/SKILL.md) instead: the User Intent
+quotes go verbatim into the requests file, and the brief keeps its short,
+third-person limits. Use the full report for checkpoints, compaction and
+handoff notes outside that contract. This skill only formats the report.
 It grants no permission, starts nothing, and cannot stand in for a host
 acceptance or review gate. It needs no CLI.
