@@ -100,13 +100,16 @@ Profile 明确配置 executable/argv、adapter、model、effort、sandbox、time
 `interactive`、`headless`、`tool-free`、`read-only` 能力；路由可在启动 provider 前声明必需能力。
 `sandboxCommand`/`sandboxArgs` 可包装外部只读沙箱，上游 Kimi 的只读 profile 必须配置它。
 支持 `kimi capabilities` 的个人 Kimi 可声明 `kimiProtocol: "kimi-personal/1"` 与
-`sandbox: "read-only"`，启用原生只读和 tool-free 路由；Omha 会校验运行事件中的请求模式。白名单只记录
+`sandbox: "read-only"`，启用原生只读和 tool-free 路由；Omha 会校验运行事件中的请求模式。
+`kiro` 适配器以 `kiro-cli chat --agent-engine v3 --output-format stream-json` 运行，提示词走
+stdin。只读请求不信任任何工具，非交互 CLI 会拒绝写入和 shell；宿主还会拒绝出现已完成非读取
+工具调用的结果。Kiro 会自动批准读取，因此不具备 tool-free 能力。白名单只记录
 变量名。密钥应放在 CLI 凭据存储或明确允许的环境变量中，不能放进 JSON、参数、提示词
 或记忆。模型名称需按当前账户和 CLI 调整。
 
 Headless JSON/JSONL provider 会通过 runtime 回调和结果 envelope 暴露有界事件摘要，
 包括轮次类型、工具/文件证据、usage 与等待输入信号；原始 provider payload 不会写入事件摘要。
-API 传入 `streamEvents: true` 后，Codex 或 Kimi 的 JSONL 进程运行期间也会收到同样的脱敏摘要；
+API 传入 `streamEvents: true` 后，Codex、Kimi 或 Kiro 的 JSONL 进程运行期间也会收到同样的脱敏摘要；
 流是显式开启且有界的，`result.stream` 会记录是否支持、投递和完成。Claude 继续使用原生 JSON 调用。
 事件流只提供观察证据；完成解析、host 验收、预算闸门和计费通道仍是最终依据。
 
@@ -215,6 +218,8 @@ status。`--expected-hash` 检查并发冲突，`--create-only` 禁止覆盖，
 `OMHA_HOME` 调整。本工具信任当前 OS 用户与配置的 executable，不是对同 UID 恶意
 进程的隔离沙箱。POSIX 使用进程组监督；仅支持 macOS 与 Linux，不支持 Windows。上游 Kimi 只读调用需外部沙箱，不能用于 tool-free 盲投或规划。显式启用的个人协议
 提供模型工具限制，仍会写入自身 session/config 文件，不是 OS 沙箱。
+Kiro 写入 profile（`sandbox: "workspace-write"`）传 `--trust-all-tools`，不限制在工作区内；
+Kiro 只读是权限拒绝，不是 OS 沙箱。
 
 详见 [安全与限制](docs/security.md)、[API/协议](docs/contracts.md)、
 [兼容矩阵](docs/compatibility.md)、[贡献指南](CONTRIBUTING.md) 与

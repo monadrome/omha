@@ -47,6 +47,13 @@ sandboxed local reads and native control tools, excluding MCP, connectors,
 subagents, patching and escalation. Code Mode composes only the same permitted
 tools. Startup evidence is checked against that ceiling; the read-only filesystem
 sandbox still constrains terminal commands. Goal completion never replaces host acceptance or review.
+Kiro read-only passes an empty `--trust-tools=` list: the non-interactive CLI
+denies writes, shell and other untrusted tools, but auto-approves its built-in
+reads, so Kiro is never tool-free. The host rejects a read-only result whose
+stream shows a completed non-read tool call; that detects rather than undoes a
+change made by a substituted or misconfigured executable. Kiro write profiles use
+`--trust-all-tools` with no workspace confinement. Global Kiro hooks, steering and
+agent settings still apply.
 Use an external sandbox when OS enforcement is required. Claude and Codex flags
 are also passed explicitly; review executable provenance, CLI configuration and
 permissions for every adapter.

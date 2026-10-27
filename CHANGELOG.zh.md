@@ -2,6 +2,15 @@
 
 ## 未发布
 
+### Kiro 适配器
+
+- 新增 `kiro` provider 适配器与默认 profile，以 `kiro-cli` V3 无头模式运行：stdout 输出
+  ACP `stream-json`，提示词走 stdin，只读请求传 `--trust-tools=`，写请求传
+  `--trust-all-tools`。宿主要求 ACP V3 运行信封、唯一 session id 和成功的 `end_turn`
+  结果；只读结果若出现已完成的非读取工具调用即拒绝；轮次 credits 保留为原始用量；
+  实时输出脱敏事件摘要（含工具审批等待）；失败分类只看 Kiro 的 `runError`，不看模型文本。
+  Kiro 不具备 tool-free 能力。
+
 ### 多 agent 审查
 
 - `--working` 快照提交使用固定的 omha 身份，未配置 git 用户身份的机器（如 CI）上

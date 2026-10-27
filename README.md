@@ -127,7 +127,11 @@ an adapter in an external read-only sandbox; upstream Kimi read-only profiles
 require that wrapper. A personal Kimi build with `kimi capabilities` can declare
 `kimiProtocol: "kimi-personal/1"` and `sandbox: "read-only"` to qualify for native
 read-only and tool-free routing. Omha verifies the requested mode in its run
-events. Never put API keys in JSON, argv, prompts
+events. The `kiro` adapter runs `kiro-cli chat --agent-engine v3 --output-format
+stream-json` with the prompt on stdin. Read-only requests trust no tools, so the
+non-interactive CLI denies writes and shell; the host also rejects any completed
+non-read tool call. Kiro is never tool-free because it auto-approves reads.
+Never put API keys in JSON, argv, prompts
 or memory. Authenticate through the CLI's credential store or explicitly allow
 the required environment variable. Configure models available to your account.
 
@@ -135,7 +139,7 @@ Headless JSON/JSONL providers expose bounded event summaries through the runtime
 callback and result envelope, including turn types, tool/file evidence, usage and
 input-wait signals. Raw provider payloads remain untrusted and are not persisted
 as event summaries. Pass `streamEvents: true` through the API to receive the same
-redacted summaries while Codex or Kimi JSONL is running; the stream is opt-in and
+redacted summaries while Codex, Kimi or Kiro JSONL is running; the stream is opt-in and
 bounded, and `result.stream` records support, delivery and completion. Claude
 continues using its native JSON invocation. A streamed event is observation
 evidence only; completion parsing, host acceptance, budget gates and billing
@@ -289,6 +293,8 @@ Review commands and provider tool permissions. POSIX process groups supervise
 native workers; only macOS and Linux are supported (Windows is not). Upstream Kimi needs an external sandbox for read-only use and cannot
 run tool-free planning/voting. The opt-in personal protocol supplies model-tool
 restrictions, while still writing its own session/config files; it is not an OS sandbox.
+Kiro write profiles (`sandbox: "workspace-write"`) pass `--trust-all-tools` and
+are not confined to the workspace; Kiro read-only is a permission denial, not an OS sandbox.
 
 See [security](docs/security.md), [contracts/API](docs/contracts.md),
 [compatibility](docs/compatibility.md), [contributing](CONTRIBUTING.md), and

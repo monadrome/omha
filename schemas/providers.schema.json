@@ -67,7 +67,7 @@
       "required": ["command", "model"],
       "properties": {
         "name": { "$ref": "#/$defs/id" },
-        "adapter": { "enum": ["claude", "codex", "kimi", "command", "fake"] },
+        "adapter": { "enum": ["claude", "codex", "kimi", "kiro", "command", "fake"] },
         "kimiProtocol": { "const": "kimi-personal/1" },
         "codexProtocol": { "const": "codex-personal/1" },
         "command": { "type": "string", "minLength": 1, "maxLength": 4096 },

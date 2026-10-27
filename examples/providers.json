@@ -43,6 +43,14 @@
       "model": "kimi-k2.5",
       "sandbox": "workspace-write",
       "envAllowlist": ["PATH", "HOME", "TMPDIR", "LANG", "KIMI_API_KEY"]
+    },
+    "kiro-reader": {
+      "adapter": "kiro",
+      "command": "kiro-cli",
+      "model": "auto",
+      "effort": "low",
+      "sandbox": "read-only",
+      "timeoutMs": 300000
     }
   },
   "fallbackOrder": ["planner", "reviewer"]

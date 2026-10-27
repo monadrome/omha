@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Kiro adapter
+
+- Add the `kiro` provider adapter and default profile for `kiro-cli` V3 headless
+  runs: ACP `stream-json` on stdout, prompt on stdin, `--trust-tools=` for
+  read-only and `--trust-all-tools` for writes. The host requires the ACP V3 run
+  envelope, one session id and a successful `end_turn` result, rejects read-only
+  results with a completed non-read tool call, keeps turn credits as raw usage,
+  streams redacted summaries (including tool approval waits) and classifies
+  failures from Kiro's `runError` instead of model text. Kiro is not tool-free.
+
 ### Multi-review
 
 - Give the `--working` snapshot commit a fixed omha identity so `review prepare
