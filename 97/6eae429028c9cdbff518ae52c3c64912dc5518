@@ -1,0 +1,30 @@
+examples/providers.json
+  s_aaa1fc662bcd81::t_6bc9dd6738f215 46-53
+lib/adapters.mjs
+  s_aaa1fc662bcd81::t_6e35c9bdcead36 494-499,514-618,621
+  s_aaa1fc662bcd81::t_d53b23f10d1eb9 208
+  s_aaa1fc662bcd81::t_47a6e202747abe 500-502,504,511-513
+  s_aaa1fc662bcd81::t_67489668bc7ec8 119-137
+  s_aaa1fc662bcd81::t_bc4a1055abc785 188-189
+  s_aaa1fc662bcd81::t_21d9aecaec98fb 363-398,400
+  s_aaa1fc662bcd81::t_cf5d4b0665d971 24-27
+  s_aaa1fc662bcd81::t_2f9f10c03509f4 503,505-510
+tests/kiro.test.mjs
+  s_aaa1fc662bcd81::t_5b999bc90d4839 1-69,71-80,82-113,115-119,121-142,144-155,157-165,167-170,172-177,179,181,183-185,187-190,192-196,198-217,219-228,230-265,267-335,337-349,351-360,364-384,386-395,397-402
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.43-trip",
+  "base_commit_sha": "976eae429028c9cdbff518ae52c3c64912dc5518",
+  "prompts": {},
+  "sessions": {
+    "s_aaa1fc662bcd81": {
+      "agent_id": {
+        "tool": "kiro-desktop",
+        "id": "sess_876e79b7-addc-4c8d-a054-332cf0a920b6",
+        "model": "claude-opus-5.5"
+      },
+      "human_author": "EricLin <linqinghua4@gmail.com>"
+    }
+  }
+}
