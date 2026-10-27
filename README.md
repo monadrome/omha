@@ -8,8 +8,8 @@ are indexed in [ADRs](docs/adr/README.md).
 [中文](README-zh.md) | [Contracts](docs/contracts.md) | [Security](docs/security.md)
 
 Omha combines a local, provider-neutral CLI with a Claude Code plugin for agent
-collaboration. Nine prompt skills guide planning, decisions, review, handoff, drift
-analysis and memory. The CLI routes Claude/Codex/Kimi jobs, executes validated
+collaboration. Ten prompt skills guide planning, decisions, review, handoff, drift
+analysis, reporting and memory. The CLI routes Claude/Codex/Kimi jobs, executes validated
 task DAGs, collects blind votes and manages owned terminals and scoped memory.
 
 Keep uncertain work in the agent session: scope, design choices and evidence
@@ -66,7 +66,7 @@ claude plugin install omha@omha
 Use `claude plugin marketplace add /absolute/path/to/omha` instead for a local
 checkout. Restart Claude Code, then invoke `/omha:leader-agent TASK`,
 `/omha:roundtable QUESTION`, `/omha:agent-handoff TASK` or another of the
-[nine skills](skills/README.md). The plugin installs prompts; CLI operations
+[ten skills](skills/README.md). The plugin installs prompts; CLI operations
 also require the separate CLI installation above. Prompt-only work needs no CLI.
 
 Update with `claude plugin marketplace update omha` and

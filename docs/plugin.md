@@ -38,7 +38,7 @@ does not run npm, modify your provider configuration or install a global command
 Restart Claude Code after installing or updating to load the new skills.
 
 Check the installed plugin with `claude plugin list --json`. On Claude versions
-that support it, `claude plugin details omha@omha` lists the nine skills and
+that support it, `claude plugin details omha@omha` lists the ten skills and
 their token costs without a model call. Both manifests can be checked offline:
 
 ```bash
@@ -58,6 +58,7 @@ Type a skill command in Claude Code, followed by your task:
 /omha:auto-butterfly-effect Check whether this rework has a supported restart point.
 /omha:auto-close Close this cmux surface or owned tmux worker pane after the goal and its checks finish.
 /omha:multi-review Review the last commit with every installed reviewer CLI and fix verified issues.
+/omha:concise-report Report the outcome of this task: result first, then status and open decisions.
 /omha:hide Preview the files created or modified in this session.
 ```
 
@@ -81,6 +82,10 @@ installs no unconditional Stop hook. See [auto-close](auto-close.md).
 `omha review`; detection skips missing commands or models with a reason, waiting
 never cancels running reviewers, and votes fix only on a strict majority. The
 current agent keeps triage and fixes. See [multi-review](contracts.md#multi-review).
+`concise-report` is prompt-only: it shapes final answers, status checks and
+handoff notes as a result-first brief report or a full sectioned report modeled
+on Kiro CLI v3 compaction summaries. It formats reports only and never stands in
+for a host gate or a check that did not run.
 
 `auto-recover` is deliberately CLI-only. It needs a durable timer, per-surface
 deduplication across passes and cmux agent-state proof or a fresh worker-bound

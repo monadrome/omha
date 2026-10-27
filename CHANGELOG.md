@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Skills
+
+- Add the prompt-only `/omha:concise-report` skill for result-first final
+  answers, status checks and handoff notes: a brief report by default and a full
+  report with mandatory Overview, Goal, User Intent, Decisions, Technical, Status
+  (Done/Now/Blocked), Next and Conversation Outline sections modeled on Kiro CLI
+  v3 compaction summaries. Skipped, blocked or partial checks are never reported
+  as passed. (#5)
+
 ### Multi-review
 
 - Give the `--working` snapshot commit a fixed omha identity so `review prepare

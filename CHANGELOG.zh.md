@@ -2,6 +2,13 @@
 
 ## 未发布
 
+### Skills
+
+- 新增纯提示词 `/omha:concise-report` 技能，用于结果优先的最终回复、状态汇报与交接说明：
+  默认输出简报；完整报告参考 Kiro CLI v3 压缩摘要，固定包含 Overview、Goal、User Intent、
+  Decisions、Technical、Status（Done/Now/Blocked）、Next 与 Conversation Outline 各节。
+  跳过、受阻或只跑了一部分的检查不会被报告为通过。（#5）
+
 ### 多 agent 审查
 
 - `--working` 快照提交使用固定的 omha 身份，未配置 git 用户身份的机器（如 CI）上
