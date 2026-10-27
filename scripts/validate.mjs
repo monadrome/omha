@@ -48,6 +48,7 @@ assert.deepEqual(skills, [
   'auto-butterfly-effect',
   'auto-close',
   'butterfly-effect',
+  'concise-report',
   'hide',
   'leader-agent',
   'multi-review',

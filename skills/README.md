@@ -1,9 +1,9 @@
 # Omha skills
 
-The Claude Code plugin discovers the nine `*/SKILL.md` files in this directory.
+The Claude Code plugin discovers the ten `*/SKILL.md` files in this directory.
 Use `/omha:leader-agent`, `/omha:roundtable`, `/omha:agent-handoff`,
-`/omha:auto-butterfly-effect`, `/omha:auto-close`, `/omha:multi-review`, `/omha:project-memory`,
-`/omha:butterfly-effect`
+`/omha:auto-butterfly-effect`, `/omha:auto-close`, `/omha:multi-review`,
+`/omha:concise-report`, `/omha:project-memory`, `/omha:butterfly-effect`
 or `/omha:hide` in a session with the plugin enabled.
 
 Skills guide reasoning: decomposition, evidence interpretation, decisions and
@@ -50,3 +50,10 @@ session. `omha review` owns the frozen inputs, reviewer detection, owned
 reviewer handoffs, normalized findings and the strict-majority vote tally; a
 prompt cannot mark a reviewer as having run. See the
 [review contract](../docs/contracts.md#multi-review).
+
+`/omha:concise-report` formats final answers, status checks and handoff notes
+without the CLI: a result-first brief report of at most 15 lines by default, or
+a full report with the fixed Overview / Goal / Constraints / User Intent /
+Decisions / Technical / Status / Next / Conversation Outline sections for
+checkpoints and handoffs. It cannot mark a skipped or blocked check as passed.
+An `/omha:agent-handoff` requests file and brief keep their own contract.

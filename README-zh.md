@@ -6,8 +6,8 @@
 
 [English](README.md) | [输入协议与 API](docs/contracts.md) | [安全边界](docs/security.md)
 
-Omha 由本地、跨 provider 的 CLI 和 Claude Code plugin 组成。九个提示词 skills
-负责规划、决策、代码审查、交接、漂移分析和记忆整理；CLI 提供 Claude/Codex/Kimi 路由、
+Omha 由本地、跨 provider 的 CLI 和 Claude Code plugin 组成。十个提示词 skills
+负责规划、决策、代码审查、交接、漂移分析、结果汇报和记忆整理；CLI 提供 Claude/Codex/Kimi 路由、
 经过验证的任务 DAG、盲投圆桌、受所有权保护的终端以及分作用域的 Markdown 记忆。
 
 范围尚不明确、方案取舍、证据解释等工作直接由当前 agent 推理。输入、副作用和验收
@@ -58,7 +58,7 @@ claude plugin install omha@omha
 
 本地源码安装时，将第一行替换为 `claude plugin marketplace add /源码绝对路径/omha`。
 重启 Claude Code 后，可调用 `/omha:leader-agent 任务`、`/omha:roundtable 问题`、
-`/omha:agent-handoff 任务` 等[九个 skills](skills/README.md)。插件只安装提示词；
+`/omha:agent-handoff 任务` 等[十个 skills](skills/README.md)。插件只安装提示词；
 调用运行时功能还需要单独安装上面的 CLI。纯提示词任务可以直接完成。
 
 更新使用 `claude plugin marketplace update omha` 和 `claude plugin update omha@omha`，

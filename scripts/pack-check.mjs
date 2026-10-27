@@ -77,6 +77,7 @@ try {
     'docs/auto-recover.md',
     'lib/review.mjs',
     'skills/multi-review/SKILL.md',
+    'skills/concise-report/SKILL.md',
     'schemas/review.schema.json',
     'examples/review.json',
     'lib/agents.mjs',

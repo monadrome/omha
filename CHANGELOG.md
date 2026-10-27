@@ -31,6 +31,17 @@
   streams redacted summaries (including tool approval waits) and classifies
   failures from Kiro's `runError` instead of model text. Kiro is not tool-free.
 
+### Skills
+
+- Add the prompt-only `/omha:concise-report` skill for result-first final
+  answers, status checks and handoff notes: a brief report of at most 15 lines by
+  default and a full report with mandatory Overview, Goal, Constraints, User
+  Intent, Decisions, Technical, Status (Done/Now/Blocked), Next and Conversation
+  Outline sections modeled on Kiro CLI v3 compaction summaries. Constraints
+  carries project rules and forbidden actions that a successor cannot see in the
+  transcript. Skipped, blocked or partial checks are never reported as passed,
+  and failures are never cut to fit the length limit. (#5)
+
 ### Multi-review
 
 - Give the `--working` snapshot commit a fixed omha identity so `review prepare
