@@ -160,6 +160,10 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
   只操作自身资源。终端 worker 必须有完成记录或经过 token 验证的最终 JSON marker；
   file 交接可显式 `handoff complete`。结束后 resume 会创建新交接。正常完成的终端保留
   供查看，需 close；超时和取消会清理。交互模式适合行式程序，不支持任意全屏 TUI。
+  `--requests-file`（可选 `--brief-file`）生成结构化交接说明，把用户原话与上一个 agent
+  未经验证的自述分开；`--agent NAME` 启动全局注册表中的命名 agent，注册表由
+  `omha agents add|list|show|remove` 维护，审查角色的 agent 也会加入 `omha review`。
+  见[agent 注册表](docs/contracts.md#agent-registry-and-handoff-notes)。
 - 多 agent 审查：`omha review prepare|start|wait|merge|vote|tally|close` 把 diff 冻结到
   一次性 worktree，每个已安装的 reviewer CLI（Claude、Codex、Kimi Code、Kiro、Open Code
   Review 或 `.omha/review.json` 里配置的命令）各自作为受所有权保护的交接运行，按 cmux、

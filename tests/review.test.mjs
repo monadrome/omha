@@ -8,9 +8,9 @@ import { atomicWrite } from '../lib/storage.mjs';
 import { hash, now, stateHome } from '../lib/core.mjs';
 import { handoffPaths } from '../lib/handoff-protocol.mjs';
 import { handoffStatus } from '../lib/terminal.mjs';
+import { detectReviewers } from '../lib/agents.mjs';
 import {
   closeReview,
-  detectReviewers,
   extractJson,
   mergeReview,
   prepareReview,

@@ -210,6 +210,11 @@ separate outcomes, including when older runs have no acceptance evidence.
 - **Handoff:** the prompt is written first. `auto` tries cmux, tmux, then file.
   Records retain full cmux UUIDs or private tmux sockets, ownership, PID and hashes.
   `handoff read|poll|send|resume|cancel|close --id <id>` manage only owned targets.
+  `--requests-file` with an optional `--brief-file` builds a structured note that
+  keeps the user's verbatim requests apart from the previous agent's unverified
+  brief; `--agent NAME` launches a named agent from the global registry that
+  `omha agents add|list|show|remove` maintains (review-role agents also join
+  `omha review`). See [agent registry](docs/contracts.md#agent-registry-and-handoff-notes).
   Terminal workers require an authenticated final JSON marker or completion file;
   file handoffs allow `handoff complete`. Resume after termination creates a new
   handoff. Completed terminals remain visible until explicitly closed; timeouts

@@ -2,6 +2,20 @@
 
 ## 未发布
 
+### Agent 注册表与交接说明
+
+- 新增全局 agent 注册表（Omha 状态目录下的 `agents.json`）及 `omha agents
+list|show|add|remove`。条目复用 reviewer 启动规格的校验，可通过 `base` 继承内置规格
+  （例如固定使用 `kimi-code/k3.1-pro` 的 Kimi Code），并声明 `reviewer`、`static` 或
+  `worker` 角色。审查角色的 agent 会加入每次 `omha review`，项目 `review.json` 仍可覆盖或
+  禁用。reviewer 启动规格与检测逻辑移至 `lib/agents.mjs`。
+- 新增 `omha handoff --agent NAME`：以注册表 agent 作为交接命令启动，拒绝交接无法填充的
+  占位符，并记录 agent 与请求的模型。
+- 新增 `omha handoff --requests-file requests.json [--brief-file brief.md]`。宿主把用户原话
+  与上一个 agent 的简报分别写入 `<user_request>` 和 `<compacted_content>` 块，将简报标注为
+  未经验证的自述，反复剥离伪造的分隔标签直到不再变化，限制大小并记录哈希。
+  `agent-handoff` skill 改为要求以第三人称写简短简报，且不写未亲眼观察到的结论。
+
 ### Kiro 适配器
 
 - 新增 `kiro` provider 适配器与默认 profile，以 `kiro-cli` V3 无头模式运行：stdout 输出

@@ -384,14 +384,61 @@ injection retains its requested-topic and private-opt-in behavior.
 use an owner token, full backend reference and a final marker with the same token.
 The final state is successful only for exit code `0` and a valid marker.
 
+## Agent registry and handoff notes
+
+The global agent registry is `agents.json` in the Omha state directory
+(`$OMHA_HOME`, else `$XDG_STATE_HOME/omha`, else `~/.local/state/omha`), so the same
+named agents are available from every project. It follows
+[`schemas/agents.schema.json`](../schemas/agents.schema.json) and
+[`examples/agents.json`](../examples/agents.json). Maintain it with
+`omha agents list|show NAME|add NAME --input agent.json [--force]|remove NAME`;
+writes are serialized by a lock, validated as a whole registry and written
+atomically. A malformed registry fails every command that reads it.
+
+- **Entries.** Each agent needs a `description` and a launch spec: either `base`,
+  naming a built-in reviewer launch spec (`claude`, `codex`, `kimi`, `kiro`, `ocr`)
+  whose fields the entry may override, or its own `command` and `args`. The other
+  fields are those of a reviewer entry (`model` or `models`, `modelArgs`,
+  `modelCatalog`, `env`, `envAllowlist`, `vote`), validated by the same code, so
+  credentials are rejected in arguments and `env` names. Agent names cannot reuse a
+  built-in reviewer name; change a built-in in `review.json` instead.
+- **Roles.** `role` is `reviewer`, `static` or `worker` (default). Reviewer and
+  static agents join the built-in reviewers in every `omha review`, between the
+  built-ins and the project's `review.json`, which may still override, disable or
+  list them as `voters`. Workers never join a review.
+- **Named handoffs.** `omha handoff --agent NAME` launches the agent as the
+  handoff command, non-interactive, with the agent's `envAllowlist` added to the
+  reviewer environment. Its args may use `{prompt}`, `{prompt_file}`, `{run}` (the
+  handoff directory), `{worktree}` (the handoff cwd), `{name}`, `{model}` and
+  `{model_args}`; any other placeholder (for example a review-only `{out}` or
+  `{last}`) is rejected before any state exists. Availability and Kimi model
+  selection use reviewer detection; an unavailable agent is rejected. The record
+  keeps `agent: {name, role, command, requestedModel}`. `--agent` cannot be
+  combined with `--command`, `--args` or `--interactive` and applies only to
+  `handoff start`.
+- **Handoff notes.** `--requests-file` (a JSON array of 1-32 verbatim user
+  requests, each at most 16 KiB) and an optional `--brief-file` (at most 4000
+  characters) replace `--prompt`/`--prompt-file`. The host writes each request in
+  a `<user_request>` block and the brief in a `<compacted_content>` block,
+  followed by a fixed note that the requests are the user's own words, that the
+  brief is an unverified self-report to check against the workspace, and that
+  files may already have changed. `<user_request>` and `<compacted_content>` tags
+  are removed from both inputs repeatedly until none remain, so one block cannot
+  forge another. The record keeps `note: {format: "omha-handoff-note/1", requests,
+requestsHash, briefHash, strippedTags}`. The host cannot prove that requests
+  are verbatim or that the brief is accurate; the labels only keep that
+  uncertainty visible to the next agent.
+
 ## Multi-review
 
 `omha review` runs independent reviewer CLIs over a frozen change. Configuration
 is `.omha/review.json` in the project, else `review.json` in the Omha state
 directory, else built-in defaults; it follows
 [`schemas/review.schema.json`](../schemas/review.schema.json) and
-[`examples/review.json`](../examples/review.json). `omha review detect` reports
-the merged reviewer set without launching anything.
+[`examples/review.json`](../examples/review.json). Review-role agents from the
+[agent registry](#agent-registry-and-handoff-notes) join the built-ins before
+that configuration applies. `omha review detect` reports the merged reviewer set
+without launching anything.
 
 - **Reviewers.** Built-ins are `claude`, `codex`, `kimi` (Kimi Code, preferring
   `kimi-code/k3.1` then `kimi-code/k3.1-pro`), `kiro` (`kiro-cli`) and `ocr` (Open

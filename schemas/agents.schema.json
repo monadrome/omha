@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/monadrome/omha/schemas/agents.schema.json",
+  "title": "Omha global agent registry",
+  "description": "agents.json in the Omha state directory. Each entry is a named launch spec usable from every project: review-role agents join omha review, and any agent can be the target of omha handoff --agent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "agents"],
+  "properties": {
+    "version": { "const": 1 },
+    "agents": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$",
+        "not": { "enum": ["claude", "codex", "kimi", "kiro", "ocr"] }
+      },
+      "additionalProperties": { "$ref": "#/$defs/agent" }
+    }
+  },
+  "$defs": {
+    "stringArray": { "type": "array", "items": { "type": "string" } },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description"],
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "role": { "enum": ["reviewer", "static", "worker"], "default": "worker" },
+        "base": { "enum": ["claude", "codex", "kimi", "kiro", "ocr"] },
+        "command": { "type": "string", "minLength": 1 },
+        "args": { "$ref": "#/$defs/stringArray" },
+        "model": { "type": "string", "minLength": 1 },
+        "models": { "$ref": "#/$defs/stringArray", "minItems": 1 },
+        "modelArgs": { "$ref": "#/$defs/stringArray" },
+        "modelCatalog": { "enum": ["none", "kimi"] },
+        "vote": { "type": "boolean" },
+        "env": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+          "additionalProperties": { "type": "string" }
+        },
+        "envAllowlist": { "$ref": "#/$defs/stringArray" }
+      },
+      "not": { "required": ["model", "models"] },
+      "anyOf": [{ "required": ["base"] }, { "required": ["command", "args"] }]
+    }
+  }
+}

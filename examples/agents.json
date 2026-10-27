@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "agents": {
+    "kimi-pro": {
+      "description": "Kimi Code pinned to kimi-code/k3.1-pro for an independent second-opinion review.",
+      "role": "reviewer",
+      "base": "kimi",
+      "models": ["kimi-code/k3.1-pro"]
+    },
+    "kiro-worker": {
+      "description": "kiro-cli continuing a handed-off task in the current worktree.",
+      "base": "kiro",
+      "model": "auto"
+    }
+  }
+}

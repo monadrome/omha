@@ -79,6 +79,9 @@ try {
     'skills/multi-review/SKILL.md',
     'schemas/review.schema.json',
     'examples/review.json',
+    'lib/agents.mjs',
+    'schemas/agents.schema.json',
+    'examples/agents.json',
   ])
     assert.ok(names.includes(required), `tarball missing ${required}`);
   assert.equal(
