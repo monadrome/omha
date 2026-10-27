@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,8 +31,16 @@ import {
 } from '../lib/orchestrator.mjs';
 import { roundtable, decisionStatus, resolveDecision } from '../lib/roundtable.mjs';
 import {
-  closeReview,
+  addAgent,
+  agentHandoffLaunch,
   detectReviewers,
+  listAgents,
+  removeAgent,
+  showAgent,
+} from '../lib/agents.mjs';
+import { handoffNote, handoffPaths } from '../lib/handoff-protocol.mjs';
+import {
+  closeReview,
   listReviews,
   loadReviewConfig,
   mergeReview,
@@ -109,6 +118,9 @@ const BOOLEAN = new Set([
 ]);
 const ALLOWED = new Set([
   ...BOOLEAN,
+  'agent',
+  'requests_file',
+  'brief_file',
   'cwd',
   'config',
   'profile',
@@ -181,6 +193,10 @@ const ALLOWED = new Set([
   'reviewers',
   'kind',
   'max_ms',
+  'compact',
+  'compact_wait_ms',
+  'rename_source',
+  'rename_target',
 ]);
 
 function parse(args) {
@@ -224,6 +240,53 @@ function inputJson(file) {
       throw new OmhaError('configuration', 'Invalid JSON input file');
     throw error;
   }
+}
+// `handoff start` accepts either a free-form prompt or a structured note, and
+// either an explicit command or a registry agent; mixing them is rejected.
+async function startHandoffCommand(cwd, o, sub, terminal) {
+  const positional = o._.slice(sub === 'start' ? 1 : 0);
+  const options = { ...terminal };
+  let body;
+  if (o.requests_file !== undefined || o.brief_file !== undefined) {
+    check(
+      o.requests_file !== undefined,
+      "A handoff note needs --requests-file with the user's verbatim requests",
+    );
+    check(
+      o.prompt === undefined && o.prompt_file === undefined && positional.length === 0,
+      'Use either --prompt/--prompt-file or --requests-file/--brief-file',
+    );
+    const note = handoffNote({
+      requests: inputJson(o.requests_file),
+      ...(o.brief_file !== undefined ? { brief: inputFile(o.brief_file) } : {}),
+    });
+    body = note.prompt;
+    options.note = note.evidence;
+  } else body = o.prompt_file ? inputFile(o.prompt_file) : o.prompt || positional.join(' ');
+  if (o.agent !== undefined) {
+    check(
+      o.command === undefined && o.args === undefined && !o.interactive,
+      '--agent cannot be combined with --command, --args or --interactive',
+    );
+    const handoffId = `handoff-${randomUUID()}`;
+    const path = handoffPaths(handoffId);
+    const launch = agentHandoffLaunch(o.agent, {
+      cwd,
+      prompt: body,
+      promptFile: path.promptFile,
+      dir: path.dir,
+    });
+    Object.assign(options, {
+      id: handoffId,
+      name: o.name || `${o.agent}-${handoffId.slice(8, 16)}`,
+      command: launch.command,
+      args: launch.args,
+      interactive: false,
+      envAllowlist: [...new Set([...launch.envAllowlist, ...(csv(o.env_allowlist) || [])])],
+      agent: launch.agent,
+    });
+  }
+  return handoff(cwd, body, options);
 }
 function json(value) {
   process.stdout.write(
@@ -279,11 +342,15 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha review merge|tally|list --id REVIEW_ID
   omha review vote --id REVIEW_ID --input disputed.json [--voters a,b]
   omha review close --id REVIEW_ID [--force]
+  omha agents list|show NAME|remove NAME
+  omha agents add NAME --input agent.json [--force]
   omha handoff --prompt TEXT --backend auto|cmux|tmux|file
+  omha handoff --requests-file requests.json [--brief-file brief.md] [--agent NAME]
   omha handoff list|status|read|poll|send|resume|cancel|close|complete --id ID
   omha handoff adopt
   omha handoff checkpoints|accept --id ID
   omha handoff fork --id SOURCE_ID (--checkpoint ID | --turn N) --prompt TEXT --allow-write [--close-source]
+      [--compact source|target|none] [--rename-target TITLE] [--rename-source TITLE]
   omha handoff message --id ID --prompt TEXT
   omha handoff activity --id ID --input activity.json
   omha auto-close --completed --reason TEXT [--id HANDOFF_ID] [--run-id RUN_ID] [--delay-ms 1500]
@@ -636,6 +703,15 @@ async function main() {
         }),
       );
     }
+    if (command === 'agents') {
+      const sub = o._[0] || 'list';
+      if (sub === 'list') return json(listAgents());
+      if (sub === 'show') return json(showAgent(o._[1]));
+      if (sub === 'add')
+        return json(addAgent(o._[1], inputJson(o.input), { force: Boolean(o.force) }));
+      if (sub === 'remove') return json(removeAgent(o._[1]));
+      throw new OmhaError('configuration', 'Unknown agents command');
+    }
     if (command === 'handoff') {
       const sub = o._[0] || 'start';
       const terminal = {
@@ -651,6 +727,7 @@ async function main() {
         waitMs: o.wait_ms === undefined ? undefined : Number(o.wait_ms),
         intervalMs: o.interval_ms ? Number(o.interval_ms) : undefined,
         allowWrite: options.allowWrite,
+        compactWaitMs: o.compact_wait_ms === undefined ? undefined : Number(o.compact_wait_ms),
       };
       if (sub === 'adopt') return json(await adoptHandoff(cwd, terminal));
       if (sub === 'activity')
@@ -680,6 +757,9 @@ async function main() {
             ...(o.checkpoint !== undefined ? { checkpoint: o.checkpoint } : {}),
             ...(o.turn !== undefined ? { turn: Number(o.turn) } : {}),
             closeSource: Boolean(o.close_source),
+            ...(o.compact !== undefined ? { compact: o.compact } : {}),
+            ...(o.rename_target !== undefined ? { renameTarget: o.rename_target } : {}),
+            ...(o.rename_source !== undefined ? { renameSource: o.rename_source } : {}),
           },
           terminal,
         );
@@ -687,6 +767,11 @@ async function main() {
         if (result.state !== 'running') process.exitCode = 1;
         return;
       }
+      if (sub !== 'start')
+        check(
+          o.agent === undefined && o.requests_file === undefined && o.brief_file === undefined,
+          '--agent, --requests-file and --brief-file apply only to handoff start',
+        );
       if (sub === 'start' || o.prompt || o.prompt_file) {
         if (sub === 'send') return json(await sendHandoff(o.id, prompt(o), terminal));
         if (sub === 'resume')
@@ -697,15 +782,7 @@ async function main() {
               terminal,
             ),
           );
-        return json(
-          await handoff(
-            cwd,
-            o.prompt_file
-              ? inputFile(o.prompt_file)
-              : o.prompt || o._.slice(sub === 'start' ? 1 : 0).join(' '),
-            terminal,
-          ),
-        );
+        return json(await startHandoffCommand(cwd, o, sub, terminal));
       }
       if (sub === 'list') return json(listHandoffs());
       if (sub === 'status') return json(handoffStatus(o.id));

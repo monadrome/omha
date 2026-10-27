@@ -11,6 +11,11 @@ memory curation. Open-ended work can stay in the current agent session. Once
 the inputs and execution boundary are explicit, use the CLI for durable DAGs,
 provider routing, blind collection, terminal ownership and memory storage.
 Prompt instructions cannot replace host permission or acceptance checks.
+For example, `agent-handoff` may propose the opt-in native fork compact/rename
+flags, but the CLI alone validates and orders them. It also writes the user's
+verbatim requests and its own brief as separate files; the CLI assembles,
+labels and sanitizes them and resolves `--agent` targets from the global
+registry, which only the user maintains through `omha agents`.
 
 Personal Codex selection is a CLI provider contract, configured through
 `codexProtocol: "codex-personal/1"`; it does not change skill discovery or install

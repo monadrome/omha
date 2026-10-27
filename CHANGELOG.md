@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+### Agent registry and handoff notes
+
+- Add a global agent registry (`agents.json` in the Omha state directory) with
+  `omha agents list|show|add|remove`. Entries reuse the reviewer launch-spec
+  validation, may start from a built-in spec through `base` (for example Kimi Code
+  pinned to `kimi-code/k3.1-pro`), and declare a `reviewer`, `static` or `worker`
+  role. Review-role agents join every `omha review`; project `review.json` can
+  still override or disable them. Reviewer launch specs and detection moved to
+  `lib/agents.mjs`.
+- Add `omha handoff --agent NAME`, which launches a registry agent as the handoff
+  command, rejects placeholders a handoff cannot fill and records the agent and
+  requested model.
+- Add `omha handoff --requests-file requests.json [--brief-file brief.md]`. The
+  host writes verbatim user requests and the previous agent's brief in separate
+  `<user_request>` and `<compacted_content>` blocks, labels the brief as an
+  unverified self-report, strips forged delimiter tags to a fixpoint, enforces
+  size limits and records hashes. The `agent-handoff` skill now asks for a short
+  third-person brief that makes no unobserved claims.
+
+### Kiro adapter
+
+- Add the `kiro` provider adapter and default profile for `kiro-cli` V3 headless
+  runs: ACP `stream-json` on stdout, prompt on stdin, `--trust-tools=` for
+  read-only and `--trust-all-tools` for writes. The host requires the ACP V3 run
+  envelope, one session id and a successful `end_turn` result, rejects read-only
+  results with a completed non-read tool call, keeps turn credits as raw usage,
+  streams redacted summaries (including tool approval waits) and classifies
+  failures from Kiro's `runError` instead of model text. Kiro is not tool-free.
+
 ### Skills
 
 - Add the prompt-only `/omha:concise-report` skill for result-first final
@@ -144,6 +173,14 @@
   task tabs. Persist completion before detaching an owned surface-only closer;
   recheck host run gates, ownership and session identity without replaying
   uncertain closes or treating ordinary turn completion as goal achievement.
+- Add an opt-in native fork lifecycle: `handoff fork --compact source|target`,
+  `--rename-target` and `--rename-source` (also in fork bindings). Compaction is
+  confirmed only by a structured cmux `SessionStart` (`source: compact`) event;
+  unsupported providers, the calling surface, missing event channels, timeouts
+  and changed timelines fail closed without forking, renaming or closing. Source
+  compaction re-validates the timeline and forks at the single new tail. The order
+  is fixed and source closure still waits for successor acceptance; default
+  requests are unchanged.
 
 - Default Session Fork `warmFirst` on for three or more branches and record the
   effective scheduling mode on the tree creation event. Upgrade root cache

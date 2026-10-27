@@ -127,7 +127,11 @@ an adapter in an external read-only sandbox; upstream Kimi read-only profiles
 require that wrapper. A personal Kimi build with `kimi capabilities` can declare
 `kimiProtocol: "kimi-personal/1"` and `sandbox: "read-only"` to qualify for native
 read-only and tool-free routing. Omha verifies the requested mode in its run
-events. Never put API keys in JSON, argv, prompts
+events. The `kiro` adapter runs `kiro-cli chat --agent-engine v3 --output-format
+stream-json` with the prompt on stdin. Read-only requests trust no tools, so the
+non-interactive CLI denies writes and shell; the host also rejects any completed
+non-read tool call. Kiro is never tool-free because it auto-approves reads.
+Never put API keys in JSON, argv, prompts
 or memory. Authenticate through the CLI's credential store or explicitly allow
 the required environment variable. Configure models available to your account.
 
@@ -135,7 +139,7 @@ Headless JSON/JSONL providers expose bounded event summaries through the runtime
 callback and result envelope, including turn types, tool/file evidence, usage and
 input-wait signals. Raw provider payloads remain untrusted and are not persisted
 as event summaries. Pass `streamEvents: true` through the API to receive the same
-redacted summaries while Codex or Kimi JSONL is running; the stream is opt-in and
+redacted summaries while Codex, Kimi or Kiro JSONL is running; the stream is opt-in and
 bounded, and `result.stream` records support, delivery and completion. Claude
 continues using its native JSON invocation. A streamed event is observation
 evidence only; completion parsing, host acceptance, budget gates and billing
@@ -206,6 +210,11 @@ separate outcomes, including when older runs have no acceptance evidence.
 - **Handoff:** the prompt is written first. `auto` tries cmux, tmux, then file.
   Records retain full cmux UUIDs or private tmux sockets, ownership, PID and hashes.
   `handoff read|poll|send|resume|cancel|close --id <id>` manage only owned targets.
+  `--requests-file` with an optional `--brief-file` builds a structured note that
+  keeps the user's verbatim requests apart from the previous agent's unverified
+  brief; `--agent NAME` launches a named agent from the global registry that
+  `omha agents add|list|show|remove` maintains (review-role agents also join
+  `omha review`). See [agent registry](docs/contracts.md#agent-registry-and-handoff-notes).
   Terminal workers require an authenticated final JSON marker or completion file;
   file handoffs allow `handoff complete`. Resume after termination creates a new
   handoff. Completed terminals remain visible until explicitly closed; timeouts
@@ -215,7 +224,10 @@ separate outcomes, including when older runs have no acceptance evidence.
   checkpoint/turn forks, structured continuation messages and source-surface
   retirement after successor acceptance. Use `handoff adopt|checkpoints|fork|message|accept`
   or `auto-butterfly --fork` with an explicit history binding and write authorization.
-  Native permissions/billing are preserved; files are not restored. See
+  Native permissions/billing are preserved; files are not restored. Optional
+  `--compact source|target` (structured completion only; unsupported providers
+  fail closed) and `--rename-target|--rename-source` run in a fixed order before
+  the continuation; source closure still waits for successor acceptance. See
   [cmux historical continuation](docs/cmux-fork.md).
   To close the task tab after a goal and its checks finish, invoke
   `omha auto-close --completed --reason 'Goal completed; checks passed'` as its
@@ -289,6 +301,8 @@ Review commands and provider tool permissions. POSIX process groups supervise
 native workers; only macOS and Linux are supported (Windows is not). Upstream Kimi needs an external sandbox for read-only use and cannot
 run tool-free planning/voting. The opt-in personal protocol supplies model-tool
 restrictions, while still writing its own session/config files; it is not an OS sandbox.
+Kiro write profiles (`sandbox: "workspace-write"`) pass `--trust-all-tools` and
+are not confined to the workspace; Kiro read-only is a permission denial, not an OS sandbox.
 
 See [security](docs/security.md), [contracts/API](docs/contracts.md),
 [compatibility](docs/compatibility.md), [contributing](CONTRIBUTING.md), and

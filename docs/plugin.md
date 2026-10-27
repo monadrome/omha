@@ -73,7 +73,14 @@ only the bounded native maintenance operation described above.
 With an authorized cmux continuation, `auto-butterfly-effect` can gather history
 evidence, bind a real checkpoint and drive the CLI fork/message/accept workflow.
 The successor confirms takeover before optional source retirement; see
-[cmux historical continuation](cmux-fork.md).
+[cmux historical continuation](cmux-fork.md). `/omha:agent-handoff` exposes the
+opt-in compact/rename lifecycle flags; the CLI owns their order and fail-closed
+checks. It writes the user's verbatim requests and a short third-person brief
+separately; `omha handoff --requests-file --brief-file` assembles them with an
+unverified-brief label and strips forged delimiters. `--agent NAME` targets a
+named agent from the global registry. The skill never edits the registry on its
+own; `omha agents` maintenance is the user's choice. See
+[agent registry and handoff notes](contracts.md#agent-registry-and-handoff-notes).
 For completion cleanup, `auto-close` invokes the explicit CLI hook only after the
 task is finished. The host verifies the calling owned surface and any supplied
 run gates; a detached worker records the outcome and closes that surface or owned pane. It

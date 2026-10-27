@@ -33,7 +33,7 @@ relative to the supplied working directory, while durable state is under
 `OMHA_HOME`.
 
 Provider configuration is `schemas/providers.schema.json`. A profile names an
-adapter (`claude`, `codex`, `kimi`, `command`, or `fake`), executable, model,
+adapter (`claude`, `codex`, `kimi`, `kiro`, `command`, or `fake`), executable, model,
 effort, sandbox, timeout, concurrency, budgets, environment allowlist, retry
 policy, circuit cooldown, fallback profiles and capability tiers. Capabilities
 are `interactive`, `headless`, `tool-free` and `read-only`; known adapters and
@@ -49,9 +49,33 @@ Omha passes `read-only` for ordinary read requests, `tool-free` for context-only
 reasoning and `full` for write requests admitted by a write-capable profile.
 This opt-in never changes upstream Kimi defaults. `fake.responses` is for tests only. A provider
 response is successful only when the adapter parser sees a
-completed result with nonempty text. Claude JSON, Codex JSONL and Kimi JSONL are
-accepted according to their observed CLI event shapes; unrecognized or partial
-events fail with `malformed_output`.
+completed result with nonempty text. Claude JSON, Codex JSONL, Kimi JSONL and
+Kiro ACP JSONL are accepted according to their observed CLI event shapes;
+unrecognized or partial events fail with `malformed_output`.
+
+The `kiro` adapter (default profile `kiro`, command `kiro-cli`, model `auto`)
+runs `chat --agent-engine v3 --output-format stream-json --no-interactive
+--model MODEL [--effort EFFORT]` and writes the prompt to stdin. `minimal` effort
+is rejected. Read-only requests add `--trust-tools=`; write requests need a
+non-read-only sandbox and add `--trust-all-tools`. Omha never passes
+`--trust-workspace`. The stream must start with `runStarted` reporting
+`payloadSchema: "acp"` and engine `v3`, contain only `sessionUpdate` frames with
+one session id, and end with `runFinished` (`status: "success"`,
+`stopReason: "end_turn"`). A final `runError`, another status or stop reason, a
+changed session id or a last `model` config option other than the requested
+model fails closed. Output is `finalText`, or the concatenated
+`agent_message_chunk` text when `finalTextTruncated` is true. The session id is
+the request id. Turn credits stay in `usage.raw.credits`; token and cost
+accounting fall back to the reservation, and `servedModel` stays `null` because
+the configured model option does not prove the served model.
+Kiro's non-interactive CLI denies every untrusted tool call, while it
+auto-approves built-in reads even with an empty trust list. Read-only results
+therefore fail with `malformed_output` when any tool call whose kind is not
+`read`, `search` or `think` reaches `completed`. Kiro cannot qualify for
+`tool-free`. Failure classification for a nonzero Kiro exit reads only the final
+`runError` message and stderr, never model text or tool output in the stream.
+Kiro emits one frame per message or thought fragment, so a long streamed or
+supervised run can reach the 4,096-event stream bound and fail closed.
 
 A MyKimi installation can use `adapter: "kimi"` with `command: "mykimi"` (or
 the explicit source-launcher path) and `kimiProtocol: "kimi-personal/1"`.
@@ -118,7 +142,7 @@ only: a successful exit still requires the adapter's completed nonempty result,
 and an event stream never replaces host acceptance checks.
 
 Pass `streamEvents: true` to `dispatch()` or `ProviderRuntime.attempt()` to receive
-the same redacted summary envelope while a real Codex or Kimi JSONL process is
+the same redacted summary envelope while a real Codex, Kimi or Kiro JSONL process is
 still running. Each streamed callback has `realtime: true` and a zero-based
 sequence. The host bounds each line to 512 KiB, the incomplete buffer to 1 MiB,
 and a request to 4,096 events; malformed or incomplete frames fail closed and
@@ -360,14 +384,61 @@ injection retains its requested-topic and private-opt-in behavior.
 use an owner token, full backend reference and a final marker with the same token.
 The final state is successful only for exit code `0` and a valid marker.
 
+## Agent registry and handoff notes
+
+The global agent registry is `agents.json` in the Omha state directory
+(`$OMHA_HOME`, else `$XDG_STATE_HOME/omha`, else `~/.local/state/omha`), so the same
+named agents are available from every project. It follows
+[`schemas/agents.schema.json`](../schemas/agents.schema.json) and
+[`examples/agents.json`](../examples/agents.json). Maintain it with
+`omha agents list|show NAME|add NAME --input agent.json [--force]|remove NAME`;
+writes are serialized by a lock, validated as a whole registry and written
+atomically. A malformed registry fails every command that reads it.
+
+- **Entries.** Each agent needs a `description` and a launch spec: either `base`,
+  naming a built-in reviewer launch spec (`claude`, `codex`, `kimi`, `kiro`, `ocr`)
+  whose fields the entry may override, or its own `command` and `args`. The other
+  fields are those of a reviewer entry (`model` or `models`, `modelArgs`,
+  `modelCatalog`, `env`, `envAllowlist`, `vote`), validated by the same code, so
+  credentials are rejected in arguments and `env` names. Agent names cannot reuse a
+  built-in reviewer name; change a built-in in `review.json` instead.
+- **Roles.** `role` is `reviewer`, `static` or `worker` (default). Reviewer and
+  static agents join the built-in reviewers in every `omha review`, between the
+  built-ins and the project's `review.json`, which may still override, disable or
+  list them as `voters`. Workers never join a review.
+- **Named handoffs.** `omha handoff --agent NAME` launches the agent as the
+  handoff command, non-interactive, with the agent's `envAllowlist` added to the
+  reviewer environment. Its args may use `{prompt}`, `{prompt_file}`, `{run}` (the
+  handoff directory), `{worktree}` (the handoff cwd), `{name}`, `{model}` and
+  `{model_args}`; any other placeholder (for example a review-only `{out}` or
+  `{last}`) is rejected before any state exists. Availability and Kimi model
+  selection use reviewer detection; an unavailable agent is rejected. The record
+  keeps `agent: {name, role, command, requestedModel}`. `--agent` cannot be
+  combined with `--command`, `--args` or `--interactive` and applies only to
+  `handoff start`.
+- **Handoff notes.** `--requests-file` (a JSON array of 1-32 verbatim user
+  requests, each at most 16 KiB) and an optional `--brief-file` (at most 4000
+  characters) replace `--prompt`/`--prompt-file`. The host writes each request in
+  a `<user_request>` block and the brief in a `<compacted_content>` block,
+  followed by a fixed note that the requests are the user's own words, that the
+  brief is an unverified self-report to check against the workspace, and that
+  files may already have changed. `<user_request>` and `<compacted_content>` tags
+  are removed from both inputs repeatedly until none remain, so one block cannot
+  forge another. The record keeps `note: {format: "omha-handoff-note/1", requests,
+requestsHash, briefHash, strippedTags}`. The host cannot prove that requests
+  are verbatim or that the brief is accurate; the labels only keep that
+  uncertainty visible to the next agent.
+
 ## Multi-review
 
 `omha review` runs independent reviewer CLIs over a frozen change. Configuration
 is `.omha/review.json` in the project, else `review.json` in the Omha state
 directory, else built-in defaults; it follows
 [`schemas/review.schema.json`](../schemas/review.schema.json) and
-[`examples/review.json`](../examples/review.json). `omha review detect` reports
-the merged reviewer set without launching anything.
+[`examples/review.json`](../examples/review.json). Review-role agents from the
+[agent registry](#agent-registry-and-handoff-notes) join the built-ins before
+that configuration applies. `omha review detect` reports the merged reviewer set
+without launching anything.
 
 - **Reviewers.** Built-ins are `claude`, `codex`, `kimi` (Kimi Code, preferring
   `kimi-code/k3.1` then `kimi-code/k3.1-pro`), `kiro` (`kiro-cli`) and `ocr` (Open

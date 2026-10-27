@@ -24,7 +24,36 @@ function save() {
   renameSync(pending, file);
 }
 state.calls.push(args);
-if (args[0] === 'current') {
+state.events ||= [];
+const emit = (name, surfaceId, payload) => {
+  const surface = state.surfaces[surfaceId];
+  state.events.push({
+    type: 'event',
+    protocol: 'cmux-events',
+    seq: state.events.length + 1,
+    category: 'agent',
+    name,
+    surface_id: surfaceId,
+    workspace_id: surface?.ref,
+    payload: { session_id: surface?.sessionId, surface_id: surfaceId, ...payload },
+  });
+};
+if (args[0] === 'events') {
+  if (state.fail === 'events') fail('events unavailable');
+  if (args.includes('--snapshot'))
+    output({
+      type: 'ack',
+      protocol: 'cmux-events',
+      resume: { latest_seq: state.events.length },
+    });
+  else {
+    const after = Number(option('--after'));
+    const names = args.flatMap((value, index) => (args[index - 1] === '--name' ? [value] : []));
+    const event = state.events.find((item) => item.seq > after && names.includes(item.name));
+    if (!event) fail('Error: Timed out waiting for a matching event');
+    output(`${JSON.stringify(event)}\n`);
+  }
+} else if (args[0] === 'current') {
   output({
     items: (state.tabs || []).map((tab) => ({
       durable_surface_id: tab.stable,
@@ -46,15 +75,44 @@ if (args[0] === 'current') {
 } else if (args[0] === 'read-screen') {
   output(state.screens?.[option('--surface')] || '');
 } else if (args[0] === 'send') {
-  (state.sent ||= []).push({ surface: option('--surface'), text: args.at(-1) });
+  const surface = option('--surface');
+  (state.sent ||= []).push({ surface, text: args.at(-1) });
+  if (args.at(-1) === '/compact') (state.pendingCompact ||= {})[surface] = true;
   output('OK');
 } else if (args[0] === 'send-key') {
-  (state.keys ||= []).push({ surface: option('--surface'), key: args.at(-1) });
   const surface = option('--surface');
+  (state.keys ||= []).push({ surface, key: args.at(-1) });
+  if (state.pendingCompact?.[surface]) {
+    delete state.pendingCompact[surface];
+    if (state.fail !== 'compact-timeout') {
+      emit('agent.hook.PreCompact', surface, { hook_event_name: 'PreCompact', trigger: 'manual' });
+      const last = state.checkpoints.at(-1);
+      if (state.fail === 'compact-rewrite') last.anchor = 'ordinal:rewritten';
+      state.checkpoints.push({
+        id: `turn:ordinal:${last.turn * 100}`,
+        turn: last.turn + 1,
+        source: 'turn',
+        anchor: `ordinal:${last.turn * 100}`,
+      });
+      emit('agent.hook.SessionStart', surface, {
+        hook_event_name: 'SessionStart',
+        source: 'compact',
+      });
+    }
+  }
   const message = (state.sent || []).findLast((entry) => entry.surface === surface)?.text || '';
   state.screens ||= {};
   state.screens[surface] =
     `${state.screens[surface] || ''}\n❯ ${message}\nWorking (1s • esc to interrupt)\n`;
+  output('OK');
+} else if (args[0] === 'rename-workspace' || args[0] === 'rename-tab') {
+  if (state.fail === `rename-${args[0] === 'rename-tab' ? 'source' : 'target'}`) fail();
+  (state.renames ||= []).push({
+    scope: args[0] === 'rename-tab' ? 'tab' : 'workspace',
+    workspace: option('--workspace'),
+    ...(args[0] === 'rename-tab' ? { surface: option('--surface') } : {}),
+    title: args.at(-1),
+  });
   output('OK');
 } else if (args[0] === 'identify') {
   output({
@@ -102,6 +160,10 @@ if (args[0] === 'current') {
   if (state.fail === 'launch') fail();
   const surface = state.surfaces[option('--surface')];
   surface.sessionId = state.forks.at(-1);
+  emit('agent.hook.SessionStart', option('--surface'), {
+    hook_event_name: 'SessionStart',
+    source: 'resume',
+  });
   output('OK');
 } else if (args[0] === 'close-surface') {
   if (state.fail === 'close') fail();

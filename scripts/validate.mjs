@@ -9,6 +9,7 @@ import { validatePlan } from '../lib/plans.mjs';
 import { validateEvidence } from '../lib/roundtable.mjs';
 import { validateHistory } from '../lib/butterfly.mjs';
 import { validateReviewConfig } from '../lib/review.mjs';
+import { validateAgentRegistry } from '../lib/agents.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const json = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'));
@@ -81,6 +82,7 @@ validatePlan(json('examples/plan.json'), profiles);
 validateEvidence(json('examples/decision.json').evidence);
 validateHistory(json('examples/history.json'));
 validateReviewConfig(json('examples/review.json'));
+validateAgentRegistry(json('examples/agents.json'));
 for (const path of files('schemas')) {
   const schema = json(path);
   assert.ok(schema.$schema?.includes('2020-12'));

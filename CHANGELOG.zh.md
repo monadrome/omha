@@ -2,6 +2,29 @@
 
 ## 未发布
 
+### Agent 注册表与交接说明
+
+- 新增全局 agent 注册表（Omha 状态目录下的 `agents.json`）及 `omha agents
+list|show|add|remove`。条目复用 reviewer 启动规格的校验，可通过 `base` 继承内置规格
+  （例如固定使用 `kimi-code/k3.1-pro` 的 Kimi Code），并声明 `reviewer`、`static` 或
+  `worker` 角色。审查角色的 agent 会加入每次 `omha review`，项目 `review.json` 仍可覆盖或
+  禁用。reviewer 启动规格与检测逻辑移至 `lib/agents.mjs`。
+- 新增 `omha handoff --agent NAME`：以注册表 agent 作为交接命令启动，拒绝交接无法填充的
+  占位符，并记录 agent 与请求的模型。
+- 新增 `omha handoff --requests-file requests.json [--brief-file brief.md]`。宿主把用户原话
+  与上一个 agent 的简报分别写入 `<user_request>` 和 `<compacted_content>` 块，将简报标注为
+  未经验证的自述，反复剥离伪造的分隔标签直到不再变化，限制大小并记录哈希。
+  `agent-handoff` skill 改为要求以第三人称写简短简报，且不写未亲眼观察到的结论。
+
+### Kiro 适配器
+
+- 新增 `kiro` provider 适配器与默认 profile，以 `kiro-cli` V3 无头模式运行：stdout 输出
+  ACP `stream-json`，提示词走 stdin，只读请求传 `--trust-tools=`，写请求传
+  `--trust-all-tools`。宿主要求 ACP V3 运行信封、唯一 session id 和成功的 `end_turn`
+  结果；只读结果若出现已完成的非读取工具调用即拒绝；轮次 credits 保留为原始用量；
+  实时输出脱敏事件摘要（含工具审批等待）；失败分类只看 Kiro 的 `runError`，不看模型文本。
+  Kiro 不具备 tool-free 能力。
+
 ### Skills
 
 - 新增纯提示词 `/omha:concise-report` 技能，用于结果优先的最终回复、状态汇报与交接说明：
@@ -93,6 +116,12 @@
 - 增加 `auto-close` 完成钩子命令和插件 skill：任务完成后先持久化记录，再由独立
   进程仅关闭当前原生 cmux 标签页；复查宿主运行门槛、所有权与会话身份，不重放
   不确定的关闭，也不将普通单轮回复结束当作目标完成。
+- 新增可选的原生 fork 生命周期：`handoff fork --compact source|target`、
+  `--rename-target`、`--rename-source`（fork binding 同样支持）。compact 只以 cmux
+  结构化 `SessionStart`（`source: compact`）事件确认完成；不支持的 provider、调用方
+  自身 surface、事件通道缺失、超时或时间线变化均 fail closed，不 fork、不改名、不关闭。
+  source compact 后重新校验时间线，仅在唯一新增尾部 fork。顺序固定，关闭来源仍需
+  新会话 accept；无新参数时请求与记录保持不变。
 
 - Session Fork 在三分支及以上默认开启 `warmFirst`，并在树创建事件上记录实际生效的
   调度模式；仅当预热分支的 usage 明确报告 provider cache 写入时，根节点 cache 证据
