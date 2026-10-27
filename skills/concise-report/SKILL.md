@@ -25,8 +25,12 @@ The default at the end of a turn or a task. Use plain prose or terse lines:
    to reverse, with the rejected alternative.
 4. **Next**: one action, or a question that waits for the user.
 
-Include paths, commands, error text, IDs and links only when the reader needs
-them to act. A simple answer can be one to three sentences without headings.
+Keep a brief report within 15 lines. Summarize completed work in one line
+unless an item changes what the reader does next; do not list every step,
+file or test. Include paths, commands, error text, IDs and links only when the
+reader needs them to act, and offer the rest on request. Failures, blocked
+checks and warnings may exceed the limit; never cut them to fit. A simple
+answer can be one to three sentences without headings.
 
 ## Full report
 
@@ -42,7 +46,14 @@ sections below cannot capture.
 
 ## Goal
 
-One line: the objective and its constraints.
+One line: the objective.
+
+## Constraints
+
+Rules the reader must follow that do not travel with the conversation:
+project and user conventions (commit format, author identity, branch and push
+policy), forbidden actions, required checks, scope limits and environment
+requirements. Copy them from the rule files and the conversation.
 
 ## User Intent
 
