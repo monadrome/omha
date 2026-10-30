@@ -1,0 +1,42 @@
+lib/runner.mjs
+  s_822eb2f97c9368::t_5623e1ae33d068 678-680
+  s_822eb2f97c9368::t_fe6b22f695f94d 428-431,441-445
+  s_822eb2f97c9368::t_7b202c705114bd 474-476
+  s_822eb2f97c9368::t_cab2ca57e929a8 697-700,702,749,765
+  s_822eb2f97c9368::t_683d9cdbe3b86f 432-440,446-453,472-473
+  s_822eb2f97c9368::t_3b42f026746568 296-300,302-306
+  s_822eb2f97c9368::t_a0c9e1badb71a1 28
+lib/lifecycle.mjs
+  s_822eb2f97c9368::t_3ee5d6dd9a13a3 142-145
+  s_822eb2f97c9368::t_9b254710ab0fbb 55,126,138,140,242-245
+docs/structured-lifecycle.md
+  s_822eb2f97c9368::t_42a0f9586e7919 3-35,37-50,52-66,68-98
+  s_822eb2f97c9368::t_c9265c88a847bb 36
+tests/lifecycle.test.mjs
+  s_822eb2f97c9368::t_32aad879fd4905 24-25,28-33,35-38,40-41,43-44,46-60
+  s_822eb2f97c9368::t_a260320d118c2f 3-9
+  s_822eb2f97c9368::t_86d792f3cb4d1e 34,39,42,45
+lib/orchestrator.mjs
+  s_822eb2f97c9368::t_ef1452eac6ed64 958,960-961,974,1026,1108,1113,1166,1366
+  s_822eb2f97c9368::t_e058ce5010a9c5 1231,1302,1466
+  s_822eb2f97c9368::t_695779f1389e7f 35
+tests/runtime.test.mjs
+  s_822eb2f97c9368::t_6f2da6917b3e16 19,988-998,1001-1012
+  s_822eb2f97c9368::t_f672edcec3a6a0 999-1000
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.43-trip",
+  "base_commit_sha": "8557e4af09da0377c386a41017193fbc033e6215",
+  "prompts": {},
+  "sessions": {
+    "s_822eb2f97c9368": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18b8f-a780-7a23-9625-edf09329f8d1",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Eric Lin <linqinghua4@gmail.com>"
+    }
+  }
+}
