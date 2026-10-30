@@ -1,0 +1,20 @@
+lib/orchestrator.mjs
+  s_822eb2f97c9368::t_ee356f6349e919 739,1302
+  s_822eb2f97c9368::t_4d453b1857beec 1166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.43-trip",
+  "base_commit_sha": "906a220acfb2dc8277a9083893f3da6981730b20",
+  "prompts": {},
+  "sessions": {
+    "s_822eb2f97c9368": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18b8f-a780-7a23-9625-edf09329f8d1",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Eric Lin <linqinghua4@gmail.com>"
+    }
+  }
+}
