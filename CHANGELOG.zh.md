@@ -2,6 +2,18 @@
 
 ## 未发布
 
+### 任务预检
+
+- 新增 `omha preflight --input preflight.json --json` 与纯函数
+  `validatePreflight()`/`assessPreflight()` API。version 1 输入必须包含六个显式信号，
+  目标文本不超过 64,000 字节；未知字段、缺失字段、其他版本、空字节和疑似凭据一律拒绝，
+  目标只计算哈希，不回显。
+- 输出确定性的 `mode: "shadow"` 记录，含 `horizon`、`workShape`、低置信度、数值预测
+  为 null，以及建议性的 `L0`/`L1`/`L2_candidate`/`abstain` 等级。不改变路由、不阻塞任务、
+  不写入状态。
+- 新增 `/omha:task-preflight` skill，负责证据澄清与结构化记录填写，并补充 schema、示例
+  和离线失败路径测试。
+
 ### Agent 注册表与交接说明
 
 - 新增全局 agent 注册表（Omha 状态目录下的 `agents.json`）及 `omha agents

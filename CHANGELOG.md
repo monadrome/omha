@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Task preflight
+
+- Add `omha preflight --input preflight.json --json` plus the pure
+  `validatePreflight()`/`assessPreflight()` API. Version 1 input requires six
+  explicit signals and an objective of at most 64,000 bytes; unknown fields,
+  missing fields, other versions, null bytes and credential-like content fail
+  closed, and the objective is hashed without being echoed.
+- Emit a deterministic `mode: "shadow"` record with `horizon`, `workShape`, low
+  confidence, null predictions and an advisory `L0`/`L1`/`L2_candidate`/`abstain`
+  level. Nothing is routed, blocked or written.
+- Add the `/omha:task-preflight` skill for evidence clarification and structured
+  record filling, with a schema, example and offline failure-path tests.
+
 ### Agent registry and handoff notes
 
 - Add a global agent registry (`agents.json` in the Omha state directory) with

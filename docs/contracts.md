@@ -390,6 +390,31 @@ injection retains its requested-topic and private-opt-in behavior.
 use an owner token, full backend reference and a final marker with the same token.
 The final state is successful only for exit code `0` and a valid marker.
 
+## Task preflight
+
+`omha preflight --input preflight.json --json` and `assessPreflight()` produce a
+deterministic shadow record from
+[`schemas/preflight.schema.json`](../schemas/preflight.schema.json) and
+[`examples/preflight.json`](../examples/preflight.json); see
+[the contract](task-preflight.md). Input is version 1 with `objective` and six
+explicit signals: `requirementClarity`, `solutionKnowledge`, `acceptance`,
+`dependencyDepth`, `externalEffects` and `changeBreadth`. Unknown fields, missing
+signals, other versions, null bytes, lone surrogates, objectives over 64,000 bytes
+and credential-like content fail closed with no assessment. The objective is hashed,
+never echoed, executed or persisted.
+
+Output is `version`, `rulesVersion: "task-preflight/1"`, `mode: "shadow"`, the
+objective hash, `horizon`/`workShape`/low confidence, three null predictions and
+an advisory autonomy level. Rules run in order: any unknown autonomy-critical
+signal (all except breadth) abstains; irreversible effects or unclear requirements
+are `L0`; a not-known solution without automated acceptance is `L0`; clear,
+known, automated, shallow and no-irreversible is `L2_candidate`; otherwise `L1`.
+`uncalibrated_rules` is always present, followed by factual codes for unknown
+signals, irreversible effects, unclear or partial requirements, non-automated
+acceptance, deep dependencies and not-known solutions. `enforced:false` and
+shadow mode are fixed: the record changes no route, budget, permission or
+admission, writes no state and is never an authorization.
+
 ## Agent registry and handoff notes
 
 The global agent registry is `agents.json` in the Omha state directory

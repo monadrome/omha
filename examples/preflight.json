@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "objective": "Implement the already specified parser fix",
+  "signals": {
+    "requirementClarity": "clear",
+    "solutionKnowledge": "known",
+    "acceptance": "automated",
+    "dependencyDepth": "shallow",
+    "externalEffects": "none",
+    "changeBreadth": "narrow"
+  }
+}

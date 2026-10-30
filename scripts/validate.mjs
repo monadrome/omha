@@ -10,6 +10,7 @@ import { validateEvidence } from '../lib/roundtable.mjs';
 import { validateHistory } from '../lib/butterfly.mjs';
 import { validateReviewConfig } from '../lib/review.mjs';
 import { validateAgentRegistry } from '../lib/agents.mjs';
+import { validatePreflight } from '../lib/preflight.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const json = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'));
@@ -53,6 +54,7 @@ assert.deepEqual(skills, [
   'multi-review',
   'project-memory',
   'roundtable',
+  'task-preflight',
 ]);
 for (const name of skills) {
   const path = join(root, 'skills', name, 'SKILL.md'),
@@ -82,6 +84,7 @@ validateEvidence(json('examples/decision.json').evidence);
 validateHistory(json('examples/history.json'));
 validateReviewConfig(json('examples/review.json'));
 validateAgentRegistry(json('examples/agents.json'));
+validatePreflight(json('examples/preflight.json'));
 for (const path of files('schemas')) {
   const schema = json(path);
   assert.ok(schema.$schema?.includes('2020-12'));
