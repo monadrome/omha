@@ -8,9 +8,10 @@ are indexed in [ADRs](docs/adr/README.md).
 [中文](README-zh.md) | [Contracts](docs/contracts.md) | [Security](docs/security.md)
 
 Omha combines a local, provider-neutral CLI with a Claude Code plugin for agent
-collaboration. Nine prompt skills guide planning, decisions, review, handoff, drift
-analysis and memory. The CLI routes Claude/Codex/Kimi jobs, executes validated
-task DAGs, collects blind votes and manages owned terminals and scoped memory.
+collaboration. Ten prompt skills guide preflight, planning, decisions, review,
+handoff, drift analysis and memory. The CLI routes Claude/Codex/Kimi jobs,
+executes validated task DAGs, collects blind votes and manages owned terminals
+and scoped memory.
 
 Keep uncertain work in the agent session: scope, design choices and evidence
 interpretation are prompt tasks. Use fixed CLI workflows when inputs, side effects
@@ -65,8 +66,8 @@ claude plugin install omha@omha
 
 Use `claude plugin marketplace add /absolute/path/to/omha` instead for a local
 checkout. Restart Claude Code, then invoke `/omha:leader-agent TASK`,
-`/omha:roundtable QUESTION`, `/omha:agent-handoff TASK` or another of the
-[nine skills](skills/README.md). The plugin installs prompts; CLI operations
+`/omha:roundtable QUESTION`, `/omha:task-preflight TASK` or another of the
+[ten skills](skills/README.md). The plugin installs prompts; CLI operations
 also require the separate CLI installation above. Prompt-only work needs no CLI.
 
 Update with `claude plugin marketplace update omha` and
@@ -88,11 +89,16 @@ node bin/omha.mjs run --profile fake --prompt 'Check the local runtime'
 node bin/omha.mjs leader --plan examples/plan.json --config examples/providers.fake.json
 node bin/omha.mjs runs list
 node bin/omha.mjs roundtable --input examples/decision.json --config examples/providers.fake.json
+node bin/omha.mjs preflight --input examples/preflight.json --json
 node bin/omha.mjs auto-butterfly --input examples/history.json --handoff --backend file
 node bin/omha.mjs memory put --name api-contract --type decision --content 'Validate plans before executing them.'
 node bin/omha.mjs memory inject --topics api-contract
 node bin/omha.mjs memory doctor
 ```
+
+`preflight` validates six declared signals and emits an advisory shadow record
+with null predictions and low confidence; it hashes the objective, changes no
+route and writes no state. See [task preflight](docs/task-preflight.md).
 
 Session Fork uses the existing Open Arena execution specification and frozen
 knowledge bundle. It fans out 2-8 isolated, automatically named branches without

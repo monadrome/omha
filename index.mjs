@@ -19,6 +19,7 @@ export {
   decisionStatus,
   resolveDecision,
 } from './lib/roundtable.mjs';
+export { validatePreflight, assessPreflight } from './lib/preflight.mjs';
 export {
   handoff,
   readHandoff,

@@ -43,13 +43,15 @@ const invokeNpm = (args, workdir) =>
     cwd: workdir,
     env,
     encoding: 'utf8',
-    timeout: 120000,
+    timeout: 300000,
     ...(process.platform === 'win32' ? { shell: true } : {}),
   });
 try {
-  const packed = JSON.parse(
+  const packResult = JSON.parse(
     invokeNpm(['pack', '--json', '--pack-destination', temporary], root),
-  )[0];
+  );
+  const packed = Array.isArray(packResult) ? packResult[0] : packResult['@huatalk/omha'];
+  assert.ok(packed, 'npm pack did not report the @huatalk/omha tarball');
   const names = packed.files.map((entry) => entry.path);
   for (const required of [
     'index.mjs',
@@ -82,6 +84,11 @@ try {
     'lib/agents.mjs',
     'schemas/agents.schema.json',
     'examples/agents.json',
+    'lib/preflight.mjs',
+    'schemas/preflight.schema.json',
+    'examples/preflight.json',
+    'skills/task-preflight/SKILL.md',
+    'docs/task-preflight.md',
   ])
     assert.ok(names.includes(required), `tarball missing ${required}`);
   assert.equal(
@@ -184,6 +191,15 @@ try {
     );
   assert.equal(run(['doctor', '--json']).ok, true);
   assert.deepEqual(run(['compact', 'status']), []);
+  const preflight = run([
+    'preflight',
+    '--input',
+    join(installed, 'examples/preflight.json'),
+    '--json',
+  ]);
+  assert.equal(preflight.mode, 'shadow');
+  assert.equal(preflight.autonomy.level, 'L2_candidate');
+  assert.equal(preflight.prediction.successProbability, null);
   const compactConfig = join(temporary, 'compact-providers.json');
   writeFileSync(
     compactConfig,
@@ -335,7 +351,7 @@ try {
     [
       '--input-type=module',
       '-e',
-      `import {createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff,autoCloseHandoff,discoverTabs,recoverTabs,watchTabRecovery,tabRecoveryStatus} from ${JSON.stringify(pathToFileURL(join(installed, 'index.mjs')).href)};console.log([createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff,autoCloseHandoff,discoverTabs,recoverTabs,watchTabRecovery,tabRecoveryStatus].map(value=>typeof value).join(','))`,
+      `import {validatePreflight,assessPreflight,createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff,autoCloseHandoff,discoverTabs,recoverTabs,watchTabRecovery,tabRecoveryStatus} from ${JSON.stringify(pathToFileURL(join(installed, 'index.mjs')).href)};console.log([validatePreflight,assessPreflight,createRuntime,projectStatus,watchStatus,adoptHandoff,handoffCheckpoints,forkHandoff,messageHandoff,acceptHandoff,autoCloseHandoff,discoverTabs,recoverTabs,watchTabRecovery,tabRecoveryStatus].map(value=>typeof value).join(','))`,
     ],
     { cwd, env, encoding: 'utf8' },
   );

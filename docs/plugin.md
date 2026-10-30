@@ -38,7 +38,7 @@ does not run npm, modify your provider configuration or install a global command
 Restart Claude Code after installing or updating to load the new skills.
 
 Check the installed plugin with `claude plugin list --json`. On Claude versions
-that support it, `claude plugin details omha@omha` lists the nine skills and
+that support it, `claude plugin details omha@omha` lists the ten skills and
 their token costs without a model call. Both manifests can be checked offline:
 
 ```bash
@@ -53,6 +53,7 @@ Type a skill command in Claude Code, followed by your task:
 ```text
 /omha:leader-agent Plan the investigation of this intermittent test failure.
 /omha:roundtable Compare the two designs using the supplied measurements.
+/omha:task-preflight Describe this task's shape before execution.
 /omha:agent-handoff Prepare a continuation for another session.
 /omha:project-memory Record the verified API decision for the next session.
 /omha:auto-butterfly-effect Check whether this rework has a supported restart point.
@@ -88,6 +89,12 @@ installs no unconditional Stop hook. See [auto-close](auto-close.md).
 `omha review`; detection skips missing commands or models with a reason, waiting
 never cancels running reviewers, and votes fix only on a strict majority. The
 current agent keeps triage and fixes. See [multi-review](contracts.md#multi-review).
+`task-preflight` clarifies the six explicit signals and fills the version 1
+record; `omha preflight --input preflight.json --json` validates it and emits a
+deterministic shadow assessment. The skill never guesses an unknown signal, and
+the record changes no route, budget, permission or admission. Without the CLI it
+may only give a qualitative reading of the same matrix, labeled unvalidated. See
+[task preflight](task-preflight.md).
 
 `auto-recover` is deliberately CLI-only. It needs a durable timer, per-surface
 deduplication across passes and cmux agent-state proof or a fresh worker-bound
@@ -98,6 +105,7 @@ terminal and inspect `omha auto-recover status`. See
 
 | Work      | Prompt skill owns                               | CLI owns when needed                                  |
 | --------- | ----------------------------------------------- | ----------------------------------------------------- |
+| Preflight | Six explicit signals and unknown evidence       | Strict validation and deterministic shadow record     |
 | Planning  | Scope, decomposition, implementation choices    | Validated DAG, write gate, budgets, resume            |
 | Decisions | Question, alternatives, evidence interpretation | Independent blind collection and host tally           |
 | Handoff   | Continuation context and next action            | Owned terminal/file lifecycle and completion evidence |

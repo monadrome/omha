@@ -30,6 +30,7 @@ import {
   watchStatus,
 } from '../lib/orchestrator.mjs';
 import { roundtable, decisionStatus, resolveDecision } from '../lib/roundtable.mjs';
+import { assessPreflight } from '../lib/preflight.mjs';
 import {
   addAgent,
   agentHandoffLaunch,
@@ -333,6 +334,7 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha leader --resume RUN_ID [--retry-failed --retry-interrupted-writes]
   omha runs list|status|cancel [--id RUN_ID]
   omha status [--watch --wait-ms 30000 --interval-ms 1000]
+  omha preflight --input preflight.json --json
   omha roundtable --input decision.json --config providers.json
   omha decision status|approve|reject --id ID [--reason TEXT]
   omha review detect [--config review.json]
@@ -446,6 +448,13 @@ async function main() {
         process.stdout.write(
           `${JSON.stringify(redactData(snapshot, environmentSecrets(process.env)))}\n`,
         );
+      return;
+    }
+    if (command === 'preflight') {
+      check(o.input !== undefined, 'omha preflight requires --input preflight.json');
+      check(o._.length === 0, 'omha preflight accepts no positional arguments');
+      const result = assessPreflight(inputJson(o.input));
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
       return;
     }
     if (command === 'arena') {

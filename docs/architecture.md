@@ -29,6 +29,7 @@ lib/session-fork.mjs    -> deterministic names and fork/cache evidence helpers
 lib/arena-artifacts.mjs -> bundle object audit, full snapshots, base/tree patches
 lib/arena-isolation.mjs -> external write policies and local negative probes
 lib/roundtable.mjs      -> blind proposals, evidence validation, chair record
+lib/preflight.mjs       -> strict shadow-mode task shape and advisory autonomy
 lib/backends.mjs        -> owned cmux/tmux/file operations
 lib/terminal.mjs        -> handoff state machine and lifecycle API
 lib/tab-recovery.mjs    -> cmux-first / owned tmux discovery, bounded recovery state
@@ -64,6 +65,10 @@ Roundtable prompts are built from the same public context and evidence anchors.
 Each voter runs in a fresh temporary cwd and receives no other vote. Only after
 all voters finish does the chair receive the proposals. The host tally and chair
 record preserve invalid votes, abstention and dissent.
+
+Task preflight validates six declared signals and emits an advisory shadow record
+(`L0`, `L1`, `L2_candidate` or `abstain`). It has no routing, write or admission
+hook; the objective is hashed, never echoed.
 
 Handoffs write their prompt before creating a terminal. cmux gets a full workspace
 and surface UUID; tmux gets a private socket and unique session. Both carry an

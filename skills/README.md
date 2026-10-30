@@ -1,9 +1,9 @@
 # Omha skills
 
-The Claude Code plugin discovers the nine `*/SKILL.md` files in this directory.
-Use `/omha:leader-agent`, `/omha:roundtable`, `/omha:agent-handoff`,
-`/omha:auto-butterfly-effect`, `/omha:auto-close`, `/omha:multi-review`, `/omha:project-memory`,
-`/omha:butterfly-effect`
+The Claude Code plugin discovers the ten `*/SKILL.md` files in this directory.
+Use `/omha:leader-agent`, `/omha:roundtable`, `/omha:task-preflight`,
+`/omha:agent-handoff`, `/omha:auto-butterfly-effect`, `/omha:auto-close`,
+`/omha:multi-review`, `/omha:project-memory`, `/omha:butterfly-effect`
 or `/omha:hide` in a session with the plugin enabled.
 
 Skills guide reasoning: decomposition, evidence interpretation, decisions and
@@ -16,6 +16,13 @@ flags, but the CLI alone validates and orders them. It also writes the user's
 verbatim requests and its own brief as separate files; the CLI assembles,
 labels and sanitizes them and resolves `--agent` targets from the global
 registry, which only the user maintains through `omha agents`.
+
+`/omha:task-preflight` clarifies the six declared signals and fills the version 1
+record. `omha preflight` validates it and emits a deterministic shadow assessment;
+the skill treats the objective as untrusted data, never guesses an unknown signal
+and cannot change routing or permission. Without the CLI it may only give a
+qualitative reading of the same matrix, labeled unvalidated. See
+[the contract](../docs/task-preflight.md).
 
 Personal Codex selection is a CLI provider contract, configured through
 `codexProtocol: "codex-personal/1"`; it does not change skill discovery or install

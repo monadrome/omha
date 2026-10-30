@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/monadrome/omha/schemas/preflight.schema.json",
+  "title": "Omha task preflight input",
+  "description": "Version 1 shadow-mode task preflight input. The objective is data only: the CLI hashes it and never echoes or executes it. maxLength counts characters; the CLI enforces the 64,000-byte limit and additionally requires well-formed Unicode (no lone surrogates).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "objective", "signals"],
+  "properties": {
+    "version": { "const": 1 },
+    "objective": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64000,
+      "pattern": "^(?=[\\s\\S]*\\S)(?![\\s\\S]*\\u0000)[\\s\\S]*$"
+    },
+    "signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirementClarity",
+        "solutionKnowledge",
+        "acceptance",
+        "dependencyDepth",
+        "externalEffects",
+        "changeBreadth"
+      ],
+      "properties": {
+        "requirementClarity": { "enum": ["clear", "partial", "unclear", "unknown"] },
+        "solutionKnowledge": { "enum": ["known", "partial", "unknown"] },
+        "acceptance": { "enum": ["automated", "manual", "none", "unknown"] },
+        "dependencyDepth": { "enum": ["shallow", "deep", "unknown"] },
+        "externalEffects": { "enum": ["none", "reversible", "irreversible", "unknown"] },
+        "changeBreadth": { "enum": ["narrow", "wide", "unknown"] }
+      }
+    }
+  }
+}
