@@ -1012,6 +1012,21 @@ test('provider dispatch maps a parent timeout to timeout instead of generic canc
   assert.equal(runtime.fakeOffsets.get('p') || 0, 0);
 });
 
+test('provider dispatch applies per-attempt timeout under an open caller scope', async () => {
+  const runtime = local({
+    p: fake('too-late', { responses: [{ output: 'too-late', latencyMs: 40 }] }),
+  });
+  const scope = new ExecutionScope({ id: 'request' });
+  const result = await runtime.dispatch('deadline', ['p'], {
+    scope,
+    timeoutMs: 10,
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.failure, 'timeout');
+  assert.equal(scope.open(), true);
+});
+
 test('provider queue checks its deadline before admitting a released lease', async () => {
   let clock = 0;
   const runtime = local({ p: fake('done', { concurrency: 1 }) }, { clock: () => clock });

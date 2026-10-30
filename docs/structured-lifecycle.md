@@ -19,7 +19,9 @@ explicit stop operation and clears the deadline timer.
 processes and backoff waits observe the same signal and remaining budget. When
 no scope is supplied, the runtime creates a request scope from the configured
 timeout and caller signal, then disposes it after the attempt. A supplied scope
-belongs to the caller and is never cancelled by the runtime.
+is the parent of a runtime-owned attempt child, so per-attempt timeout still
+works for adapters such as `fake`; the caller scope is never cancelled by the
+runtime.
 
 `executePlan()` creates a run scope and derives one task scope per launched task.
 The task scope covers worktree admission, provider execution, acceptance and
