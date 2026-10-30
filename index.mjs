@@ -76,6 +76,14 @@ export {
 } from './lib/arena.mjs';
 export { runFork, forkStatus, forkTree, cancelFork, resumeFork } from './lib/fork.mjs';
 export {
+  ExecutionScope,
+  TaskHandle,
+  SCOPE_STATES,
+  TASK_PHASES,
+  TASK_OUTCOMES,
+  normalizeCancellationReason,
+} from './lib/lifecycle.mjs';
+export {
   FORK_LIMITS,
   FORK_NAME_PATTERN,
   sanitizeForkName,

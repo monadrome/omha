@@ -1,5 +1,11 @@
 # Omha Contracts
 
+The shared lifecycle kernel is documented in
+[Structured lifecycle](structured-lifecycle.md). It provides parent-aware
+deadlines, first-wins cancellation attribution and immutable task completion
+snapshots; provider execution, host acceptance and independent review remain
+separate evidence gates.
+
 Opt-in native Claude auto compact uses the existing terminal ownership/storage
 boundary with a durable session/profile budget and a structured Mod-to-CLI RPC.
 Configuration is root-level `maintenance.autoCompact`; defaults are 57 minutes
