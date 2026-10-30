@@ -1,0 +1,23 @@
+lib/runner.mjs
+  s_822eb2f97c9368::t_85f45abc8638dc 440-446
+tests/runtime.test.mjs
+  s_822eb2f97c9368::t_c41a337875ba75 1015-1029
+docs/structured-lifecycle.md
+  s_822eb2f97c9368::t_f51e96586e0052 22-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.43-trip",
+  "base_commit_sha": "b201a7632b38c925b080376095d4cd987efceedf",
+  "prompts": {},
+  "sessions": {
+    "s_822eb2f97c9368": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18b8f-a780-7a23-9625-edf09329f8d1",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Eric Lin <linqinghua4@gmail.com>"
+    }
+  }
+}
