@@ -16,6 +16,7 @@ import {
 import { classify, retryAfter, retryAfterFromText } from '../lib/failures.mjs';
 import { loadConfig, validateProfiles } from '../lib/profiles.mjs';
 import { run } from '../lib/process.mjs';
+import { ExecutionScope } from '../lib/lifecycle.mjs';
 
 const root = temp();
 process.env.OMHA_HOME = join(root, 'state');
@@ -982,6 +983,33 @@ test('provider semaphore enforces concurrency and queued cancellation', async ()
   const start = Date.now();
   await Promise.all([runtime.dispatch('a', ['p']), runtime.dispatch('b', ['p'])]);
   assert.ok(Date.now() - start >= 130);
+});
+
+test('provider dispatch shares an execution scope deadline and cancellation attribution', async () => {
+  const runtime = local({
+    p: fake('too-late', { responses: [{ output: 'too-late', latencyMs: 50 }] }),
+  });
+  const scope = new ExecutionScope({ id: 'request', deadlineMs: 10 });
+  const result = await runtime.dispatch('deadline', ['p'], { scope });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.failure, 'timeout');
+  assert.equal(result.attempts[0].failure, 'timeout');
+  assert.equal(runtime.fakeOffsets.get('p'), 1);
+  assert.equal(scope.cancelled(), true);
+  assert.equal(scope.reason().code, 'timeout');
+});
+
+test('provider dispatch maps a parent timeout to timeout instead of generic cancellation', async () => {
+  const runtime = local({ p: fake('never') });
+  const scope = new ExecutionScope({ id: 'request' });
+  scope.cancel({ code: 'timeout', source: 'deadline' });
+
+  const result = await runtime.dispatch('already expired', ['p'], { scope });
+  assert.equal(result.ok, false);
+  assert.equal(result.failure, 'timeout');
+  assert.equal(result.attempts[0].failure, 'timeout');
+  assert.equal(runtime.fakeOffsets.get('p') || 0, 0);
 });
 
 test('provider queue checks its deadline before admitting a released lease', async () => {

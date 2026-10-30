@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ExecutionScope, TaskHandle, TASK_OUTCOMES, TASK_PHASES } from '../lib/lifecycle.mjs';
+import {
+  ExecutionScope,
+  TaskHandle,
+  TASK_OUTCOMES,
+  TASK_PHASES,
+  normalizeCancellationReason,
+} from '../lib/lifecycle.mjs';
 
 test('child scopes inherit the tighter deadline and parent cancellation reason', () => {
   let now = 100;
@@ -15,11 +21,43 @@ test('child scopes inherit the tighter deadline and parent cancellation reason',
   assert.equal(parent.cancel({ code: 'shutdown', source: 'host' }), true);
   assert.equal(child.cancelled(), true);
   assert.deepEqual(child.reason(), {
-    code: 'parent_cancelled',
-    source: 'shutdown',
+    code: 'shutdown',
+    source: 'parent',
     message: 'Execution scope shutdown',
   });
-  assert.equal(child.signal().reason.code, 'parent_cancelled');
+  assert.equal(child.signal().reason.code, 'shutdown');
+});
+
+test('cancelled parents cannot be bypassed through the public constructor', () => {
+  const parent = new ExecutionScope({ id: 'parent' });
+  parent.cancel('shutdown');
+  assert.throws(() => new ExecutionScope({ id: 'child', parent }), /scope parent is not open/);
+});
+
+test('pre-aborted external signals cancel without retaining a listener', () => {
+  const controller = new AbortController();
+  controller.abort({ code: 'timeout', source: 'deadline', message: 'deadline reached' });
+  const scope = new ExecutionScope({ id: 'scope', signal: controller.signal });
+
+  assert.equal(scope.reason().code, 'timeout');
+  assert.equal(scope.reason().source, 'external');
+  controller.abort('later');
+  assert.equal(scope.reason().message, 'deadline reached');
+});
+
+test('parent cancellation preserves timeout attribution through nested scopes', () => {
+  const parent = new ExecutionScope({ id: 'parent' });
+  const child = parent.child({ id: 'child' });
+  const grandchild = child.child({ id: 'grandchild' });
+
+  parent.cancel({ code: 'timeout', source: 'deadline' });
+  assert.equal(child.reason().code, 'timeout');
+  assert.equal(grandchild.reason().code, 'timeout');
+  assert.equal(grandchild.reason().source, 'parent');
+});
+
+test('invalid fallback cancellation codes are normalized', () => {
+  assert.equal(normalizeCancellationReason({}, 'INVALID CODE').code, 'cancelled');
 });
 
 test('deadline uses the monotonic clock and wins only once', () => {
