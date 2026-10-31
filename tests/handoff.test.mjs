@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { temp } from './helpers.mjs';
@@ -522,6 +522,9 @@ test('readinessExitCode treats unresolved waits as failure', () => {
   assert.equal(readinessExitCode({ state: 'running', readiness: { state: 'failed' } }), 1);
   assert.equal(readinessExitCode({ state: 'awaiting', readiness: { state: 'not_applicable' } }), 0);
   assert.equal(readinessExitCode({ state: 'failed' }, true), 1);
+  assert.equal(readinessExitCode({ state: 'running' }, true), 1);
+  assert.equal(readinessExitCode({ state: 'awaiting' }, true), 1);
+  assert.equal(readinessExitCode({ state: 'completed' }, true), 0);
   assert.equal(readinessExitCode({ state: 'running', readiness: { state: 'pending' } }, false), 0);
 });
 
@@ -555,3 +558,62 @@ test('structured spawn errors become command_not_found diagnoses', async () => {
   assert.equal(read.diagnosis.kind, 'command_not_found');
   await closeHandoff(created.id);
 });
+
+test('a structured final failure overrides a stale no_output diagnosis', async () => {
+  const adapter = backend();
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'fake',
+    backendAdapter: adapter,
+    readyTimeoutMs: 10,
+  });
+  adapter.sessions.get(created.id).output = '';
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  const unready = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(unready.diagnosis.kind, 'no_output');
+  atomicWrite(
+    handoffPaths(created.id).finalFile,
+    JSON.stringify({
+      token: created.owner.token,
+      state: 'failed',
+      exitCode: 127,
+      failure: 'command_not_found',
+      spawnError: 'spawn missing ENOENT',
+      at: now(),
+    }),
+    process.env.OMHA_HOME,
+  );
+  const failed = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(failed.state, 'failed');
+  assert.equal(failed.failure, 'command_not_found');
+  assert.equal(failed.diagnosis.kind, 'command_not_found');
+});
+
+test(
+  'an unknown process probe keeps the handoff running',
+  { skip: process.platform === 'win32' },
+  async () => {
+    const adapter = backend();
+    const created = await handoff(cwd, 'Continue task', {
+      backend: 'fake',
+      backendAdapter: adapter,
+    });
+    writeWorker(created);
+    const fakeDir = join(root, 'fake-ps-unknown');
+    mkdirSync(fakeDir, { recursive: true });
+    const fakePs = join(fakeDir, 'ps');
+    writeFileSync(fakePs, '#!/bin/sh\necho "ps: temporary probe failure" >&2\nexit 2\n');
+    chmodSync(fakePs, 0o755);
+    const oldPath = process.env.PATH;
+    process.env.PATH = `${fakeDir}:${oldPath}`;
+    try {
+      assert.equal(processProbe(process.pid).state, 'unknown');
+      const result = await readHandoff(created.id, { backendAdapter: adapter });
+      assert.equal(result.state, 'running');
+      assert.equal(result.workerAlive, null);
+      assert.equal(result.alive, null);
+      assert.equal(result.diagnosis, null);
+    } finally {
+      process.env.PATH = oldPath;
+    }
+  },
+);
