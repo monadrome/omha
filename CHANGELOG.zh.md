@@ -2,6 +2,14 @@
 
 ## 未发布
 
+### 交接
+
+- 增加结构化 worker 心跳与 readiness/diagnosis 报告。`--wait-ready`、
+  `handoff wait-ready`、`poll --until ready` 和 `handoff report` 暴露
+  pending、ready、needs_input、failed、unready 状态，且不把 worker 输出等同于
+  任务验收。没有 final marker 的 worker 死亡现在会在首次读取时失败，而不是
+  等待总体超时；屏幕抓取仅用于 worker 开始输出后的启动期错误/输入提示分类。
+
 ### 任务预检
 
 - 新增 `omha preflight --input preflight.json --json` 与纯函数

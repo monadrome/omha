@@ -16,6 +16,8 @@ flags, but the CLI alone validates and orders them. It also writes the user's
 verbatim requests and its own brief as separate files; the CLI assembles,
 labels and sanitizes them and resolves `--agent` targets from the global
 registry, which only the user maintains through `omha agents`.
+`agent-handoff` can wait for structured readiness and report a redacted
+diagnosis; readiness means worker output, not task acceptance.
 
 `/omha:task-preflight` clarifies the six declared signals and fills the version 1
 record. `omha preflight` validates it and emits a deterministic shadow assessment;

@@ -117,6 +117,11 @@ inputs, side effects and acceptance rules are known. A prompt can propose a plan
 or interpret evidence; host checks still decide permission, budgets, independence
 and acceptance. See [contracts](contracts.md) for versioned inputs and API details.
 
+Handoff can wait for a structured readiness signal (`--wait-ready`) and report a
+redacted diagnosis (`omha handoff report --id ID`). Readiness `ready` means the
+worker produced output; it is not task acceptance. Fatal startup diagnoses are
+reported to the caller and are never silently retried.
+
 ## Runtime Prerequisites
 
 Run runtime commands from the target project or worktree, rather than from the

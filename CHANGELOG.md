@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Handoffs
+
+- Add structured worker heartbeats and readiness/diagnosis reporting.
+  `--wait-ready`, `handoff wait-ready`, `poll --until ready` and `handoff report`
+  expose pending, ready, needs-input, failed and unready states without treating
+  worker output as task acceptance. A dead worker without a final marker now fails
+  at the first read instead of waiting for the overall timeout. Screen capture is
+  limited to startup error/input classification after worker output begins.
+
 ### Task preflight
 
 - Add `omha preflight --input preflight.json --json` plus the pure

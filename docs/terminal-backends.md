@@ -17,6 +17,16 @@ public prefix and runs isolated lanes without cloning a provider conversation.
 No terminal backend promises task correctness, cache hits, provider model
 identity or billing that it cannot observe.
 
+Readiness uses the owned worker's structured heartbeat first: first output,
+last output and output byte count. Screen capture is a startup fallback only
+for fatal errors and input prompts, and only after worker output has started.
+A `ready` readiness signal means the worker produced output, not that the task
+succeeded. A dead worker without a final marker is a failure at the first read,
+even when the cmux owner status or a tmux pane record still exists. A readiness
+timeout leaves the handoff running and report-only; it does not kill the worker.
+Native cmux sessions keep their verified session binding rather than using the
+worker heartbeat.
+
 ## Selection And Failure
 
 ```bash

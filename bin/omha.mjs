@@ -58,6 +58,7 @@ import {
   listHandoffs,
   readHandoff,
   pollHandoff,
+  reportHandoff,
   sendHandoff,
   resumeHandoff,
   cancelHandoff,
@@ -116,6 +117,7 @@ const BOOLEAN = new Set([
   'allow_send',
   'working',
   'force',
+  'wait_ready',
 ]);
 const ALLOWED = new Set([
   ...BOOLEAN,
@@ -198,6 +200,8 @@ const ALLOWED = new Set([
   'compact_wait_ms',
   'rename_source',
   'rename_target',
+  'ready_timeout_ms',
+  'until',
 ]);
 
 function parse(args) {
@@ -348,7 +352,11 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha agents add NAME --input agent.json [--force]
   omha handoff --prompt TEXT --backend auto|cmux|tmux|file
   omha handoff --requests-file requests.json [--brief-file brief.md] [--agent NAME]
+  omha handoff --prompt TEXT --wait-ready [--ready-timeout-ms 60000]
   omha handoff list|status|read|poll|send|resume|cancel|close|complete --id ID
+  omha handoff poll --id ID [--until final|ready]
+  omha handoff wait-ready --id ID [--wait-ms 60000]
+  omha handoff report --id ID
   omha handoff adopt
   omha handoff checkpoints|accept --id ID
   omha handoff fork --id SOURCE_ID (--checkpoint ID | --turn N) --prompt TEXT --allow-write [--close-source]
@@ -735,6 +743,8 @@ async function main() {
         enter: !o.no_enter,
         waitMs: o.wait_ms === undefined ? undefined : Number(o.wait_ms),
         intervalMs: o.interval_ms ? Number(o.interval_ms) : undefined,
+        waitReady: o.wait_ready ? true : undefined,
+        readyTimeoutMs: o.ready_timeout_ms === undefined ? undefined : Number(o.ready_timeout_ms),
         allowWrite: options.allowWrite,
         compactWaitMs: o.compact_wait_ms === undefined ? undefined : Number(o.compact_wait_ms),
       };
@@ -749,6 +759,21 @@ async function main() {
         );
       if (sub === 'checkpoints') return json(await handoffCheckpoints(o.id, terminal));
       if (sub === 'accept') return json(await acceptHandoff(o.id, terminal));
+      if (sub === 'wait-ready') {
+        const result = await pollHandoff(o.id, {
+          ...terminal,
+          until: 'ready',
+          waitMs: terminal.waitMs ?? terminal.readyTimeoutMs ?? 60000,
+        });
+        json(result);
+        if (
+          ['failed', 'interrupted', 'timed_out'].includes(result.state) ||
+          (result.readiness && ['failed', 'unready'].includes(result.readiness.state))
+        )
+          process.exitCode = 1;
+        return;
+      }
+      if (sub === 'report') return json(await reportHandoff(o.id, terminal));
       if (sub === 'message')
         return json(
           await messageHandoff(
@@ -791,12 +816,21 @@ async function main() {
               terminal,
             ),
           );
-        return json(await startHandoffCommand(cwd, o, sub, terminal));
+        const result = await startHandoffCommand(cwd, o, sub, terminal);
+        json(result);
+        if (
+          o.wait_ready &&
+          (['failed', 'interrupted'].includes(result.state) ||
+            (result.readiness && ['failed', 'unready'].includes(result.readiness.state)))
+        )
+          process.exitCode = 1;
+        return;
       }
       if (sub === 'list') return json(listHandoffs());
       if (sub === 'status') return json(handoffStatus(o.id));
       if (sub === 'read' || sub === 'capture') return json(await readHandoff(o.id, terminal));
-      if (sub === 'poll') return json(await pollHandoff(o.id, terminal));
+      if (sub === 'poll')
+        return json(await pollHandoff(o.id, { ...terminal, until: o.until || 'final' }));
       if (sub === 'resume')
         return json(await resumeHandoff(o.id, undefined, { ...terminal, backend: o.backend }));
       if (sub === 'send') return json(await sendHandoff(o.id, o._.slice(1).join(' '), terminal));

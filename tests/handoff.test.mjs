@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +10,7 @@ import {
   handoffStatus,
   readHandoff,
   pollHandoff,
+  reportHandoff,
   sendHandoff,
   resumeHandoff,
   cancelHandoff,
@@ -16,7 +18,9 @@ import {
   completeHandoff,
 } from '../lib/terminal.mjs';
 import { atomicWrite } from '../lib/storage.mjs';
-import { FINAL_MARKER, hash, run } from '../lib/core.mjs';
+import { handoffPaths } from '../lib/handoff-protocol.mjs';
+import { processFingerprint } from '../lib/process.mjs';
+import { FINAL_MARKER, hash, now, run } from '../lib/core.mjs';
 
 const root = temp();
 process.env.OMHA_HOME = join(root, 'state');
@@ -57,6 +61,25 @@ function backend() {
       sessions.get(record.id).alive = false;
     },
   };
+}
+
+function writeWorker(record, overrides = {}) {
+  const at = now();
+  const worker = {
+    token: record.owner.token,
+    pid: process.pid,
+    childPid: process.pid,
+    fingerprint: processFingerprint(process.pid),
+    workerFingerprint: processFingerprint(process.pid),
+    startedAt: record.startedAt,
+    firstOutputAt: at,
+    lastOutputAt: at,
+    outputBytes: 12,
+    updatedAt: at,
+    ...overrides,
+  };
+  atomicWrite(handoffPaths(record.id).processFile, JSON.stringify(worker), process.env.OMHA_HOME);
+  return worker;
 }
 
 test('real handoff worker authenticates completion through both stdout and file readers', async (t) => {
@@ -279,4 +302,123 @@ test('explicit close retries cleanup of an interrupted owned launch without repl
   assert.equal(closed.backendClosed, true);
   assert.equal(starts, 1);
   assert.equal(closes, 2);
+});
+
+test('worker heartbeat resolves readiness before completion and feeds report/poll', async () => {
+  const adapter = backend();
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'fake',
+    backendAdapter: adapter,
+    interactive: true,
+  });
+  writeWorker(created);
+  const result = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(result.state, 'running');
+  assert.equal(result.readiness.state, 'ready');
+  assert.equal(result.readiness.evidence, 'worker_output');
+  assert.equal(result.workerAlive, true);
+  const ready = await pollHandoff(created.id, {
+    backendAdapter: adapter,
+    until: 'ready',
+    waitMs: 100,
+  });
+  assert.equal(ready.readiness.state, 'ready');
+  const report = await reportHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(report.phase, 'ready');
+  assert.deepEqual(report.nextActions, ['send', 'poll', 'close']);
+  assert.match(report.outputTail, /running/);
+});
+
+test(
+  'a dead worker without a final marker fails at the first read',
+  { skip: process.platform === 'win32' },
+  async () => {
+    const adapter = backend();
+    const created = await handoff(cwd, 'Continue task', {
+      backend: 'fake',
+      backendAdapter: adapter,
+    });
+    const dead = spawnSync(process.execPath, ['-e', ''], { stdio: 'ignore' });
+    writeWorker(created, {
+      pid: dead.pid,
+      childPid: dead.pid,
+      fingerprint: 'dead',
+      workerFingerprint: 'dead',
+      firstOutputAt: null,
+      lastOutputAt: null,
+      outputBytes: 0,
+    });
+    const result = await readHandoff(created.id, { backendAdapter: adapter });
+    assert.equal(result.state, 'failed');
+    assert.equal(result.failure, 'missing_completion');
+    assert.equal(result.diagnosis.kind, 'worker_exited');
+    assert.equal(result.readiness.state, 'failed');
+    assert.equal(result.workerAlive, false);
+  },
+);
+
+test('startup quota output becomes a failed diagnosis', async () => {
+  const adapter = backend();
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'fake',
+    backendAdapter: adapter,
+  });
+  adapter.sessions.get(created.id).output = 'Claude Code\nusage limit reached\n';
+  const result = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(result.state, 'failed');
+  assert.equal(result.readiness.state, 'failed');
+  assert.equal(result.diagnosis.kind, 'quota');
+  assert.match(result.diagnosis.evidence, /usage limit/i);
+});
+
+test('input prompts stay non-fatal and are re-armed after input', async () => {
+  const adapter = backend();
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'fake',
+    backendAdapter: adapter,
+    interactive: true,
+  });
+  adapter.sessions.get(created.id).output = 'Do you want to proceed?\n1. Yes\n2. No\n';
+  const result = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(result.state, 'running');
+  assert.equal(result.readiness.state, 'needs_input');
+  assert.equal(result.diagnosis.kind, 'permission_prompt');
+  await sendHandoff(created.id, '1', { backendAdapter: adapter });
+  const after = handoffStatus(created.id);
+  assert.equal(after.readiness.state, 'pending');
+  assert.equal(after.diagnosis, null);
+  assert.ok(after.readiness.lastInputAt);
+});
+
+test('no worker output becomes unready without killing the handoff', async () => {
+  const adapter = backend();
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'fake',
+    backendAdapter: adapter,
+    readyTimeoutMs: 10,
+  });
+  adapter.sessions.get(created.id).output = '';
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  const result = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(result.state, 'running');
+  assert.equal(result.readiness.state, 'unready');
+  assert.equal(result.diagnosis.kind, 'no_output');
+});
+
+test('waitReady blocks until the worker heartbeat is ready', async () => {
+  const adapter = backend();
+  const start = adapter.start.bind(adapter);
+  adapter.start = async (record) => {
+    const result = await start(record);
+    writeWorker(record);
+    return result;
+  };
+  const result = await handoff(cwd, 'Continue task', {
+    backend: 'fake',
+    backendAdapter: adapter,
+    waitReady: true,
+    readyTimeoutMs: 1000,
+  });
+  assert.equal(result.state, 'running');
+  assert.equal(result.readiness.state, 'ready');
 });

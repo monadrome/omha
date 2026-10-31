@@ -19,6 +19,26 @@ if (record.backend === 'tmux') {
   env.TMUX_PANE = process.env.TMUX_PANE;
 }
 const secrets = environmentSecrets(env);
+const workerRecord = {
+  token: record.owner.token,
+  pid: process.pid,
+  childPid: null,
+  fingerprint: null,
+  workerFingerprint: processFingerprint(process.pid),
+  startedAt: now(),
+  firstOutputAt: null,
+  lastOutputAt: null,
+  outputBytes: 0,
+  updatedAt: now(),
+};
+let heartbeatAt = 0;
+const writeWorkerRecord = (force = false) => {
+  const current = Date.now();
+  if (!force && current - heartbeatAt < 500) return;
+  heartbeatAt = current;
+  workerRecord.updatedAt = now();
+  atomicWrite(paths.processFile, JSON.stringify(workerRecord), stateHome());
+};
 const controller = new AbortController();
 process.on('SIGTERM', () => controller.abort());
 process.on('SIGINT', () => controller.abort());
@@ -43,12 +63,17 @@ if (record.interactive) {
 }
 const buffers = { stdout: '', stderr: '' };
 const print = (kind, chunk) => {
+  const at = now();
+  if (!workerRecord.firstOutputAt) workerRecord.firstOutputAt = at;
+  workerRecord.lastOutputAt = at;
+  workerRecord.outputBytes += Buffer.byteLength(chunk);
   buffers[kind] += chunk.toString('utf8');
   const index = buffers[kind].lastIndexOf('\n');
   if (index >= 0) {
     process[kind].write(redact(buffers[kind].slice(0, index + 1), secrets));
     buffers[kind] = buffers[kind].slice(index + 1);
   }
+  writeWorkerRecord();
 };
 try {
   const result = await run(record.command, record.args, {
@@ -59,19 +84,11 @@ try {
     input: record.interactive ? undefined : safeRead(record.promptFile, stateHome()),
     inputStream,
     onOutput: print,
-    onSpawn: (childPid) =>
-      atomicWrite(
-        paths.processFile,
-        JSON.stringify({
-          token: record.owner.token,
-          pid: process.pid,
-          childPid,
-          fingerprint: processFingerprint(childPid),
-          workerFingerprint: processFingerprint(process.pid),
-          startedAt: now(),
-        }),
-        stateHome(),
-      ),
+    onSpawn: (childPid) => {
+      workerRecord.childPid = childPid;
+      workerRecord.fingerprint = processFingerprint(childPid);
+      writeWorkerRecord(true);
+    },
   });
   process.stdin.setRawMode?.(false);
   for (const kind of ['stdout', 'stderr'])
@@ -91,6 +108,7 @@ try {
     responseHash: hash(result.stdout),
     at: now(),
   };
+  writeWorkerRecord(true);
   atomicWrite(paths.outputFile, redact(`${result.stdout}\n${result.stderr}`, secrets), stateHome());
   atomicWrite(paths.finalFile, JSON.stringify(final), stateHome());
   process.stdout.write(`\n${FINAL_MARKER}${JSON.stringify(final)}\n`);
@@ -116,6 +134,7 @@ try {
   }
 } catch {
   process.stdin.setRawMode?.(false);
+  writeWorkerRecord(true);
   atomicWrite(
     paths.finalFile,
     JSON.stringify({ token: record.owner.token, state: 'failed', exitCode: 1, at: now() }),

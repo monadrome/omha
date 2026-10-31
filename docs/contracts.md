@@ -384,6 +384,23 @@ injection retains its requested-topic and private-opt-in behavior.
 use an owner token, full backend reference and a final marker with the same token.
 The final state is successful only for exit code `0` and a valid marker.
 
+Terminal handoff records also carry additive `readiness` and `diagnosis` fields.
+The worker writes a structured heartbeat with `firstOutputAt`, `lastOutputAt` and
+`outputBytes`; readers use that signal first. Screen capture is only a startup
+fallback for fatal errors and input prompts, and only after the worker has
+produced output (or when no worker record exists). `readiness.state` is one of
+`pending`, `ready`, `needs_input`, `failed`, `unready` or `not_applicable`.
+`ready` means the worker produced output, not that the task succeeded. A worker
+that exits without a final marker becomes `failed` with
+`diagnosis.kind: "worker_exited"` at the first read instead of waiting for the
+overall timeout. `failed` diagnosis kinds are `command_not_found`, `quota`,
+`rate_limit`, `auth`, `network`, `worker_exited` and `no_output`; a permission
+or login prompt is non-fatal `needs_input` with `permission_prompt`. The same
+data is exposed through `handoff --wait-ready`, `handoff wait-ready --id`,
+`poll --until ready` and `handoff report --id`. A readiness timeout
+(`unready`/`no_output`) leaves the handoff running for inspection; it does not
+kill the worker.
+
 ## Task preflight
 
 `omha preflight --input preflight.json --json` and `assessPreflight()` produce a

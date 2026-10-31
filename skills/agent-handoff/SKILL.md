@@ -36,14 +36,25 @@ Check `omha doctor --json`, then run from the target worktree:
 
 ```bash
 omha handoff --requests-file requests.json --brief-file brief.md --backend file
+omha handoff --prompt-file handoff.md --backend file
+omha handoff --prompt-file handoff.md --wait-ready --ready-timeout-ms 60000
 omha handoff status --id HANDOFF_ID
 omha handoff read --id HANDOFF_ID
+omha handoff report --id HANDOFF_ID
 ```
 
 `--prompt-file handoff.md` remains available for free-form prompts; it cannot be
-combined with the note files. File mode preserves context without starting a
-provider. To open an owned terminal, use `--backend auto`; the default command
-is an interactive shell.
+combined with the note files. `--wait-ready` returns after the worker's structured
+heartbeat, a startup input prompt, or a fatal diagnosis resolves the readiness
+window. Read `readiness` and `diagnosis` from the result: `ready` means the worker
+produced output, not that the task succeeded; `needs_input` means a permission or
+login prompt is waiting; `quota`, `auth`, `network`, `command_not_found` and
+`worker_exited` are fatal and must be reported to the caller rather than retried
+silently. `report` returns a compact, redacted summary for the main session.
+`poll --until ready` waits only for readiness, while the default `poll --until
+final` waits for completion. File mode preserves context without starting a
+provider. To open an owned terminal, use `--backend auto`; the default command is
+an interactive shell.
 
 To continue with a named agent from the global registry, run `omha agents list`
 and add `--agent NAME`. The registry entry supplies the command, argv and model;
