@@ -48,13 +48,16 @@ combined with the note files. `--wait-ready` returns after the worker's structur
 heartbeat, a startup input prompt, or a fatal diagnosis resolves the readiness
 window. Read `readiness` and `diagnosis` from the result: `ready` means the worker
 produced output, not that the task succeeded; `needs_input` means a permission or
-login prompt is waiting; `quota`, `auth`, `network`, `command_not_found` and
-`worker_exited` are fatal and must be reported to the caller rather than retried
-silently. `report` returns a compact, redacted summary for the main session.
-`poll --until ready` waits only for readiness, while the default `poll --until
-final` waits for completion. File mode preserves context without starting a
-provider. To open an owned terminal, use `--backend auto`; the default command is
-an interactive shell.
+login prompt is waiting; `quota`, `auth`, `network`, `command_not_found`,
+`spawn_failed` and `worker_exited` are fatal and must be reported to the caller
+rather than retried silently. A fatal screen diagnosis does not terminate a live
+worker: inspect or cancel it, and resume only after a terminal state so two
+workers cannot write the same task. `report` returns a compact, redacted summary
+for the main session. `poll --until ready` waits only for readiness, while the
+default `poll --until final` waits for completion; `wait-ready` exits non-zero
+until readiness is `ready` or `not_applicable`. File mode preserves context
+without starting a provider. To open an owned terminal, use `--backend auto`; the
+default command is an interactive shell.
 
 To continue with a named agent from the global registry, run `omha agents list`
 and add `--agent NAME`. The registry entry supplies the command, argv and model;

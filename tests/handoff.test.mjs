@@ -11,6 +11,7 @@ import {
   readHandoff,
   pollHandoff,
   reportHandoff,
+  readinessExitCode,
   sendHandoff,
   resumeHandoff,
   cancelHandoff,
@@ -19,7 +20,7 @@ import {
 } from '../lib/terminal.mjs';
 import { atomicWrite } from '../lib/storage.mjs';
 import { handoffPaths } from '../lib/handoff-protocol.mjs';
-import { processFingerprint } from '../lib/process.mjs';
+import { processFingerprint, processProbe } from '../lib/process.mjs';
 import { FINAL_MARKER, hash, now, run } from '../lib/core.mjs';
 
 const root = temp();
@@ -219,6 +220,8 @@ test('auto degradation tries both native backends and reaches file mode after la
   });
   assert.equal(created.backend, 'file');
   assert.equal(created.state, 'awaiting');
+  assert.equal(created.readiness.state, 'not_applicable');
+  assert.equal(created.diagnosis, null);
   if (process.platform !== 'win32') assert.deepEqual(calls, ['cmux', 'tmux']);
   assert.equal(created.backendClosed, undefined);
   assert.equal(handoffStatus(created.id).launchAttempts.at(-1).backend, 'file');
@@ -357,7 +360,7 @@ test(
   },
 );
 
-test('startup quota output becomes a failed diagnosis', async () => {
+test('startup quota output is diagnosed without terminating a live worker', async () => {
   const adapter = backend();
   const created = await handoff(cwd, 'Continue task', {
     backend: 'fake',
@@ -365,10 +368,33 @@ test('startup quota output becomes a failed diagnosis', async () => {
   });
   adapter.sessions.get(created.id).output = 'Claude Code\nusage limit reached\n';
   const result = await readHandoff(created.id, { backendAdapter: adapter });
-  assert.equal(result.state, 'failed');
+  assert.equal(result.state, 'running');
   assert.equal(result.readiness.state, 'failed');
   assert.equal(result.diagnosis.kind, 'quota');
   assert.match(result.diagnosis.evidence, /usage limit/i);
+  const report = await reportHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(report.phase, 'unready');
+  assert.ok(!report.nextActions.includes('resume'));
+});
+
+test('a failed final marker records a fatal screen diagnosis', async () => {
+  const adapter = backend();
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'fake',
+    backendAdapter: adapter,
+  });
+  adapter.sessions.get(created.id).output = [
+    'usage limit reached',
+    `OMHA_FINAL:${JSON.stringify({
+      token: created.owner.token,
+      state: 'failed',
+      exitCode: 1,
+    })}`,
+  ].join('\n');
+  const result = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(result.state, 'failed');
+  assert.equal(result.readiness.state, 'failed');
+  assert.equal(result.diagnosis.kind, 'quota');
 });
 
 test('input prompts stay non-fatal and are re-armed after input', async () => {
@@ -410,7 +436,7 @@ test('waitReady blocks until the worker heartbeat is ready', async () => {
   const start = adapter.start.bind(adapter);
   adapter.start = async (record) => {
     const result = await start(record);
-    writeWorker(record);
+    setTimeout(() => writeWorker(record), 50);
     return result;
   };
   const result = await handoff(cwd, 'Continue task', {
@@ -421,4 +447,111 @@ test('waitReady blocks until the worker heartbeat is ready', async () => {
   });
   assert.equal(result.state, 'running');
   assert.equal(result.readiness.state, 'ready');
+});
+
+test('late worker output clears unready and no_output', async () => {
+  const adapter = backend();
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'fake',
+    backendAdapter: adapter,
+    readyTimeoutMs: 10,
+  });
+  adapter.sessions.get(created.id).output = '';
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  const unready = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(unready.readiness.state, 'unready');
+  assert.equal(unready.diagnosis.kind, 'no_output');
+  writeWorker(created);
+  const ready = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(ready.readiness.state, 'ready');
+  assert.equal(ready.diagnosis, null);
+});
+
+test('a legal final clears a stale input-wait readiness state', async () => {
+  const adapter = backend();
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'fake',
+    backendAdapter: adapter,
+    interactive: true,
+  });
+  adapter.sessions.get(created.id).output = 'Do you want to proceed?\n1. Yes\n2. No\n';
+  const waiting = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(waiting.readiness.state, 'needs_input');
+  adapter.sessions.get(created.id).output = `OMHA_FINAL:${JSON.stringify({
+    token: created.owner.token,
+    state: 'completed',
+    exitCode: 0,
+  })}`;
+  const done = await readHandoff(created.id, { backendAdapter: adapter });
+  assert.equal(done.state, 'completed');
+  assert.equal(done.readiness.state, 'ready');
+  assert.equal(done.diagnosis, null);
+});
+
+test('sendHandoff preserves a completion written concurrently with input', async () => {
+  const adapter = backend();
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'fake',
+    backendAdapter: adapter,
+  });
+  adapter.send = async (record) => {
+    const latest = handoffStatus(record.id);
+    latest.state = 'completed';
+    latest.completion = {
+      token: record.owner.token,
+      state: 'completed',
+      exitCode: 0,
+      at: now(),
+    };
+    latest.diagnosis = { kind: 'quota', evidence: 'test', suggestion: 'test', at: now() };
+    atomicWrite(latest.recordFile, JSON.stringify(latest), process.env.OMHA_HOME);
+  };
+  await sendHandoff(created.id, 'next', { backendAdapter: adapter });
+  const after = handoffStatus(created.id);
+  assert.equal(after.state, 'completed');
+  assert.equal(after.completion.token, created.owner.token);
+  assert.equal(after.diagnosis.kind, 'quota');
+  assert.equal(after.readiness.state, 'pending');
+});
+
+test('readinessExitCode treats unresolved waits as failure', () => {
+  assert.equal(readinessExitCode({ state: 'running', readiness: { state: 'ready' } }), 0);
+  assert.equal(readinessExitCode({ state: 'running', readiness: { state: 'pending' } }), 1);
+  assert.equal(readinessExitCode({ state: 'running', readiness: { state: 'needs_input' } }), 1);
+  assert.equal(readinessExitCode({ state: 'running', readiness: { state: 'unready' } }), 1);
+  assert.equal(readinessExitCode({ state: 'running', readiness: { state: 'failed' } }), 1);
+  assert.equal(readinessExitCode({ state: 'awaiting', readiness: { state: 'not_applicable' } }), 0);
+  assert.equal(readinessExitCode({ state: 'failed' }, true), 1);
+  assert.equal(readinessExitCode({ state: 'running', readiness: { state: 'pending' } }, false), 0);
+});
+
+test(
+  'processProbe distinguishes absent and alive workers',
+  { skip: process.platform === 'win32' },
+  () => {
+    assert.equal(processProbe(process.pid).state, 'alive');
+    const dead = spawnSync(process.execPath, ['-e', ''], { stdio: 'ignore' });
+    assert.equal(processProbe(dead.pid).state, 'absent');
+    assert.equal(processProbe(999999).state, 'absent');
+  },
+);
+
+test('structured spawn errors become command_not_found diagnoses', async () => {
+  const worker = fileURLToPath(new URL('../bin/handoff-worker.mjs', import.meta.url));
+  const created = await handoff(cwd, 'Continue task', {
+    backend: 'file',
+    command: '/definitely/not-an-omha-command',
+    args: [],
+    timeoutMs: 1000,
+  });
+  const result = await run(process.execPath, [worker, created.recordFile], {
+    cwd,
+    env: { ...process.env, OMHA_HOME: process.env.OMHA_HOME },
+    timeoutMs: 5000,
+  });
+  assert.equal(result.code, 0, result.stderr);
+  const read = await readHandoff(created.id);
+  assert.equal(read.state, 'failed');
+  assert.equal(read.diagnosis.kind, 'command_not_found');
+  await closeHandoff(created.id);
 });

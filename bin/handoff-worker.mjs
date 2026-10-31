@@ -103,11 +103,25 @@ try {
   const final = {
     token: record.owner.token,
     state,
-    exitCode: result.code ?? (result.timedOut ? 124 : 1),
+    exitCode:
+      Number.isInteger(result.code) && result.code >= 0 && result.code <= 255
+        ? result.code
+        : result.spawnError
+          ? 127
+          : result.timedOut
+            ? 124
+            : 1,
     signal: result.signal,
     responseHash: hash(result.stdout),
     at: now(),
   };
+  if (result.spawnError) {
+    final.failure = result.spawnError.code === 'ENOENT' ? 'command_not_found' : 'spawn_failed';
+    final.spawnError = redact(
+      String(result.spawnError.message || result.spawnError),
+      secrets,
+    ).slice(0, 300);
+  }
   writeWorkerRecord(true);
   atomicWrite(paths.outputFile, redact(`${result.stdout}\n${result.stderr}`, secrets), stateHome());
   atomicWrite(paths.finalFile, JSON.stringify(final), stateHome());

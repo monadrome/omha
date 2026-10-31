@@ -393,13 +393,20 @@ produced output (or when no worker record exists). `readiness.state` is one of
 `ready` means the worker produced output, not that the task succeeded. A worker
 that exits without a final marker becomes `failed` with
 `diagnosis.kind: "worker_exited"` at the first read instead of waiting for the
-overall timeout. `failed` diagnosis kinds are `command_not_found`, `quota`,
-`rate_limit`, `auth`, `network`, `worker_exited` and `no_output`; a permission
-or login prompt is non-fatal `needs_input` with `permission_prompt`. The same
-data is exposed through `handoff --wait-ready`, `handoff wait-ready --id`,
-`poll --until ready` and `handoff report --id`. A readiness timeout
-(`unready`/`no_output`) leaves the handoff running for inspection; it does not
-kill the worker.
+overall timeout, but only after a confirmed process probe; an unavailable `ps`
+probe stays unknown and does not terminate the handoff. `failed` diagnosis kinds
+are `command_not_found`, `spawn_failed`, `quota`, `rate_limit`, `auth`,
+`network`, `worker_exited` and `no_output`; a permission or login prompt is
+non-fatal `needs_input` with `permission_prompt`. A fatal screen diagnosis sets
+`readiness` and `diagnosis` only: it does not terminate a live worker. The
+lifecycle changes only on a valid final marker or a confirmed dead worker, so
+`resume` is offered only for a terminal state and cannot start a second worker
+while the first is still running. Late output clears `unready`/`no_output`, and
+a legal final clears stale wait states and diagnoses. The same data is exposed
+through `handoff --wait-ready`, `handoff wait-ready --id`, `poll --until ready`
+and `handoff report --id`; `wait-ready` exits non-zero unless readiness is
+`ready` or `not_applicable`. A readiness timeout (`unready`/`no_output`) leaves
+the handoff running for inspection; it does not kill the worker.
 
 ## Task preflight
 

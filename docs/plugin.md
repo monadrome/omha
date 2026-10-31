@@ -120,7 +120,9 @@ and acceptance. See [contracts](contracts.md) for versioned inputs and API detai
 Handoff can wait for a structured readiness signal (`--wait-ready`) and report a
 redacted diagnosis (`omha handoff report --id ID`). Readiness `ready` means the
 worker produced output; it is not task acceptance. Fatal startup diagnoses are
-reported to the caller and are never silently retried.
+reported to the caller and are never silently retried. A screen diagnosis does
+not terminate a live worker: inspect or cancel it, and resume only after a
+terminal state so two workers cannot write the same task.
 
 ## Runtime Prerequisites
 

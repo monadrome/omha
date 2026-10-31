@@ -59,6 +59,7 @@ import {
   readHandoff,
   pollHandoff,
   reportHandoff,
+  readinessExitCode,
   sendHandoff,
   resumeHandoff,
   cancelHandoff,
@@ -766,11 +767,7 @@ async function main() {
           waitMs: terminal.waitMs ?? terminal.readyTimeoutMs ?? 60000,
         });
         json(result);
-        if (
-          ['failed', 'interrupted', 'timed_out'].includes(result.state) ||
-          (result.readiness && ['failed', 'unready'].includes(result.readiness.state))
-        )
-          process.exitCode = 1;
+        process.exitCode = readinessExitCode(result, true);
         return;
       }
       if (sub === 'report') return json(await reportHandoff(o.id, terminal));
@@ -818,12 +815,7 @@ async function main() {
           );
         const result = await startHandoffCommand(cwd, o, sub, terminal);
         json(result);
-        if (
-          o.wait_ready &&
-          (['failed', 'interrupted'].includes(result.state) ||
-            (result.readiness && ['failed', 'unready'].includes(result.readiness.state)))
-        )
-          process.exitCode = 1;
+        process.exitCode = readinessExitCode(result, Boolean(o.wait_ready));
         return;
       }
       if (sub === 'list') return json(listHandoffs());

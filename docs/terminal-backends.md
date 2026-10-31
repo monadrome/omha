@@ -22,10 +22,16 @@ last output and output byte count. Screen capture is a startup fallback only
 for fatal errors and input prompts, and only after worker output has started.
 A `ready` readiness signal means the worker produced output, not that the task
 succeeded. A dead worker without a final marker is a failure at the first read,
-even when the cmux owner status or a tmux pane record still exists. A readiness
-timeout leaves the handoff running and report-only; it does not kill the worker.
-Native cmux sessions keep their verified session binding rather than using the
-worker heartbeat.
+even when the cmux owner status or a tmux pane record still exists, but only
+after a confirmed process probe: an unavailable `ps` probe stays unknown and
+does not terminate the handoff. A fatal screen diagnosis sets readiness and
+diagnosis only; it never terminates a live worker. The lifecycle changes only on
+a valid final marker or a confirmed dead worker, so `resume` cannot start a
+second worker while the first still runs. Late output clears `unready`; a legal
+final clears stale wait states. A readiness timeout leaves the handoff running
+and report-only; it does not kill the worker, and `wait-ready` exits non-zero
+until readiness is `ready` or `not_applicable`. Native cmux sessions keep their
+verified session binding rather than using the worker heartbeat.
 
 ## Selection And Failure
 

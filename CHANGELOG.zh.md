@@ -8,7 +8,11 @@
   `handoff wait-ready`、`poll --until ready` 和 `handoff report` 暴露
   pending、ready、needs_input、failed、unready 状态，且不把 worker 输出等同于
   任务验收。没有 final marker 的 worker 死亡现在会在首次读取时失败，而不是
-  等待总体超时；屏幕抓取仅用于 worker 开始输出后的启动期错误/输入提示分类。
+  等待总体超时，但仅在进程探针确认后；`ps` 探针不可用保持 unknown。屏幕诊断
+  不会终止仍在运行的 worker，因此只有终态才提供 resume，避免第二个 worker
+  同时写入。readiness 会在迟到输出或合法 final 到达时收敛；`wait-ready` 对
+  未解析的等待返回非零；结构化 spawn 错误会变成 `command_not_found` 或
+  `spawn_failed` 诊断。屏幕抓取仅用于 worker 开始输出后的启动期错误/输入提示分类。
 
 ### 任务预检
 

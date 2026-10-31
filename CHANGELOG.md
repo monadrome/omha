@@ -8,8 +8,14 @@
   `--wait-ready`, `handoff wait-ready`, `poll --until ready` and `handoff report`
   expose pending, ready, needs-input, failed and unready states without treating
   worker output as task acceptance. A dead worker without a final marker now fails
-  at the first read instead of waiting for the overall timeout. Screen capture is
-  limited to startup error/input classification after worker output begins.
+  at the first read instead of waiting for the overall timeout, but only after a
+  confirmed process probe; an unavailable `ps` probe stays unknown. A screen
+  diagnosis never terminates a live worker, so resume is offered only for a
+  terminal state and cannot start a second worker while the first still writes.
+  Readiness converges on late output and legal finals, `wait-ready` exits non-zero
+  for unresolved waits, and structured spawn errors become `command_not_found` or
+  `spawn_failed` diagnoses. Screen capture is limited to startup error/input
+  classification after worker output begins.
 
 ### Task preflight
 
