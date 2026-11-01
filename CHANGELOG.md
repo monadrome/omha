@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Coordinator
+
+- Add an advisory coordinator for `omha leader` via `--coordinator PROFILE
+  [--coordinator-max-consults N]`. Between scheduling rounds the host consults
+  a validated tool-free, read-only profile with a bounded run snapshot; the
+  proposal may reorder the launch order of the current ready set, attach
+  data-only messages to pending tasks and raise an `abort` request. The host
+  validates every field, drops invalid entries with recorded reasons, never
+  lets a proposal bypass dependency readiness, parallelism or write
+  exclusion, and applies `abort` only as a durable event plus stderr
+  notification — cancelling stays with the operator. Each consult is recorded
+  as a `coordinator.consulted` event with the served profile, applied actions
+  and drops.
+
 ### Teams
 
 - Add shared team protocol over the agent registry: `omha teams

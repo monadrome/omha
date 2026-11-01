@@ -2,6 +2,16 @@
 
 ## 未发布
 
+### 协调器（Coordinator）
+
+- 为 `omha leader` 新增建议型协调器：`--coordinator PROFILE
+  [--coordinator-max-consults N]`。宿主在调度轮次之间向一个经过校验的
+  tool-free、read-only 档位发送有界的运行快照；提议只能重排当前就绪集合的启动顺序、
+  给 pending 任务附加数据性消息、或提出 `abort` 请求。宿主逐字段校验、丢弃非法项并
+  记录原因，任何提议都无法绕过依赖就绪、并行度或写互斥；`abort` 只落为持久事件加
+  stderr 通知，取消仍由操作者决定。每次咨询都记录 `coordinator.consulted` 事件，
+  含实际服务档位、已应用动作与丢弃项。
+
 ### 团队（Teams）
 
 - 在 agent 注册表之上新增共享团队协议：`omha teams

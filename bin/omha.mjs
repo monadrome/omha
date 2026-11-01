@@ -216,6 +216,8 @@ const ALLOWED = new Set([
   'from',
   'to',
   'since',
+  'coordinator',
+  'coordinator_max_consults',
   'summary',
   'objective',
   'agents',
@@ -353,6 +355,7 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha run --profile fake --prompt 'Offline check'
   omha leader --plan plan.json [--allow-write]
   omha leader --task TEXT --profile planner --config providers.json [--policy host-policy.json]
+      [--coordinator PROFILE [--coordinator-max-consults N]]
   omha leader --resume RUN_ID [--retry-failed --retry-interrupted-writes]
   omha runs list|status|cancel [--id RUN_ID]
   omha status [--watch --wait-ms 30000 --interval-ms 1000]
@@ -619,6 +622,14 @@ async function main() {
         retryInterruptedWrites: o.retry_interrupted_writes,
         plannerProfile: o.profile,
         publicContext: o.public_context ? inputFile(o.public_context) : '',
+        coordinator: o.coordinator
+          ? {
+              profile: o.coordinator,
+              ...(o.coordinator_max_consults !== undefined
+                ? { maxConsults: Number(o.coordinator_max_consults) }
+                : {}),
+            }
+          : undefined,
         onNotification: (notification) => process.stderr.write(`${JSON.stringify(notification)}\n`),
       });
       json(result);
