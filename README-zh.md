@@ -155,6 +155,13 @@ omha run --profile reviewer --config examples/providers.json --prompt '检查公
   规划模型不能指定宿主策略；自动规划时用 `leader --policy host-policy.json` 绑定
   `decision`、`supervision`、`memory` 和 `tasks: {taskId: {acceptance, review}}`。
   恢复待评审任务时仅继续独立评审，不重放已经完成的写入。
+- 团队、协调器与面板：`omha teams` 把注册表中的 agent 绑定为命名团队，提供可认领
+  任务列表（依赖派生就绪状态、完成仅限认领者）和每成员一个 append-only 收件箱；
+  消息有大小上限、过凭据筛查、读取时校验哈希，只是数据而非权限。参见
+  [agent 团队](docs/agent-teams.md)。`leader --coordinator PROFILE` 在调度轮次之间
+  咨询一个经校验的 tool-free 档位：提议只能重排就绪启动顺序、附加数据性 worker
+  消息或提出宿主仅记录不执行的 abort 请求。`omha ui` 在回环地址上提供同一状态的
+  只读面板，含 SSE 流与两个可选的 `--allow-actions` 动作，复用 CLI 自身的校验。
 - 圆桌使用 2-3 个独立 voter，共享相同公开证据与各自私有提示。在盲收集结束前不持久化
   任何投票。证据引文必须匹配 anchor。多数或权重结果须超过全部票权的一半，弃权和
   无效票也计入分母。Chair 随后综合，不能修改 host 计票结果；少数理由和失败记录保留。
