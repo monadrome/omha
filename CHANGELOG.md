@@ -5,7 +5,7 @@
 ### Coordinator
 
 - Add an advisory coordinator for `omha leader` via `--coordinator PROFILE
-  [--coordinator-max-consults N]`. Between scheduling rounds the host consults
+[--coordinator-max-consults N]`. Between scheduling rounds the host consults
   a validated tool-free, read-only profile with a bounded run snapshot; the
   proposal may reorder the launch order of the current ready set, attach
   data-only messages to pending tasks and raise an `abort` request. The host
@@ -19,9 +19,9 @@
 ### Teams
 
 - Add shared team protocol over the agent registry: `omha teams
-  create|list|show|task|claim|complete|send|read`. A team binds registry agents
+create|list|show|task|claim|complete|send|read`. A team binds registry agents
   as members, keeps a claimable task list (`pending → claimed → completed |
-  failed`) with dependency-derived `waiting`/`ready`/`blocked` views, and one
+failed`) with dependency-derived `waiting`/`ready`/`blocked` views, and one
   append-only mailbox per member under the project state directory. Claims
   require ready dependencies, completion is bounded to the claiming agent, and
   every transition is an append-only event. Mailbox messages are size-bounded,
