@@ -2,6 +2,15 @@
 
 ## 未发布
 
+### 面板（Dashboard）
+
+- 新增 `omha ui [--host 127.0.0.1] [--port 7800] [--interval-ms 1000]
+[--allow-actions]`：基于状态目录的本地零依赖 Web 面板，展示 run 的逐任务 DAG
+  状态、团队任务派生状态与邮箱深度、handoff、决策、评审与 agent 注册表，并通过
+  SSE 推送脱敏状态快照。服务默认只绑定回环地址、默认只读；`--allow-actions`
+  只开放两个动作（`cancel_run`、`send_task_message`），且与 CLI 走同一套宿主校验
+  函数。面板从不启动 provider。
+
 ### 协调器（Coordinator）
 
 - 为 `omha leader` 新增建议型协调器：`--coordinator PROFILE

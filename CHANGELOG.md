@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Dashboard
+
+- Add `omha ui [--host 127.0.0.1] [--port 7800] [--interval-ms 1000]
+[--allow-actions]`, a local zero-dependency web dashboard over the state
+  directory: runs with per-task DAG status, teams with derived task states and
+  mailbox depth, handoffs, decisions, reviews and the agent registry, plus an
+  SSE stream that pushes redacted status snapshots. The server binds the
+  loopback interface by default and is read-only unless started with
+  `--allow-actions`, which enables exactly two actions — `cancel_run` and
+  `send_task_message` — through the same host-validated functions the CLI
+  uses. It never launches a provider.
+
 ### Coordinator
 
 - Add an advisory coordinator for `omha leader` via `--coordinator PROFILE

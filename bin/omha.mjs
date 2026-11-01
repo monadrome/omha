@@ -97,6 +97,7 @@ import {
   recordArenaReview,
 } from '../lib/arena.mjs';
 import { cancelFork, forkStatus, forkTree, resumeFork, runFork } from '../lib/fork.mjs';
+import { startUi } from '../lib/ui.mjs';
 import {
   addTeamTask,
   claimTeamTask,
@@ -222,6 +223,9 @@ const ALLOWED = new Set([
   'objective',
   'agents',
   'depends_on',
+  'host',
+  'port',
+  'allow_actions',
 ]);
 
 function parse(args) {
@@ -359,6 +363,7 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha leader --resume RUN_ID [--retry-failed --retry-interrupted-writes]
   omha runs list|status|cancel [--id RUN_ID]
   omha status [--watch --wait-ms 30000 --interval-ms 1000]
+  omha ui [--host 127.0.0.1] [--port 7800] [--interval-ms 1000] [--allow-actions]
   omha preflight --input preflight.json --json
   omha roundtable --input decision.json --config providers.json
   omha decision status|approve|reject --id ID [--reason TEXT]
@@ -484,6 +489,23 @@ async function main() {
         process.stdout.write(
           `${JSON.stringify(redactData(snapshot, environmentSecrets(process.env)))}\n`,
         );
+      return;
+    }
+    if (command === 'ui') {
+      keys(o, ['_', 'cwd', 'host', 'port', 'allow_actions', 'interval_ms'], 'ui');
+      check(o._.length === 0, 'omha ui accepts no positional arguments');
+      const server = await startUi(cwd, {
+        host: o.host,
+        port: o.port === undefined ? undefined : Number(o.port),
+        allowActions: Boolean(o.allow_actions),
+        intervalMs: o.interval_ms === undefined ? undefined : Number(o.interval_ms),
+        signal: controller.signal,
+      });
+      process.stderr.write(
+        `${JSON.stringify({ ok: true, url: server.url, actions: Boolean(o.allow_actions) })}\n`,
+      );
+      await new Promise((resolve) => controller.signal.addEventListener('abort', resolve));
+      await server.close();
       return;
     }
     if (command === 'preflight') {

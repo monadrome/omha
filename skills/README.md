@@ -1,10 +1,10 @@
 # Omha skills
 
-The Claude Code plugin discovers the ten `*/SKILL.md` files in this directory.
+The Claude Code plugin discovers the eleven `*/SKILL.md` files in this directory.
 Use `/omha:leader-agent`, `/omha:roundtable`, `/omha:task-preflight`,
-`/omha:agent-handoff`, `/omha:auto-butterfly-effect`, `/omha:auto-close`,
-`/omha:multi-review`, `/omha:project-memory`, `/omha:butterfly-effect`
-or `/omha:hide` in a session with the plugin enabled.
+`/omha:agent-handoff`, `/omha:agent-teams`, `/omha:auto-butterfly-effect`,
+`/omha:auto-close`, `/omha:multi-review`, `/omha:project-memory`,
+`/omha:butterfly-effect` or `/omha:hide` in a session with the plugin enabled.
 
 Skills guide reasoning: decomposition, evidence interpretation, decisions and
 memory curation. Open-ended work can stay in the current agent session. Once
@@ -18,6 +18,12 @@ labels and sanitizes them and resolves `--agent` targets from the global
 registry, which only the user maintains through `omha agents`.
 `agent-handoff` can wait for structured readiness and report a redacted
 diagnosis; readiness means worker output, not task acceptance.
+`agent-teams` splits work across registered agents through `omha teams`:
+membership comes from the registry, claims respect dependency readiness,
+completion stays bounded to the claimant, and mailbox messages are data —
+never permission. Its coordinator proposal and the `omha ui` dashboard are
+advisory and read-only surfaces over the same host-validated state; see
+[agent teams](../docs/agent-teams.md).
 
 `/omha:task-preflight` clarifies the six declared signals and fills the version 1
 record. `omha preflight` validates it and emits a deterministic shadow assessment;

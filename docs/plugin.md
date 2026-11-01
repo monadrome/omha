@@ -55,6 +55,7 @@ Type a skill command in Claude Code, followed by your task:
 /omha:roundtable Compare the two designs using the supplied measurements.
 /omha:task-preflight Describe this task's shape before execution.
 /omha:agent-handoff Prepare a continuation for another session.
+/omha:agent-teams Split this work across registered agents with a shared task list.
 /omha:project-memory Record the verified API decision for the next session.
 /omha:auto-butterfly-effect Check whether this rework has a supported restart point.
 /omha:auto-close Close this cmux surface or owned tmux worker pane after the goal and its checks finish.
@@ -85,6 +86,12 @@ For completion cleanup, `auto-close` invokes the explicit CLI hook only after th
 task is finished. The host verifies the calling owned surface and any supplied
 run gates; a detached worker records the outcome and closes that surface or owned pane. It
 installs no unconditional Stop hook. See [auto-close](auto-close.md).
+`agent-teams` turns `omha teams` into a discoverable workflow: registry-validated
+membership, claimable tasks with dependency readiness, per-agent mailboxes that
+are data rather than permission, an advisory coordinator for `omha leader` and
+the loopbound read-only `omha ui` dashboard. Every transition is host-validated
+and appended as an event; completion reports are claims, never acceptance. See
+[agent teams](agent-teams.md).
 `multi-review` runs each available reviewer CLI as an owned handoff through
 `omha review`; detection skips missing commands or models with a reason, waiting
 never cancels running reviewers, and votes fix only on a strict majority. The
