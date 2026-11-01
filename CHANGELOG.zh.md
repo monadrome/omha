@@ -2,6 +2,16 @@
 
 ## 未发布
 
+### 团队（Teams）
+
+- 在 agent 注册表之上新增共享团队协议：`omha teams
+  create|list|show|task|claim|complete|send|read`。团队把注册表中的 agent 绑定为成员，
+  维护可认领任务列表（`pending → claimed → completed | failed`，并派生
+  `waiting`/`ready`/`blocked` 视图），以及项目状态目录下每个成员一个 append-only
+  收件箱。认领要求依赖就绪，完成仅限认领者本人，每次转移都是追加事件。邮箱消息有大小
+  上限、过凭据筛查、读取时校验哈希（篡改即失败关闭）并有条数上限；`read` 返回游标
+  支持增量拉取。
+
 ### 交接
 
 - 增加结构化 worker 心跳与 readiness/diagnosis 报告。`--wait-ready`、

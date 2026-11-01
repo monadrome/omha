@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Teams
+
+- Add shared team protocol over the agent registry: `omha teams
+  create|list|show|task|claim|complete|send|read`. A team binds registry agents
+  as members, keeps a claimable task list (`pending → claimed → completed |
+  failed`) with dependency-derived `waiting`/`ready`/`blocked` views, and one
+  append-only mailbox per member under the project state directory. Claims
+  require ready dependencies, completion is bounded to the claiming agent, and
+  every transition is an append-only event. Mailbox messages are size-bounded,
+  secret-screened, hash-checked on read (tampering fails closed) and capped per
+  member; `read` returns a cursor for incremental polls.
+
 ### Handoffs
 
 - Add structured worker heartbeats and readiness/diagnosis reporting.

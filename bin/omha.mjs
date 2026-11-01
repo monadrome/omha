@@ -97,6 +97,16 @@ import {
   recordArenaReview,
 } from '../lib/arena.mjs';
 import { cancelFork, forkStatus, forkTree, resumeFork, runFork } from '../lib/fork.mjs';
+import {
+  addTeamTask,
+  claimTeamTask,
+  completeTeamTask,
+  createTeam,
+  listTeams,
+  readTeamMailbox,
+  sendTeamMessage,
+  teamStatus,
+} from '../lib/teams.mjs';
 
 const BOOLEAN = new Set([
   'json',
@@ -203,6 +213,13 @@ const ALLOWED = new Set([
   'rename_target',
   'ready_timeout_ms',
   'until',
+  'from',
+  'to',
+  'since',
+  'summary',
+  'objective',
+  'agents',
+  'depends_on',
 ]);
 
 function parse(args) {
@@ -381,6 +398,13 @@ const HELP = `Omha: portable provider runtime, durable DAGs, blind decisions and
   omha compact rpc --input -
   omha compact bridge --id ACTIVATION_ID
   omha memory init|status|list|read|search|put|forget|inject|doctor
+  omha teams create --name NAME [--objective TEXT] [--agents a,b]
+  omha teams list|show [--id TEAM_ID]
+  omha teams task add --id TEAM_ID SUBJECT [--depends-on TASK_ID] | task list --id TEAM_ID
+  omha teams claim --id TEAM_ID --task TASK_ID --agent NAME
+  omha teams complete --id TEAM_ID --task TASK_ID --agent NAME --status completed|failed [--summary TEXT]
+  omha teams send --id TEAM_ID --to NAME [--from host|NAME] [--task TASK_ID] --content TEXT
+  omha teams read --id TEAM_ID --agent NAME [--since MESSAGE_ID]
   omha doctor --json
   omha --version
 
@@ -852,6 +876,51 @@ async function main() {
       if (o.fork && result.handoffs?.some((record) => record.state !== 'running'))
         process.exitCode = 1;
       return json(result);
+    }
+    if (command === 'teams') {
+      const sub = o._[0] || 'list';
+      if (sub === 'create')
+        return json(
+          createTeam(cwd, {
+            name: o.name || o._[1],
+            objective: o.objective,
+            agents: csv(o.agents) || [],
+          }),
+        );
+      if (sub === 'list') return json(listTeams(cwd));
+      if (sub === 'show') return json(teamStatus(cwd, o.id));
+      if (sub === 'task') {
+        const action = o._[1] || 'list';
+        if (action === 'add')
+          return json(
+            addTeamTask(cwd, o.id, {
+              subject: o.task || o._.slice(2).join(' '),
+              description: o.description,
+              dependsOn: csv(o.depends_on) || [],
+            }),
+          );
+        if (action === 'list') return json(teamStatus(cwd, o.id).tasks);
+        throw new OmhaError('configuration', `Unknown teams task command: ${action}`);
+      }
+      if (sub === 'claim') return json(claimTeamTask(cwd, o.id, o.task, o.agent));
+      if (sub === 'complete')
+        return json(
+          completeTeamTask(cwd, o.id, o.task, o.agent, {
+            status: o.status || 'completed',
+            summary: o.summary,
+          }),
+        );
+      if (sub === 'send')
+        return json(
+          sendTeamMessage(cwd, o.id, {
+            from: o.from,
+            to: o.to || o.agent,
+            taskId: o.task_id,
+            content: o.content || o.prompt || o._.slice(1).join(' '),
+          }),
+        );
+      if (sub === 'read') return json(readTeamMailbox(cwd, o.id, o.agent, { since: o.since }));
+      throw new OmhaError('configuration', `Unknown teams command: ${sub}`);
     }
     if (command === 'doctor') {
       let configuration;
