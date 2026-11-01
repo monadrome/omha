@@ -2,6 +2,23 @@
 
 ## 未发布
 
+### Claude Mods
+
+- 新增 `tests/compact-mod.test.ts`：一套 `claude plugin test` 测试，在真实
+  Claude Code 引擎中加载 auto-compact Mod 并 stub 全部 mods API 调用，覆盖
+  注册门槛、斜杠命令与子代理排除、请求关联、定时器布防，以及对着固定宿主 RPC
+  应答的完整 claim/consume/applied 压缩周期。全程无会话、无登录、不触碰
+  provider。
+- 新增 `docs/claude-mods.md`：整合 Omha 使用的 Mods 面、版本门槛、引擎强制的
+  事件形状、验证矩阵，以及 2026-11-01 重新核对的官方文档结论（`$.session.usage()`
+  仍不暴露缓存字段，状态栏桥接继续必要）。`docs/auto-compact.md`、
+  `docs/plugin.md` 与 `AGENTS.md` 已链接该文档；触碰 `hooks/` 的改动需在既有
+  claude 门控检查之外追加运行 `claude plugin test`。
+- 在 Claude Code 2.1.316 上完成零模型请求的实测：严格插件校验完整枚举了 Mod 的
+  hooks/calls；使用临时激活的真实交互会话在账本中产生 `compact.register` 事件，
+  绑定原生会话、版本门槛、生效的 `idleCompaction:false` 覆盖与所有者指纹。原生
+  压缩与热缓存布防仍缺实测，文档中如实标注。
+
 ### 面板（Dashboard）
 
 - 新增 `omha ui [--host 127.0.0.1] [--port 7800] [--interval-ms 1000]

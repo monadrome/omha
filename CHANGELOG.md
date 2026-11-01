@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+### Claude Mods
+
+- Add `tests/compact-mod.test.ts`, a `claude plugin test` suite that loads the
+  real auto-compact Mod in the Claude Code engine with every mods API call
+  stubbed: registration gating, slash-command and subagent exclusion, request
+  correlation, timer arming, and a full claim/consume/applied-compact cycle
+  against a canned host RPC. No session, sign-in or provider is involved.
+- Add `docs/claude-mods.md` consolidating the Mods surface Omha uses, version
+  gates, engine-enforced event shapes, the verification matrix and the
+  re-checked 2026-11-01 official documentation findings (`$.session.usage()`
+  still exposes no cache fields, so the status-line bridge stays required).
+  `docs/auto-compact.md`, `docs/plugin.md` and `AGENTS.md` now link it, and
+  hooks-touching changes run `claude plugin test` alongside the existing
+  claude-gated checks.
+- Verified live on Claude Code 2.1.316 with zero model requests: strict plugin
+  validation enumerates the Mod's hooks/calls, and a real interactive session
+  with a scratch activation produced a `compact.register` ledger event binding
+  the native session, version gate, effective `idleCompaction:false` overlay
+  and owner fingerprint. Native compaction and warm-cache arming remain
+  live-unverified and are documented as such.
+
 ### Dashboard
 
 - Add `omha ui [--host 127.0.0.1] [--port 7800] [--interval-ms 1000]

@@ -2,9 +2,12 @@
 
 Auto compact is an opt-in native Mod in this same plugin. It defaults to a
 57-minute cache timer and 20% context floor, with host budget/ownership checks;
-see [activation and limits](auto-compact.md). It is inert without an explicit
+see [activation and limits](auto-compact.md) and [the Mods surface it uses](claude-mods.md).
+It is inert without an explicit
 `omha compact start` activation and requires Claude Code 2.1.290+. Missing CLI or
 older Claude leaves prompt skills usable. The Mod never silently installs tools.
+Developers can exercise the Mod offline with `claude plugin test`, which stubs
+every mods API call and touches no provider.
 
 Omha has two install surfaces from one repository. The Claude Code plugin loads
 prompt skills; the Node CLI owns deterministic execution and durable state. You

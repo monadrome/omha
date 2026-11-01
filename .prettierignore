@@ -4,3 +4,4 @@ skills/butterfly-effect
 skills/hide
 *.tgz
 .omha
+.claude/settings.local.json

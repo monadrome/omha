@@ -168,12 +168,19 @@ failure, reload, uncertainty, budgets, settings changes and a complete fake Mod
 event cycle. Packaging checks include the installed CLI/API, hook files, plugin
 discovery and prompt-skill availability without running a model.
 
-The local Claude 2.1.220 parser can validate the hooks envelope with `hooks:{}`
-and `modules`, but cannot verify the supported runtime. Real Mod loading,
-effective provider cache behavior and native compaction on 2.1.290+ remain a
-live verification prerequisite; no cache savings or real model correctness is
-claimed from offline fixtures. Unsupported or absent APIs stop maintenance.
+`claude plugin test` (`tests/compact-mod.test.ts`) loads the real Mod in the
+Claude Code engine and drives registration, input invalidation, request
+correlation, timer arming, claim/consume and one applied native compact against
+a stubbed host, with every mods API call stubbed and no session or provider. A
+live interactive session on Claude Code 2.1.316 verified real registration in
+the ledger (native session binding, version gate, effective `idleCompaction`
+overlay and owner fingerprint) with zero model requests. Native compaction,
+warm-cache arming from real usage and shared budget exhaustion still lack live
+verification; no cache savings or real model correctness is claimed from
+fixtures. Unsupported or absent APIs stop maintenance.
 
 - [ADR index](adr/README.md): short accepted/rejected decisions.
+- [Claude Mods support](claude-mods.md): the exact Mods surface, version gates
+  and verification matrix behind this feature.
 - [Original design](auto-compact-design.md) and [review](auto-compact-review.md):
   historical design context; this document describes the implemented contract.

@@ -70,7 +70,9 @@ threshold.
   architectural boundary. ADRs record only key accepted/rejected decisions and
   one or two rationale bullets; keep detailed contracts in feature docs.
 - For auto compact, read [runtime contract](docs/auto-compact.md) and the linked
-  ADRs; use [review](docs/auto-compact-review.md) for historical tradeoffs.
+  ADRs; use [review](docs/auto-compact-review.md) for historical tradeoffs. The
+  Claude Code Mod layer (surface, version gates, verification matrix) is
+  consolidated in [claude mods](docs/claude-mods.md).
 - For execution, terminal and memory boundaries, read
   [architecture](docs/architecture.md), [contracts](docs/contracts.md) and
   [security](docs/security.md) when touching those modules.
@@ -118,9 +120,11 @@ the CLI; runtime commands may require it.
   `claude plugin validate .claude-plugin/plugin.json --strict`,
   `claude plugin validate .claude-plugin/marketplace.json --strict` and
   `npm run pack:check`. The pack check covers tarball contents plus plugin
-  install/list in a clean home. If `claude` is unavailable or the local npm
-  cannot run the pack check, run the offline manifest and packaging checks and
-  report the skipped check; never claim it passed.
+  install/list in a clean home. Changes touching `hooks/` also run
+  `claude plugin test`, which loads the real Mod engine with stubbed mods API
+  calls and no provider. If `claude` is unavailable or the local npm cannot run
+  the pack check, run the offline manifest and packaging checks and report the
+  skipped check; never claim it passed.
 - **Docs stay linked.** Changing a skill or a plugin-visible workflow updates
   `docs/plugin.md` and `skills/README.md`. New skills need an offline test of
   every CLI path they reference, when that path is executable.
