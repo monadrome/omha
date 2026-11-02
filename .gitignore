@@ -5,3 +5,6 @@ node_modules/
 coverage/
 .DS_Store
 .firecrawl/
+.claude-plugin/types/
+/tsconfig.json
+

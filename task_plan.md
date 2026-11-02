@@ -1,5 +1,32 @@
 # Omha release candidate implementation
 
+## Claude Mods consolidation (2026-11-01)
+
+- [complete] 1. Re-fetch the official Mods docs (overview, api, reference,
+  events, test) and diff them against the 2026-10-18 design snapshot; confirm
+  every API and event Omha uses is still current.
+- [complete] 2. Live-verify on Claude Code 2.1.316 with zero model requests:
+  strict plugin validation enumerates the Mod's hooks/calls, and a scratch
+  activation in a real interactive session writes a `compact.register` ledger
+  event binding session, version gate, overlay and owner fingerprint.
+- [complete] 3. Add `tests/compact-mod.test.ts` under `claude plugin test`
+  covering registration gating, slash-command and subagent exclusion, request
+  correlation, timer arming and a full claim/consume/applied-compact cycle
+  against a stubbed host RPC.
+- [complete] 4. Consolidate `docs/claude-mods.md`, link it from auto-compact,
+  plugin docs and AGENTS.md, record residual live-verification limits, update
+  bilingual changelogs, run all checks and push main.
+
+Acceptance: no capability inflation (native compaction and warm-cache arming
+stay marked live-unverified), no behavior change to hooks or lib code, prompt
+skills and the offline suite untouched, and the new suite never starts a
+session or provider.
+
+Verification: `npm run check` 307/307 with formatting, 77 syntax files and
+manifests/examples; both strict manifest validations pass; `claude plugin test`
+passes 3/3; the live 2.1.316 PTY run produced `compact.register` with no model
+request. Delivered as 9a1cf1e directly to origin/main without a version bump.
+
 ## Auto compact and ADR context (2026-10-18)
 
 - [complete] 1. Verify Mod contracts and existing storage/configuration paths;

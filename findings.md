@@ -1,5 +1,33 @@
 # Research findings
 
+## Claude Mods consolidation (2026-11-01)
+
+- Local Claude is now 2.1.316, above the 2.1.290 activation floor. The 2.1.220
+  live-verification prerequisite from 2026-10-18 is closed for Mod loading and
+  registration; native `$.session.compact()` execution, warm-cache arming from
+  real usage and shared budget exhaustion still lack a live working-session run.
+- Official Mods docs re-fetched 2026-11-01: `claude plugin test` ships a
+  stub/mock kit that runs mods with no session or network; `session.end` also
+  fires on `/clear`, `/resume` and `/branch` with an `e.reason`;
+  `$.session.usage()` still returns `{startedAt, context, rateLimits, cost}`
+  with no cache fields, so the status-line bridge stays required;
+  `$.agent.list()` adds `idle`/`waiting` statuses (2.1.289+), which the Mod
+  already treats as unsafe; Mods also load in `claude -p`/Agent SDK sessions.
+- `claude plugin test` mechanics the suite depends on: a `turn.step` stub must
+  be an async generator; `$.turn.step` fires with `{turnId, index, model,
+messageCount}` and the test drains `stream.next()` until done; a
+  `session.compact` stub needs `{value: {messages}}` for the API call plus
+  top-level message rows shaped `{role: 'user'|'assistant', text, toolUses}`
+  for the same-name event validation; the RPC JSON arrives at `e.init.stdin`.
+- Live PTY evidence: register binds the native session id, the observed model
+  (the user's gateway model string) and the owner fingerprint; the busy state
+  suppresses refresh RPCs; loading the Mod and the bridge causes no model
+  request. A piped `/exit` did not terminate the session, so the probe was
+  killed; the repo trust flag was temporarily flipped and restored.
+- Claude tooling regenerates `.claude-plugin/types/` and a root
+  `tsconfig.json` as untracked artifacts during validation; both are now
+  gitignored, and `claude plugin test` runs without them on disk.
+
 ## Auto compact implementation (2026-10-18)
 
 - Main starts clean at 171fa91. The reviewed design and synthesis are authorized

@@ -1,5 +1,26 @@
 # Progress
 
+## Claude Mods consolidation (2026-11-01)
+
+- Restored context, confirmed clean main and the requested consolidation scope:
+  re-check official Mods facts, close what the old 2.1.220 local blocked, and
+  keep every guarantee unchanged.
+- Re-fetched all five official Mods pages; every API and event the Mod uses is
+  unchanged. Notable additions recorded: `claude plugin test`, `session.end`
+  reasons, unchanged `usage()` shape, new `agent.list` statuses.
+- Live verification on 2.1.316 with a scratch OMHA_HOME: strict validation
+  enumerates 7 hooks and 13 API calls plus the `OMHA_COMPACT_ACTIVATION` env
+  read; a real interactive session registered in the ledger with zero model
+  requests. Scratch state, trust flag and probe processes were cleaned up.
+- Built the `claude plugin test` suite; three engine-behavior rounds (async
+  generator stubs, turn.step drain protocol, session.compact row shapes) ended
+  in 3/3 pass covering register, apply and exclusion paths.
+- Consolidated `docs/claude-mods.md`, linked it from auto-compact, plugin docs
+  and AGENTS.md (hooks changes now also run `claude plugin test`), updated
+  bilingual changelogs, gitignored firecrawl scratch and claude type artifacts.
+- `npm run check` 307/307, both strict manifest validations pass, plugin tests
+  3/3. Commit 9a1cf1e pushed to origin/main; no version bump or publication.
+
 ## Auto compact and ADR context (2026-10-18)
 
 - Read implementation/review documents and existing profile, terminal, runtime,
